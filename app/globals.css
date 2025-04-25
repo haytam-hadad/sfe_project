@@ -1,0 +1,262 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Custom application colors */
+    --mainColor: crimson;
+    --main2Color: crimson;
+    --secondaryColor: #fff;
+    --thirdColor: #111;
+    --mainTextColor: #000;
+    --lightgrey: #fafafa;
+    --darkgrey: #111;
+
+    /* shadcn/ui theme colors - aligned with dark grey */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 98%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 20%; /* Dark grey */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 30%; /* Lighter grey */
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 0% 20%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 20%; /* Dark grey for consistent focus rings */
+
+    /* Chart colors */
+    --chart-1: 0 0% 20%; /* Dark grey */
+    --chart-2: 0 0% 30%; /* Lighter grey */
+    --chart-3: 0 0% 40%; /* Even lighter grey */
+    --chart-4: 15 80% 60%; /* Coral - complementary to grey */
+    --chart-5: 27 87% 67%; /* Orange - complementary to grey */
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Custom dark mode colors */
+    --secondaryColor: #0c0f15;
+    --mainTextColor: #fff;
+    --lightgrey: #1c2128;
+    --darkgrey: #161b22;
+
+    /* shadcn/ui dark theme colors - aligned with dark grey */
+    --background: 0 0% 7%; /* Dark grey-tinted background */
+    --foreground: 0 0% 98%;
+    --card: 0 0% 4%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 20%; /* Dark grey */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 14%; /* Dark grey-tinted secondary */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 30%; /* Lighter grey */
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 0% 20%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14%;
+    --input: 0 0% 14%;
+    --ring: 0 0% 20%; /* Dark grey for consistent focus rings */
+
+    /* Chart colors */
+    --chart-1: 0 0% 20%; /* Dark grey */
+    --chart-2: 0 0% 30%; /* Lighter grey */
+    --chart-3: 0 0% 40%; /* Even lighter grey */
+    --chart-4: 15 80% 60%; /* Coral - complementary to grey */
+    --chart-5: 27 87% 67%; /* Orange - complementary to grey */
+  }
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  @apply bg-background text-foreground;
+}
+
+@layer base {
+  /* Custom Scrollbar Styling - Improved for better visibility and interaction */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #bbb;
+    border-radius: 10px;
+    transition: background-color 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--mainColor);
+  }
+
+  /* Firefox scrollbar styling */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #bbb transparent;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: #2a2a3c;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: var(--mainColor);
+  }
+
+  /* Firefox dark mode scrollbar */
+  .dark * {
+    scrollbar-color: #2a2a3c transparent;
+  }
+
+  /* Border utility */
+  * {
+    @apply border-border;
+  }
+}
+
+/* Apply serif font to article titles for better readability */
+.font-serif {
+  font-family: "Merriweather", serif;
+}
+
+/* Improved focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid var(--mainColor);
+  outline-offset: 2px;
+  @apply transition-all duration-200;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+  @apply antialiased;
+}
+
+/* Loading and transition animations */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Remove scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+@layer components {
+  .nav_Link {
+    @apply flex-grow border-r border-secondaryColor last:border-none transition-all hover:text-thirdColor font-semibold capitalize;
+  }
+
+  .separator {
+    @apply text-muted-foreground;
+  }
+
+  .title {
+    @apply text-xl md:text-2xl m-1 p-2 rounded-sm font-bold text-foreground px-4;
+  }
+
+  .side_menu_link {
+    @apply flex mb-1 border-l-4 border-transparent my-1 transition-all duration-200 rounded-xl 
+           hover:border-l-primary items-center text-lg space-x-2 w-full text-left px-5 py-3 
+           hover:bg-primary/10 hover:text-primary;
+  }
+
+  .side_menu_link_dashboard {
+    @apply flex mb-1 border-l-4 border-transparent my-1 transition-all duration-200 rounded-xl 
+           hover:border-l-primary-foreground items-center text-lg space-x-2 w-full text-left px-5 py-3 
+           hover:bg-primary text-secondaryColor hover:text-primary-foreground;
+  }
+
+  .form_input {
+    @apply w-full p-3 text-sm rounded-md bg-secondary border-l-4 border-primary 
+           ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+           dark:bg-darkgrey dark:text-foreground transition-colors duration-200;
+  }
+
+  .main_btn {
+    @apply w-full bg-primary text-lg hover:bg-primary/90 rounded-lg p-3 text-primary-foreground 
+           font-semibold shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.98];
+  }
+
+  /* Improved button focus styles */
+  button:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 transition-shadow duration-200;
+  }
+
+  /* Improved form input focus styles */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-1 transition-shadow duration-200;
+  }
+}
+
+/* Responsive typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply tracking-tight font-medium;
+}
+
+/* Better link hover states */
+a:not(.no-underline):hover {
+  @apply underline-offset-4 decoration-2 decoration-primary/70 transition-all duration-200;
+}
+
+/* Improved card hover effects */
+.hover-card {
+  @apply transition-all duration-300 hover:shadow-md hover:translate-y-[-2px];
+}
+
+/* Responsive padding utility classes */
+.responsive-p {
+  @apply p-3 sm:p-4 md:p-5;
+}
+
+.responsive-px {
+  @apply px-3 sm:px-4 md:px-6;
+}
+
+.responsive-py {
+  @apply py-2 sm:py-3 md:py-4;
+}
+
