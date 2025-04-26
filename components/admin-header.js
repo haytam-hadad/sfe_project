@@ -1,7 +1,6 @@
 "use client"
 import Link from "next/link"
 import {
-  Search,
   Menu,
   Moon,
   Sun,
@@ -13,18 +12,10 @@ import { useState, useContext, useEffect, useRef } from "react"
 import { ThemeContext } from "../app/ThemeProvider"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
 import { usePathname } from "next/navigation"
 
 export default function AdminHeader({ onToggleMenu }) {
   const { theme, setTheme } = useContext(ThemeContext)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const dropdownRef = useRef(null)
-  const searchRef = useRef(null)
-  const searchInputRef = useRef(null)
-  const router = useRouter()
-  const activePath = usePathname()
-
 
   // Handle theme toggle
   const toggleTheme = () => {
@@ -42,7 +33,7 @@ export default function AdminHeader({ onToggleMenu }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between py-3 gap-3">
           {/* Logo Group */}
-          <Link href="/admin" className="flex items-center gap-2 group shrink-0">
+          <Link href="/" className="flex items-center gap-2 group shrink-0">
             <div className="relative">
               <ShieldAlert className=" scale-150 text-red-500 w-5 h-5" />
             </div>
@@ -56,17 +47,6 @@ export default function AdminHeader({ onToggleMenu }) {
 
           {/* Control Group */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Mobile Search Button */}
-            {!activePath.includes("search") && (
-              <button
-                onClick={() => setShowSearch(true)}
-                className="md:hidden p-2 rounded-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-                aria-label="Search"
-              >
-                <Search className="w-5 h-5" />
-              </button>
-            )}
-
 
             {/* Dark Mode Toggle */}
             <div className="hidden sm:flex items-center gap-2 rounded-full">

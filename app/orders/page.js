@@ -527,275 +527,279 @@ export default function OrdersDashboard() {
   }
 
   return (
-    <div className="container mx-auto p-2 sm:p-3 md:p-4 lg:p-5 w-full overflow-x-hidden">
-      {/* Header */}
-      <div className="flex w-full flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl p-1 font-extrabold tracking-tight">
-            Orders List
-          </h1>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={refreshData}
-            disabled={loading}
-            className="h-9"
-          >
-            <RefreshCwIcon className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </Button>
+    <div className="mx-auto p-2 sm:p-3 md:p-4 lg:p-5">
+      <div className="w-full mb-5 p-1">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-3">
+          <div className="flex-1">
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold tracking-tight">
+              Orders List
+            </h1>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refreshData}
+              disabled={loading}
+              className="h-9"
+            >
+              <RefreshCwIcon className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
 
-          <Badge
-            variant="outline"
-            className="text-sm bg-mainColor text-white p-1 px-3"
-          >
-            {filteredOrders.length} orders
-          </Badge>
+            <Badge
+              variant="outline"
+              className="text-xs sm:text-sm bg-mainColor text-white p-1 px-3"
+            >
+              {filteredOrders.length} orders
+            </Badge>
 
-          {Object.keys(orderStats).length > 0 && (
+            {Object.keys(orderStats).length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-9">
+                    <SlidersIcon className="mr-2 h-4 w-4" />
+                    Stats
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-full sm:w-56">
+                  <div className="p-2">
+                    <h4 className="font-medium text-sm mb-2">Order Summary</h4>
+                    <div className="text-xs sm:text-sm space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Total Amount:</span>
+                        <span className="font-medium">{formatCurrency(orderStats.totalAmount)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Total Quantity:</span>
+                        <span className="font-medium">{formatCurrency(orderStats.totalQuantity)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <div className="p-2">
+                    <h4 className="font-medium text-sm mb-2">Status Breakdown</h4>
+                    <div className="text-xs sm:text-sm space-y-1">
+                      {Object.entries(orderStats.statusCounts || {}).map(([status, count]) => {
+                        const percentage = (count / filteredOrders.length) * 100;
+                        return (
+                          <div key={status} className="flex justify-between items-center">
+                            <span className="text-muted-foreground">{status}:</span>
+                            <Badge variant="outline" className="font-medium">
+                              {count} ({percentage.toFixed(1)}%)
+                            </Badge>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            {isSmallScreen && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9"
+                onClick={() => setShowFilters((prev) => !prev)}
+              >
+                <FilterIcon className="mr-2 h-4 w-4" />
+                {showFilters ? "Hide Filters" : "Show Filters"}
+              </Button>
+            )}
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-9">
                   <SlidersIcon className="mr-2 h-4 w-4" />
-                  Stats
+                  Columns
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent
+                align="end"
+                className="w-full sm:w-56 max-h-[80vh] overflow-y-auto"
+              >
                 <div className="p-2">
-                  <h4 className="font-medium text-sm mb-2">Order Summary</h4>
-                  <div className="text-sm space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Total Amount:</span>
-                      <span className="font-medium">{formatCurrency(orderStats.totalAmount)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Total Quantity:</span>
-                      <span className="font-medium">{formatCurrency(orderStats.totalQuantity)}</span>
-                    </div>
-                  </div>
-                </div>
-                <DropdownMenuSeparator />
-                <div className="p-2">
-                  <h4 className="font-medium text-sm mb-2">Status Breakdown</h4>
-                  <div className="text-sm space-y-1">
-                    {Object.entries(orderStats.statusCounts || {}).map(([status, count]) => {
-                      const percentage = (count / filteredOrders.length) * 100;
-                      return (
-                        <div key={status} className="flex justify-between items-center">
-                          <span className="text-muted-foreground">{status}:</span>
-                          <Badge variant="outline" className="font-medium">
-                            {count} ({percentage.toFixed(1)}%)
-                          </Badge>
-                        </div>
-                      );
-                    })}
+                  <h4 className="font-medium text-sm mb-2">Toggle Columns</h4>
+                  <div className="space-y-1">
+                    {Object.keys(visibleColumns).map((column) => (
+                      <div key={column} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={visibleColumns[column]}
+                          onChange={() =>
+                            setVisibleColumns((prev) => ({
+                              ...prev,
+                              [column]: !prev[column],
+                            }))
+                          }
+                          className="mr-2"
+                        />
+                        <label className="text-xs sm:text-sm">{column}</label>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
-          )}
+          </div>
+        </div>
 
-          {isSmallScreen && (
+        {/* Filters */}
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg flex items-center">
+            <FilterIcon className="mr-2 h-4 w-4" />
+            Filters
+          </h2>
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              className="h-9"
+              className="h-9 border hover:bg-mainColor hover:text-white"
               onClick={() => setShowFilters((prev) => !prev)}
             >
-              <FilterIcon className="mr-2 h-4 w-4" />
               {showFilters ? "Hide Filters" : "Show Filters"}
             </Button>
-          )}
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-9">
-                <SlidersIcon className="mr-2 h-4 w-4" />
-                Columns
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="p-2">
-                <h4 className="font-medium text-sm mb-2">Toggle Columns</h4>
-                <div className="space-y-1">
-                  {Object.keys(visibleColumns).map((column) => (
-                    <div key={column} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={visibleColumns[column]}
-                        onChange={() =>
-                          setVisibleColumns((prev) => ({
-                            ...prev,
-                            [column]: !prev[column],
-                          }))
-                        }
-                        className="mr-2"
-                      />
-                      <label className="text-sm">{column}</label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg flex items-center">
-          <FilterIcon className="mr-2 h-4 w-4" />
-          Filters
-        </h2>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9"
-            onClick={() => setShowFilters((prev) => !prev)}
-          >
-            {showFilters ? "Hide Filters" : "Show Filters"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9"
-            onClick={() =>
-              setSortDirection((prevDirection) =>
-                prevDirection === "asc" ? "desc" : "asc"
-              )
-            }
-          >
-            {sortDirection === "asc" ? (
-              <ArrowUpIcon className="mr-2 h-4 w-4" />
-            ) : (
-              <ArrowDownIcon className="mr-2 h-4 w-4" />
-            )}
-            {sortDirection === "asc" ? "Ascending" : "Descending"}
-          </Button>
-        </div>
-      </div>
-      <div
-        className={`mb-3 md:mb-4 w-full p-2 transition-all ${
-          showFilters ? "opacity-100" : "opacity-0 h-0 overflow-hidden"
-        }`}
-      >
-        {showFilters && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {/* Filters */}
-            <div className="relative col-span-full">
-              <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search by ID, city, SKU or any field..."
-                className="pl-8 border-mainColor w-full"
-                value={searchQuery}
-                onChange={(e) => handleSearchQueryChange(e.target.value)}
-                aria-label="Search orders"
-              />
-            </div>
-
-            {/* Status filter */}
-            <select
-              className="border rounded-md px-3 py-2 dark:bg-black w-full"
-              value={statusFilter}
-              onChange={(e) => handleStatusFilterChange(e.target.value)}
-              aria-label="Filter by status"
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 border hover:bg-mainColor hover:text-white"
+              onClick={() =>
+                setSortDirection((prevDirection) =>
+                  prevDirection === "asc" ? "desc" : "asc"
+                )
+              }
             >
-              <option value="">All Statuses</option>
-              {statuses.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-
-            {/* Country filter */}
-            <select
-              className="border rounded-md px-3 py-2 dark:bg-black w-full"
-              value={countryFilter}
-              onChange={(e) => handleCountryFilterChange(e.target.value)}
-              aria-label="Filter by country"
-            >
-              <option value="">All Countries</option>
-              {countries.map((country) => (
-                <option key={country} value={country}>
-                  {country}
-                </option>
-              ))}
-            </select>
-
-            {/* City filter */}
-            <select
-              className="border rounded-md px-3 py-2 dark:bg-black w-full"
-              value={cityFilter}
-              onChange={(e) => handleCityFilterChange(e.target.value)}
-              aria-label="Filter by city"
-            >
-              <option value="">All Cities</option>
-              {cities.map(({ city, count }) => (
-                <option key={city} value={city}>
-                  {city} ({count} orders)
-                </option>
-              ))}
-            </select>
-
-            {/* Date range */}
-            <div className="flex gap-2 col-span-full sm:col-span-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="justify-start dark:bg-black text-left hover:text-white font-normal flex-1"
-                    aria-label="Select start date"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "PPP") : "Start date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={(date) => handleDateRangeChange(date, endDate)}
-                    initialFocus
-                    disabled={(date) => endDate && date > endDate}
-                  />
-                </PopoverContent>
-              </Popover>
-
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="justify-start dark:bg-black text-left hover:text-white font-normal flex-1"
-                    aria-label="Select end date"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "PPP") : "End date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={(date) => handleDateRangeChange(startDate, date)}
-                    initialFocus
-                    disabled={(date) => startDate && date < startDate}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+              {sortDirection === "asc" ? (
+                <ArrowUpIcon className="mr-2 h-4 w-4" />
+              ) : (
+                <ArrowDownIcon className="mr-2 h-4 w-4" />
+              )}
+              {sortDirection === "asc" ? "Ascending" : "Descending"}
+            </Button>
           </div>
-        )}
+        </div>
+        <div
+          className={`mb-3 md:mb-4 w-full p-2 transition-all ${showFilters ? "opacity-100" : "opacity-0 h-0 overflow-hidden"
+            }`}
+        >
+          {showFilters && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+              {/* Filters */}
+              <div className="relative col-span-full">
+                <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search by ID, city, SKU or any field..."
+                  className="pl-8 border-mainColor w-full"
+                  value={searchQuery}
+                  onChange={(e) => handleSearchQueryChange(e.target.value)}
+                  aria-label="Search orders"
+                />
+              </div>
+
+              {/* Status filter */}
+              <select
+                className="border rounded-md px-3 py-2 dark:bg-black w-full"
+                value={statusFilter}
+                onChange={(e) => handleStatusFilterChange(e.target.value)}
+                aria-label="Filter by status"
+              >
+                <option value="">All Statuses</option>
+                {statuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+
+              {/* Country filter */}
+              <select
+                className="border rounded-md px-3 py-2 dark:bg-black w-full"
+                value={countryFilter}
+                onChange={(e) => handleCountryFilterChange(e.target.value)}
+                aria-label="Filter by country"
+              >
+                <option value="">All Countries</option>
+                {countries.map((country) => (
+                  <option key={country} value={country}>
+                    {country}
+                  </option>
+                ))}
+              </select>
+
+              {/* City filter */}
+              <select
+                className="border rounded-md px-3 py-2 dark:bg-black w-full"
+                value={cityFilter}
+                onChange={(e) => handleCityFilterChange(e.target.value)}
+                aria-label="Filter by city"
+              >
+                <option value="">All Cities</option>
+                {cities.map(({ city, count }) => (
+                  <option key={city} value={city}>
+                    {city} ({count} orders)
+                  </option>
+                ))}
+              </select>
+
+              {/* Date range */}
+              <div className="flex gap-2 col-span-full sm:col-span-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="justify-start dark:bg-black text-left hover:text-white font-normal flex-1"
+                      aria-label="Select start date"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {startDate ? format(startDate, "PPP") : "Start date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={(date) => handleDateRangeChange(date, endDate)}
+                      initialFocus
+                      disabled={(date) => endDate && date > endDate}
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="justify-start dark:bg-black text-left hover:text-white font-normal flex-1"
+                      aria-label="Select end date"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate ? format(endDate, "PPP") : "End date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={(date) => handleDateRangeChange(startDate, date)}
+                      initialFocus
+                      disabled={(date) => startDate && date < startDate}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Orders Table */}
       <div
         id="orders-table"
-        className="mb-3 md:mb-4 bg-white dark:bg-zinc-900 rounded-md border overflow-x-auto"
+        className="mb-3 md:mb-4 bg-white dark:bg-zinc-900 rounded-md border overflow-x-auto max-w-full"
       >
         <Table className="min-w-full">
           <TableHeader className="bg-gray-100 dark:bg-zinc-950 sticky top-0 z-10">
@@ -849,17 +853,17 @@ export default function OrdersDashboard() {
               {visibleColumns["sku number"] && (
                 <TableHead
                   className="cursor-pointer"
-                  onClick={() => handleSort("sku number ")}
+                  onClick={() => handleSort("sku number")}
                   role="columnheader"
-                  aria-sort={sortField === "sku number " ? sortDirection : "none"}
+                  aria-sort={sortField === "sku number" ? sortDirection : "none"}
                 >
                   <div className="flex items-center">
                     <span
-                      className={sortField === "sku number " ? "text-mainColor" : ""}
+                      className={sortField === "sku number" ? "text-mainColor" : ""}
                     >
                       SKU
                     </span>
-                    {sortField === "sku number " ? (
+                    {sortField === "sku number" ? (
                       sortDirection === "asc" ? (
                         <ArrowUpIcon className="ml-1 h-4 w-4" />
                       ) : (
@@ -895,17 +899,17 @@ export default function OrdersDashboard() {
               {visibleColumns["Quantity"] && (
                 <TableHead
                   className="cursor-pointer text-center"
-                  onClick={() => handleSort(" Quantity")}
+                  onClick={() => handleSort("Quantity")}
                   role="columnheader"
-                  aria-sort={sortField === " Quantity" ? sortDirection : "none"}
+                  aria-sort={sortField === "Quantity" ? sortDirection : "none"}
                 >
                   <div className="flex items-center justify-center">
                     <span
-                      className={sortField === " Quantity" ? "text-mainColor" : ""}
+                      className={sortField === "Quantity" ? "text-mainColor" : ""}
                     >
                       Qty
                     </span>
-                    {sortField === " Quantity" ? (
+                    {sortField === "Quantity" ? (
                       sortDirection === "asc" ? (
                         <ArrowUpIcon className="ml-1 h-4 w-4" />
                       ) : (
@@ -1003,8 +1007,8 @@ export default function OrdersDashboard() {
                         : "There are no orders to display. Try refreshing or check back later."}
                     </p>
                     {(searchQuery || statusFilter || countryFilter || startDate || endDate) && (
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="mt-4"
                         onClick={resetFilters}
                       >
@@ -1017,8 +1021,8 @@ export default function OrdersDashboard() {
               </TableRow>
             ) : (
               paginatedOrders.map((order, index) => (
-                <TableRow 
-                  key={`${order["Order ID"]}-${index}`} 
+                <TableRow
+                  key={`${order["Order ID"]}-${index}`}
                   className="hover:bg-muted/50 cursor-pointer transition-colors"
                   onClick={() => viewOrderDetails(order)}
                 >
@@ -1030,8 +1034,7 @@ export default function OrdersDashboard() {
                     <TableCell>
                       <div
                         className="max-w-[150px] truncate"
-                        title={order["sku number "] || "N/A"} // Ensure the key matches your data
-                      >
+                        title={order["sku number "] || "N/A"}                      >
                         {order["sku number "] || "N/A"}
                       </div>
                     </TableCell>
