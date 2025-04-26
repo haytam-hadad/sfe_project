@@ -1,23 +1,17 @@
 "use client"
 
-import { useState, useContext, useEffect } from "react"
-import { ThemeContext } from "../app/ThemeProvider"
+import { useEffect } from "react"
 import {
   BarChartIcon as ChartBar,
   Database,
-  Sun,
-  Moon,
-  Globe,
 } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Label } from "@/components/ui/label"
 import { usePathname } from "next/navigation"
 import { useRouter } from "next/navigation"
 
 
 const AdminSideMenu = ({ setVisible }) => {
-  const { theme, setTheme } = useContext(ThemeContext)
   const activePath = usePathname()
   const router = useRouter()
 
@@ -45,23 +39,6 @@ const AdminSideMenu = ({ setVisible }) => {
       style={{ bottom: 0 }}
     >
       <div className="flex flex-col p-4 space-y-3">
-        {/* Theme Toggle */}
-        <button
-          onClick={() => setTheme(!theme)}
-          className="flex items-center justify-between p-3 rounded-xl transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-800/70 border border-gray-100 dark:border-gray-800 sm:hidden group"
-          aria-label="Toggle Dark Mode"
-        >
-          <div className="flex items-center gap-3 font-medium">
-            <Label className="text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
-              Theme
-            </Label>
-            {theme ? (
-              <Sun className="w-5 h-5 text-amber-500 group-hover:text-amber-600 transition-colors" />
-            ) : (
-              <Moon className="w-5 h-5 text-red-400 group-hover:text-red-500 transition-colors" />
-            )}
-          </div>
-        </button>
 
         {/* Dashboard Link */}
         <Link href="/" className="block">

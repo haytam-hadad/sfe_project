@@ -49,7 +49,7 @@ export default function AdminHeader({ onToggleMenu }) {
           <div className="flex items-center gap-2 shrink-0">
 
             {/* Dark Mode Toggle */}
-            <div className="hidden sm:flex items-center gap-2 rounded-full">
+            <div className="flex items-center gap-2 rounded-full">
               <div className="flex items-center space-x-2">
                 <Switch
                   id="dark-mode"
