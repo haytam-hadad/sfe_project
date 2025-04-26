@@ -81,7 +81,7 @@ export default function OrdersDashboard() {
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   // Media query for responsive design
   const isMobile = window.innerWidth <= 768;

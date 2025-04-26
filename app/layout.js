@@ -2,20 +2,15 @@
 
 import { ThemeProvider } from "./ThemeProvider";
 import "./globals.css";
-import { useContext, useState } from "react";
-import { usePathname } from "next/navigation";
+import { useState } from "react";
 import AdminHeader from "@/components/admin-header";
 import AdminSideMenu from "@/components/admin-side-menu";
 import { AnimatePresence } from "framer-motion";
 import { Toaster } from "@/components/ui/toaster"
 
-// export const metadata = {
-//   title: "Admin Dashboard",
-//   description: "Admin dashboard for content management",
-// }
+
 
 export default function RootLayout({ children }) {
-  const pathname = usePathname();
   const [sideMenuVisible, setSideMenuVisible] = useState(true);
 
   return (

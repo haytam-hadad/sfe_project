@@ -1,13 +1,18 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-    images: {
-        remotePatterns: [
-            {
-                protocol: 'https',
-                hostname: '**',
-            },
-        ],
-    },
-};
+import withPWA from 'next-pwa';
+
+const nextConfig = withPWA({
+  dest: 'public',
+  cacheOnFrontEndNavigation: true,
+  aggregatedCache: true,
+  reloadOnOnline: true,
+  swcMinify: true,
+  disable: process.env.NODE_ENV === 'development',
+  workboxOptions: {
+    disableDevLogs: true,
+  },
+});
 
 export default nextConfig;
+
+
