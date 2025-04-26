@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+
 import withPWA from 'next-pwa';
 
 const nextConfig = withPWA({
@@ -7,7 +8,7 @@ const nextConfig = withPWA({
   aggregatedCache: true,
   reloadOnOnline: true,
   swcMinify: true,
-  disable: process.env.NODE_ENV === 'development',
+  disable: false,
   workboxOptions: {
     disableDevLogs: true,
   },

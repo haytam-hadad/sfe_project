@@ -69,11 +69,22 @@ export default function OrdersDashboard() {
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [showFilters, setShowFilters] = useState(true);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
+  const [visibleColumns, setVisibleColumns] = useState({
+    "Order date": true,
+    "Order ID": true,
+    "sku number": true,
+    "Cod Amount": true,
+    "Quantity": true,
+    "City": true,
+    "Receier Country*": true,
+    "STATUS": true,
+  });
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [countryFilter, setCountryFilter] = useState("");
+  const [cityFilter, setCityFilter] = useState("");
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [sortField, setSortField] = useState("Order date");
@@ -138,6 +149,20 @@ export default function OrdersDashboard() {
     return uniqueStatuses.sort();
   }, [orders]);
 
+  const cities = useMemo(() => {
+    if (!orders.length) return [];
+    const cityCounts = orders.reduce((acc, order) => {
+      const city = order["City"];
+      if (city) {
+        acc[city] = (acc[city] || 0) + 1;
+      }
+      return acc;
+    }, {});
+    return Object.entries(cityCounts)
+      .sort(([, countA], [, countB]) => countB - countA) // Sort by count descending
+      .map(([city, count]) => ({ city, count })); // Return city and count as objects
+  }, [orders]);
+
   // Filter orders based on current criteria
   const filteredOrders = useMemo(() => {
     if (!orders.length) return [];
@@ -158,6 +183,7 @@ export default function OrdersDashboard() {
         const matchesStatus = !statusFilter || order["STATUS"] === statusFilter;
         const matchesCountry =
           !countryFilter || order["Receier Country*"] === countryFilter;
+        const matchesCity = !cityFilter || order["City"] === cityFilter;
 
         let matchesDateRange = true;
         if (startDate || endDate) {
@@ -174,7 +200,7 @@ export default function OrdersDashboard() {
           }
         }
 
-        return matchesStatus && matchesCountry && matchesDateRange;
+        return matchesStatus && matchesCountry && matchesCity && matchesDateRange;
       })
       .sort((a, b) => {
         const fieldA = a[sortField];
@@ -199,6 +225,7 @@ export default function OrdersDashboard() {
     searchQuery,
     statusFilter,
     countryFilter,
+    cityFilter,
     startDate,
     endDate,
     sortField,
@@ -244,6 +271,7 @@ export default function OrdersDashboard() {
     setSearchQuery("");
     setStatusFilter("");
     setCountryFilter("");
+    setCityFilter("");
     setStartDate(null);
     setEndDate(null);
     setCurrentPage(1);
@@ -252,18 +280,21 @@ export default function OrdersDashboard() {
   const handleSort = (field) => {
     setSortField((prevField) => {
       if (prevField === field) {
+        // If the same field is clicked, toggle the sort direction
         setSortDirection((prevDirection) =>
           prevDirection === "asc" ? "desc" : "asc"
         );
       } else {
-        setSortDirection("asc"); // Reset to "asc" for new attribute
+        // If a new field is clicked, keep the current sort direction
+        setSortDirection((prevDirection) => prevDirection);
       }
-      return field; // Ensure field is updated
+      return field; // Update the sort field
     });
   };
+
   const goToPage = useCallback((page) => {
     setCurrentPage(page);
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const tableElement = document.querySelector("#orders-table");
       if (tableElement) {
         tableElement.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -306,6 +337,32 @@ export default function OrdersDashboard() {
     setSelectedOrder(order);
     setShowOrderDetails(true);
   }, []);
+
+  const handleSearchQueryChange = (value) => {
+    setSearchQuery(value);
+    setCurrentPage(1); // Reset to the first page
+  };
+
+  const handleStatusFilterChange = (value) => {
+    setStatusFilter(value);
+    setCurrentPage(1); // Reset to the first page
+  };
+
+  const handleCountryFilterChange = (value) => {
+    setCountryFilter(value);
+    setCurrentPage(1); // Reset to the first page
+  };
+
+  const handleCityFilterChange = (value) => {
+    setCityFilter(value);
+    setCurrentPage(1); // Reset to the first page
+  };
+
+  const handleDateRangeChange = (start, end) => {
+    setStartDate(start);
+    setEndDate(end);
+    setCurrentPage(1); // Reset to the first page
+  };
 
   // UI Helper Functions
   const getStatusBadge = useCallback((status) => {
@@ -362,7 +419,7 @@ export default function OrdersDashboard() {
     const buttons = [];
     const maxButtonsToShow = isSmallScreen ? 3 : 5;
 
-    // Always show first page
+    // Always show the first page
     buttons.push(
       <Button
         key="page-1"
@@ -379,16 +436,6 @@ export default function OrdersDashboard() {
     // Calculate range of pages to show
     let startPage = Math.max(2, currentPage - Math.floor(maxButtonsToShow / 2));
     let endPage = Math.min(totalPages - 1, startPage + maxButtonsToShow - 2);
-
-    if (startPage <= 2) {
-      startPage = 2;
-      endPage = Math.min(totalPages - 1, startPage + maxButtonsToShow - 2);
-    }
-
-    if (endPage >= totalPages - 1) {
-      endPage = totalPages - 1;
-      startPage = Math.max(2, endPage - (maxButtonsToShow - 2));
-    }
 
     if (startPage > 2) {
       buttons.push(
@@ -460,33 +507,31 @@ export default function OrdersDashboard() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-screen p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-red-600">Error Loading Data</CardTitle>
-            <CardDescription>
+        <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-red-600">Error Loading Data</h2>
+            <p className="text-sm text-muted-foreground">
               We couldn&apos;t load your orders data. Please try again.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-4 text-sm text-muted-foreground">{error}</p>
-            <Button
-              className="w-full"
-              onClick={() => window.location.reload()}
-            >
-              <RefreshCwIcon className="mr-2 h-4 w-4" /> Refresh Page
-            </Button>
-          </CardContent>
-        </Card>
+            </p>
+          </div>
+          <div className="mb-4 text-sm text-muted-foreground">{error}</div>
+          <button
+            className="w-full bg-mainColor text-white py-2 px-4 rounded-md hover:bg-mainColor-dark transition"
+            onClick={() => window.location.reload()}
+          >
+            <RefreshCwIcon className="mr-2 h-4 w-4 inline-block" /> Refresh Page
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-1 sm:p-3 md:p-4 lg:p-5 w-full">
+    <div className="container mx-auto p-2 sm:p-3 md:p-4 lg:p-5 w-full overflow-x-hidden">
       {/* Header */}
       <div className="flex w-full flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-4">
         <div>
-          <h1 className="text-3xl p-1 font-extrabold tracking-tight">
+          <h1 className="text-2xl md:text-3xl p-1 font-extrabold tracking-tight">
             Orders List
           </h1>
         </div>
@@ -551,144 +596,211 @@ export default function OrdersDashboard() {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          
+
           {isSmallScreen && (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               className="h-9"
-              onClick={() => setShowFilters(prev => !prev)}
+              onClick={() => setShowFilters((prev) => !prev)}
             >
               <FilterIcon className="mr-2 h-4 w-4" />
               {showFilters ? "Hide Filters" : "Show Filters"}
             </Button>
           )}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9">
+                <SlidersIcon className="mr-2 h-4 w-4" />
+                Columns
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="p-2">
+                <h4 className="font-medium text-sm mb-2">Toggle Columns</h4>
+                <div className="space-y-1">
+                  {Object.keys(visibleColumns).map((column) => (
+                    <div key={column} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={visibleColumns[column]}
+                        onChange={() =>
+                          setVisibleColumns((prev) => ({
+                            ...prev,
+                            [column]: !prev[column],
+                          }))
+                        }
+                        className="mr-2"
+                      />
+                      <label className="text-sm">{column}</label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
       {/* Filters */}
-      <Card className={`mb-3 md:mb-4 w-full transition-all ${showFilters ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg flex items-center">
+          <FilterIcon className="mr-2 h-4 w-4" />
+          Filters
+        </h2>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9"
+            onClick={() => setShowFilters((prev) => !prev)}
+          >
+            {showFilters ? "Hide Filters" : "Show Filters"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9"
+            onClick={() =>
+              setSortDirection((prevDirection) =>
+                prevDirection === "asc" ? "desc" : "asc"
+              )
+            }
+          >
+            {sortDirection === "asc" ? (
+              <ArrowUpIcon className="mr-2 h-4 w-4" />
+            ) : (
+              <ArrowDownIcon className="mr-2 h-4 w-4" />
+            )}
+            {sortDirection === "asc" ? "Ascending" : "Descending"}
+          </Button>
+        </div>
+      </div>
+      <div
+        className={`mb-3 md:mb-4 w-full p-2 transition-all ${
+          showFilters ? "opacity-100" : "opacity-0 h-0 overflow-hidden"
+        }`}
+      >
         {showFilters && (
-          <>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center">
-                <FilterIcon className="mr-2 h-4 w-4" />
-                Filters
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 lg:gap-6">
-              {/* Search */}
-              <div className="relative md:col-span-2 lg:col-span-4">
-                <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search by ID, city, SKU or any field..."
-                  className="pl-8 border-mainColor w-full"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  aria-label="Search orders"
-                />
-              </div>
-
-              {/* Status filter */}
-              <select
-                className="border rounded-md px-3 py-2 md:col-span-2 lg:col-span-1 dark:bg-black"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                aria-label="Filter by status"
-              >
-                <option value="">All Statuses</option>
-                {statuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-
-              {/* Country filter */}
-              <select
-                className="border rounded-md px-3 py-2 md:col-span-2 lg:col-span-1 dark:bg-black"
-                value={countryFilter}
-                onChange={(e) => setCountryFilter(e.target.value)}
-                aria-label="Filter by country"
-              >
-                <option value="">All Countries</option>
-                {countries.map((country) => (
-                  <option key={country} value={country}>
-                    {country}
-                  </option>
-                ))}
-              </select>
-
-              {/* Date range */}
-              <div className="flex gap-2 md:col-span-2 lg:col-span-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="justify-start dark:bg-black text-left hover:text-white font-normal flex-1"
-                      aria-label="Select start date"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, "PPP") : "Start date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={startDate}
-                      onSelect={setStartDate}
-                      initialFocus
-                      disabled={(date) => endDate && date > endDate}
-                    />
-                  </PopoverContent>
-                </Popover>
-
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="justify-start dark:bg-black text-left hover:text-white font-normal flex-1"
-                      aria-label="Select end date"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {endDate ? format(endDate, "PPP") : "End date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={endDate}
-                      onSelect={setEndDate}
-                      initialFocus
-                      disabled={(date) => startDate && date < startDate}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </CardContent>
-
-            <div className="flex justify-end px-6 pb-3">
-              <Button
-                variant="ghost"
-                onClick={resetFilters}
-                className="h-8 border px-2 lg:px-3 m-1 hover:text-white"
-                disabled={!searchQuery && !statusFilter && !countryFilter && !startDate && !endDate}
-              >
-                <XCircle className="h-4 w-4 mr-2" />
-                Reset filters
-              </Button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {/* Filters */}
+            <div className="relative col-span-full">
+              <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search by ID, city, SKU or any field..."
+                className="pl-8 border-mainColor w-full"
+                value={searchQuery}
+                onChange={(e) => handleSearchQueryChange(e.target.value)}
+                aria-label="Search orders"
+              />
             </div>
-          </>
+
+            {/* Status filter */}
+            <select
+              className="border rounded-md px-3 py-2 dark:bg-black w-full"
+              value={statusFilter}
+              onChange={(e) => handleStatusFilterChange(e.target.value)}
+              aria-label="Filter by status"
+            >
+              <option value="">All Statuses</option>
+              {statuses.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+
+            {/* Country filter */}
+            <select
+              className="border rounded-md px-3 py-2 dark:bg-black w-full"
+              value={countryFilter}
+              onChange={(e) => handleCountryFilterChange(e.target.value)}
+              aria-label="Filter by country"
+            >
+              <option value="">All Countries</option>
+              {countries.map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </select>
+
+            {/* City filter */}
+            <select
+              className="border rounded-md px-3 py-2 dark:bg-black w-full"
+              value={cityFilter}
+              onChange={(e) => handleCityFilterChange(e.target.value)}
+              aria-label="Filter by city"
+            >
+              <option value="">All Cities</option>
+              {cities.map(({ city, count }) => (
+                <option key={city} value={city}>
+                  {city} ({count} orders)
+                </option>
+              ))}
+            </select>
+
+            {/* Date range */}
+            <div className="flex gap-2 col-span-full sm:col-span-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="justify-start dark:bg-black text-left hover:text-white font-normal flex-1"
+                    aria-label="Select start date"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "PPP") : "Start date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={(date) => handleDateRangeChange(date, endDate)}
+                    initialFocus
+                    disabled={(date) => endDate && date > endDate}
+                  />
+                </PopoverContent>
+              </Popover>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="justify-start dark:bg-black text-left hover:text-white font-normal flex-1"
+                    aria-label="Select end date"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "PPP") : "End date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={(date) => handleDateRangeChange(startDate, date)}
+                    initialFocus
+                    disabled={(date) => startDate && date < startDate}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
         )}
-      </Card>
+      </div>
 
       {/* Orders Table */}
-      <div id="orders-table" className="mb-3 md:mb-4 bg-white dark:bg-zinc-900 rounded-md border">
-        <div className="overflow-x-auto">
-          <Table className="min-w-full">
-            <TableHeader className="bg-gray-100 dark:bg-zinc-950 sticky top-0 z-10">
-              <TableRow>
+      <div
+        id="orders-table"
+        className="mb-3 md:mb-4 bg-white dark:bg-zinc-900 rounded-md border overflow-x-auto"
+      >
+        <Table className="min-w-full">
+          <TableHeader className="bg-gray-100 dark:bg-zinc-950 sticky top-0 z-10">
+            <TableRow>
+              {visibleColumns["Order date"] && (
                 <TableHead
                   className="cursor-pointer"
                   onClick={() => handleSort("Order date")}
@@ -697,9 +809,7 @@ export default function OrdersDashboard() {
                 >
                   <div className="flex items-center">
                     <span
-                      className={
-                        sortField === "Order date" ? "text-mainColor" : ""
-                      }
+                      className={sortField === "Order date" ? "text-mainColor" : ""}
                     >
                       Date
                     </span>
@@ -712,6 +822,8 @@ export default function OrdersDashboard() {
                     ) : null}
                   </div>
                 </TableHead>
+              )}
+              {visibleColumns["Order ID"] && (
                 <TableHead
                   className="cursor-pointer"
                   onClick={() => handleSort("Order ID")}
@@ -720,9 +832,7 @@ export default function OrdersDashboard() {
                 >
                   <div className="flex items-center">
                     <span
-                      className={
-                        sortField === "Order ID" ? "text-mainColor" : ""
-                      }
+                      className={sortField === "Order ID" ? "text-mainColor" : ""}
                     >
                       Order ID
                     </span>
@@ -735,6 +845,8 @@ export default function OrdersDashboard() {
                     ) : null}
                   </div>
                 </TableHead>
+              )}
+              {visibleColumns["sku number"] && (
                 <TableHead
                   className="cursor-pointer"
                   onClick={() => handleSort("sku number ")}
@@ -743,9 +855,7 @@ export default function OrdersDashboard() {
                 >
                   <div className="flex items-center">
                     <span
-                      className={
-                        sortField === "sku number " ? "text-mainColor" : ""
-                      }
+                      className={sortField === "sku number " ? "text-mainColor" : ""}
                     >
                       SKU
                     </span>
@@ -758,6 +868,8 @@ export default function OrdersDashboard() {
                     ) : null}
                   </div>
                 </TableHead>
+              )}
+              {visibleColumns["Cod Amount"] && (
                 <TableHead
                   className="cursor-pointer text-right"
                   onClick={() => handleSort("Cod Amount")}
@@ -766,9 +878,7 @@ export default function OrdersDashboard() {
                 >
                   <div className="flex items-center justify-end">
                     <span
-                      className={
-                        sortField === "Cod Amount" ? "text-mainColor" : ""
-                      }
+                      className={sortField === "Cod Amount" ? "text-mainColor" : ""}
                     >
                       Amount
                     </span>
@@ -781,6 +891,8 @@ export default function OrdersDashboard() {
                     ) : null}
                   </div>
                 </TableHead>
+              )}
+              {visibleColumns["Quantity"] && (
                 <TableHead
                   className="cursor-pointer text-center"
                   onClick={() => handleSort(" Quantity")}
@@ -789,9 +901,7 @@ export default function OrdersDashboard() {
                 >
                   <div className="flex items-center justify-center">
                     <span
-                      className={
-                        sortField === " Quantity" ? "text-mainColor" : ""
-                      }
+                      className={sortField === " Quantity" ? "text-mainColor" : ""}
                     >
                       Qty
                     </span>
@@ -804,6 +914,8 @@ export default function OrdersDashboard() {
                     ) : null}
                   </div>
                 </TableHead>
+              )}
+              {visibleColumns["City"] && (
                 <TableHead
                   className="cursor-pointer"
                   onClick={() => handleSort("City")}
@@ -825,6 +937,8 @@ export default function OrdersDashboard() {
                     ) : null}
                   </div>
                 </TableHead>
+              )}
+              {visibleColumns["Receier Country*"] && (
                 <TableHead
                   className="cursor-pointer"
                   onClick={() => handleSort("Receier Country*")}
@@ -848,6 +962,8 @@ export default function OrdersDashboard() {
                     ) : null}
                   </div>
                 </TableHead>
+              )}
+              {visibleColumns["STATUS"] && (
                 <TableHead
                   className="cursor-pointer"
                   onClick={() => handleSort("STATUS")}
@@ -869,271 +985,115 @@ export default function OrdersDashboard() {
                     ) : null}
                   </div>
                 </TableHead>
+              )}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              renderSkeletonRows()
+            ) : filteredOrders.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="h-32 text-center">
+                  <div className="flex flex-col items-center justify-center text-muted-foreground p-8">
+                    <PackageIcon className="h-12 w-12 mb-4 opacity-40" />
+                    <p className="text-lg font-medium mb-1">No orders found</p>
+                    <p className="text-sm max-w-sm text-center">
+                      {searchQuery || statusFilter || countryFilter || startDate || endDate
+                        ? "Try adjusting your filters or clearing the search"
+                        : "There are no orders to display. Try refreshing or check back later."}
+                    </p>
+                    {(searchQuery || statusFilter || countryFilter || startDate || endDate) && (
+                      <Button 
+                        variant="outline" 
+                        className="mt-4"
+                        onClick={resetFilters}
+                      >
+                        <XCircle className="mr-2 h-4 w-4" />
+                        Clear filters
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                renderSkeletonRows()
-              ) : filteredOrders.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="h-32 text-center">
-                    <div className="flex flex-col items-center justify-center text-muted-foreground p-8">
-                      <PackageIcon className="h-12 w-12 mb-4 opacity-40" />
-                      <p className="text-lg font-medium mb-1">No orders found</p>
-                      <p className="text-sm max-w-sm text-center">
-                        {searchQuery || statusFilter || countryFilter || startDate || endDate
-                          ? "Try adjusting your filters or clearing the search"
-                          : "There are no orders to display. Try refreshing or check back later."}
-                      </p>
-                      {(searchQuery || statusFilter || countryFilter || startDate || endDate) && (
-                        <Button 
-                          variant="outline" 
-                          className="mt-4"
-                          onClick={resetFilters}
-                        >
-                          <XCircle className="mr-2 h-4 w-4" />
-                          Clear filters
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                paginatedOrders.map((order, index) => (
-                  <TableRow 
-                    key={`${order["Order ID"]}-${index}`} 
-                    className="hover:bg-muted/50 cursor-pointer transition-colors"
-                    onClick={() => viewOrderDetails(order)}
-                  >
-                    <TableCell className="font-medium">
-                      {order["Order date"]}
-                    </TableCell>
-                    <TableCell>{order["Order ID"]}</TableCell>
+            ) : (
+              paginatedOrders.map((order, index) => (
+                <TableRow 
+                  key={`${order["Order ID"]}-${index}`} 
+                  className="hover:bg-muted/50 cursor-pointer transition-colors"
+                  onClick={() => viewOrderDetails(order)}
+                >
+                  {visibleColumns["Order date"] && (
+                    <TableCell className="font-medium">{order["Order date"]}</TableCell>
+                  )}
+                  {visibleColumns["Order ID"] && <TableCell>{order["Order ID"]}</TableCell>}
+                  {visibleColumns["sku number"] && (
                     <TableCell>
-                      <div className="max-w-[150px] truncate" title={order["sku number "]}>
-                        {order["sku number "]}
+                      <div
+                        className="max-w-[150px] truncate"
+                        title={order["sku number "] || "N/A"} // Ensure the key matches your data
+                      >
+                        {order["sku number "] || "N/A"}
                       </div>
                     </TableCell>
+                  )}
+                  {visibleColumns["Cod Amount"] && (
                     <TableCell className="text-right">
                       {formatCurrency(order["Cod Amount"])}
                     </TableCell>
-                    <TableCell className="text-center">
-                      {order[" Quantity"]}
-                    </TableCell>
+                  )}
+                  {visibleColumns["Quantity"] && (
+                    <TableCell className="text-center">{order[" Quantity"]}</TableCell>
+                  )}
+                  {visibleColumns["City"] && (
                     <TableCell>
-                      <div className="max-w-[120px] truncate" title={order["City"]}>
+                      <div
+                        className="max-w-[120px] truncate"
+                        title={order["City"]}
+                      >
                         {order["City"]}
                       </div>
                     </TableCell>
+                  )}
+                  {visibleColumns["Receier Country*"] && (
                     <TableCell>{order["Receier Country*"]}</TableCell>
+                  )}
+                  {visibleColumns["STATUS"] && (
                     <TableCell>{getStatusBadge(order["STATUS"])}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        {/* Pagination */}
-        {!loading && filteredOrders.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-4 border-t gap-3">
-            <div className="text-sm text-muted-foreground order-2 sm:order-1">
-              Showing{" "}
-              <span className="font-medium">
-                {Math.min(
-                  filteredOrders.length,
-                  (currentPage - 1) * itemsPerPage + 1
-                )}
-              </span>{" "}
-              to{" "}
-              <span className="font-medium">
-                {Math.min(filteredOrders.length, currentPage * itemsPerPage)}
-              </span>{" "}
-              of <span className="font-medium">{filteredOrders.length}</span>{" "}
-              orders
-            </div>
-
-            <div className="flex items-center space-x-2 order-1 sm:order-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goToPreviousPage}
-                disabled={currentPage === 1}
-                className="h-8 w-8 p-0"
-                aria-label="Previous page"
-              >
-                <ChevronLeftIcon className="h-4 w-4" />
-              </Button>
-
-              <div className="flex items-center">
-                {renderPaginationButtons()}
-              </div>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goToNextPage}
-                disabled={currentPage === totalPages || totalPages === 0}
-                className="h-8 w-8 p-0"
-                aria-label="Next page"
-              >
-                <ChevronRightIcon className="h-4 w-4" />
-              </Button>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="h-8 px-2 text-xs">
-                    {itemsPerPage} / page
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuRadioGroup value={`${itemsPerPage}`} onValueChange={(value) => {
-                    setItemsPerPage(Number(value));
-                    setCurrentPage(1);
-                  }}>
-                    <DropdownMenuRadioItem value="10">10 per page</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="20">20 per page</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="50">50 per page</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="100">100 per page</DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        )}
+                  )}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
 
-      {/* Order Details Dialog */}
-      <Dialog 
-        open={showOrderDetails} 
-        onOpenChange={(open) => {
-          setShowOrderDetails(open);
-          if (!open) setSelectedOrder(null);
-        }}
-      >
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center">
-              <PackageIcon className="mr-2 h-5 w-5" />
-              Order Details
-            </DialogTitle>
-            <DialogDescription>
-              {selectedOrder?.["Order ID"] && `Order : ${selectedOrder["Order ID"]}`}
-            </DialogDescription>
-          </DialogHeader>
-          <hr/>
-          {selectedOrder && (
-            <ScrollArea className="max-h-[70vh]">
-              <div className="space-y-6 py-2">
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Order Information</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Status</p>
-                      <div className="mt-1">{getStatusBadge(selectedOrder["STATUS"])}</div>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Date</p>
-                      <p className="font-medium">{selectedOrder["Order date"]}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Amount</p>
-                      <p className="font-medium">{formatCurrency(selectedOrder["Cod Amount"])}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Quantity</p>
-                      <p className="font-medium">{selectedOrder[" Quantity"]}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Product Information</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="col-span-2">
-                      <p className="text-xs text-muted-foreground">SKU</p>
-                      <p className="font-medium break-all">{selectedOrder["sku number "]}</p>
-                    </div>
-                    {selectedOrder["Product Name"] && (
-                      <div className="col-span-2">
-                        <p className="text-xs text-muted-foreground">Product</p>
-                        <p className="font-medium">{selectedOrder["Product Name"]}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Shipping Information</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="col-span-2">
-                      <p className="text-xs text-muted-foreground">Address</p>
-                      <p className="font-medium">
-                        {[
-                          selectedOrder["Address Line 1"],
-                          selectedOrder["Address Line 2"]
-                        ].filter(Boolean).join(', ')}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">City</p>
-                      <p className="font-medium">{selectedOrder["City"]}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Country</p>
-                      <p className="font-medium">{selectedOrder["Receier Country*"]}</p>
-                    </div>
-                    {selectedOrder["Postal Code"] && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">Postal Code</p>
-                        <p className="font-medium">{selectedOrder["Postal Code"]}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Additional order details if available */}
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Additional Details</h3>
-                  <div className="grid grid-cols-1 gap-3">
-                    {Object.entries(selectedOrder)
-                      .filter(([key]) => 
-                        !["Order ID", "Order date", "STATUS", "Cod Amount", " Quantity", 
-                          "sku number ", "City", "Receier Country*", "Address Line 1", 
-                          "Address Line 2", "Product Name", "Postal Code"].includes(key) && 
-                        selectedOrder[key])
-                      .slice(0, 8) // Limit the number of additional fields
-                      .map(([key, value]) => (
-                        <div key={key}>
-                          <p className="text-xs text-muted-foreground">{key}</p>
-                          <p className="font-medium break-words">{value}</p>
-                        </div>
-                      ))
-                    }
-                  </div>
-                </div>
-              </div>
-            </ScrollArea>
-          )}
-          
-          <div className="flex justify-end space-x-2 mt-4">
-            <Button
-              variant="outline"
-              onClick={() => setShowOrderDetails(false)}
-            >
-              Close
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Loading overlay */}
-      {loading && (
-        <div className="fixed bottom-4 right-4 bg-black/80 text-white px-4 py-2 rounded-md flex items-center shadow-lg z-50">
-          <LoaderIcon className="animate-spin h-4 w-4 mr-2" />
-          Loading orders...
+      <div className="flex justify-between items-center mt-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={goToPreviousPage}
+          disabled={currentPage === 1}
+          className="h-8"
+        >
+          <ChevronLeftIcon className="h-4 w-4" />
+          Previous
+        </Button>
+
+        <div className="flex gap-1">
+          {renderPaginationButtons()}
         </div>
-      )}
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={goToNextPage}
+          disabled={currentPage === totalPages}
+          className="h-8"
+        >
+          Next
+          <ChevronRightIcon className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }

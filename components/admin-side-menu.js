@@ -15,21 +15,8 @@ import { Label } from "@/components/ui/label"
 import { usePathname } from "next/navigation"
 import { useRouter } from "next/navigation"
 
-const menuItems = [
-  {
-    name: "Sheets",
-    path: "/sheets",
-    icon: <Globe size={20} />,
-  },
-  {
-    name: "Orders",
-    path: "/orders",
-    icon: <Database size={20} />,
-  },
-]
 
 const AdminSideMenu = ({ setVisible }) => {
-  const [expandedSections, setExpandedSections] = useState(["modules", "system"])
   const { theme, setTheme } = useContext(ThemeContext)
   const activePath = usePathname()
   const router = useRouter()
@@ -57,11 +44,11 @@ const AdminSideMenu = ({ setVisible }) => {
       transition={{ duration: 0.3, ease: "easeOut" }}
       style={{ bottom: 0 }}
     >
-      <div className="flex flex-col p-4 space-y-2">
+      <div className="flex flex-col p-4 space-y-3">
         {/* Theme Toggle */}
         <button
           onClick={() => setTheme(!theme)}
-          className="flex items-center justify-between p-3.5 rounded-xl transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-800/70 border border-gray-100 dark:border-gray-800 sm:hidden group"
+          className="flex items-center justify-between p-3 rounded-xl transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-800/70 border border-gray-100 dark:border-gray-800 sm:hidden group"
           aria-label="Toggle Dark Mode"
         >
           <div className="flex items-center gap-3 font-medium">
@@ -80,7 +67,7 @@ const AdminSideMenu = ({ setVisible }) => {
         <Link href="/" className="block">
           <button
             onClick={() => setVisible(false)}
-            className={`flex items-center w-full p-3.5 rounded-xl transition-all duration-300 ${
+            className={`flex items-center w-full p-3 rounded-xl transition-all duration-300 ${
               activePath === "/"
                 ? "bg-red-600 text-white font-medium shadow-sm"
                 : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/70 hover:text-gray-900 dark:hover:text-white"
@@ -96,7 +83,7 @@ const AdminSideMenu = ({ setVisible }) => {
         <Link href="/orders" className="block">
           <button
             onClick={() => setVisible(false)}
-            className={`flex items-center w-full p-3.5 rounded-xl transition-all duration-300 ${
+            className={`flex items-center w-full p-3 rounded-xl transition-all duration-300 ${
               activePath === "/orders"
                 ? "bg-red-600 text-white font-medium shadow-sm"
                 : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/70 hover:text-gray-900 dark:hover:text-white"

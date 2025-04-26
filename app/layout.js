@@ -8,6 +8,13 @@ import AdminSideMenu from "@/components/admin-side-menu";
 import { AnimatePresence } from "framer-motion";
 import { Toaster } from "@/components/ui/toaster"
 
+// export const metadata = {
+//   title: "My App",
+//   description: "This is a description of my app.",
+//   keywords: "app, react, next.js",
+//   author: "Author Name",
+//   viewport: "width=device-width, initial-scale=1",
+// };
 
 
 export default function RootLayout({ children }) {
