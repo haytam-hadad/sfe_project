@@ -1,27 +1,28 @@
 {
-    "name": "Ecomark dashboard",
-    "short_name": "Ecomark dashboard",
-    "icons": [
-      {
-        "src": "/images/i1.svg",
-        "sizes": "192x192",
-        "type": "image/png",
-        "purpose": "any maskable"
-      },
-      {
-        "src": "/images/i1.svg",
-        "sizes": "384x384",
-        "type": "image/png"
-      },
-      {
-        "src": "/images/i1.svg",
-        "sizes": "512x512",
-        "type": "image/png"
-      }
-    ],
-    "theme_color": "#FFFFFF",
-    "background_color": "#FFFFFF",
-    "start_url": "/",
-    "display": "standalone",
-    "orientation": "portrait"
-  }
+  "name": "Ecomark Dashboard",
+  "short_name": "Ecomark",
+  "description": "A modern dashboard for managing Ecomark's analytics and orders.",
+  "icons": [
+    {
+      "src": "/images/i1.svg",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/i1.svg",
+      "sizes": "384x384",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/i1.svg",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#FFFFFF",
+  "background_color": "#FFFFFF",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait"
+}

@@ -43,14 +43,14 @@ const AdminSideMenu = ({ setVisible }) => {
 
   return (
     <motion.div
-      className="bg-zinc-900 border border-r-2 border-r-mainColor dark:bg-white border-gray-800 w-[260px] h-full fixed top-0 md:pt-16 overflow-y-auto left-0"
+      className="bg-zinc-900 border border-r-2 border-r-mainColor dark:bg-white border-gray-800 w-[250px] h-full fixed top-0 md:pt-16 overflow-y-auto left-0"
       initial={{ x: -260 }}
       animate={{ x: 0 }}
       exit={{ x: -260 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
       style={{ bottom: 0 }}
     >
-      <div className="flex flex-col p-3 mt-2 space-y-3">
+      <div className="flex flex-col p-3 space-y-3">
         {links.map((link) => (
           <Link key={link.href} href={link.href} className="block">
             <button
