@@ -786,7 +786,7 @@ export default function OrdersDashboard() {
         className="mb-3 md:mb-4 bg-white dark:bg-zinc-900 rounded-md border overflow-x-auto max-w-full"
       >
         <Table className="min-w-full">
-          <TableHeader className="bg-gray-100 dark:bg-zinc-950 sticky top-0 z-10">
+          <TableHeader className="bg-gray-100 text-center dark:bg-zinc-950 sticky top-0 z-10">
             <TableRow>
               {visibleColumns["Order date"] && (
                 <TableHead
@@ -801,13 +801,13 @@ export default function OrdersDashboard() {
                     >
                       Date
                     </span>
-                    {sortField === "Order date" ? (
+                    {sortField === "Order date" && (
                       sortDirection === "asc" ? (
                         <ArrowUpIcon className="ml-1 h-4 w-4" />
                       ) : (
                         <ArrowDownIcon className="ml-1 h-4 w-4" />
                       )
-                    ) : null}
+                    )}
                   </div>
                 </TableHead>
               )}
@@ -1011,20 +1011,23 @@ export default function OrdersDashboard() {
                   onClick={() => viewOrderDetails(order)}
                 >
                   {visibleColumns["Order date"] && (
-                    <TableCell className="font-medium">{order["Order date"]}</TableCell>
+                    <TableCell className="text-center font-medium">{order["Order date"]}</TableCell>
                   )}
-                  {visibleColumns["Order ID"] && <TableCell>{order["Order ID"]}</TableCell>}
+                  {visibleColumns["Order ID"] && (
+                    <TableCell className="text-center">{order["Order ID"]}</TableCell>
+                  )}
                   {visibleColumns["sku number"] && (
-                    <TableCell>
+                    <TableCell className="text-center">
                       <div
                         className="max-w-[150px] truncate"
-                        title={order["sku number "] || "N/A"}                      >
+                        title={order["sku number "] || "N/A"}
+                      >
                         {order["sku number "] || "N/A"}
                       </div>
                     </TableCell>
                   )}
                   {visibleColumns["Cod Amount"] && (
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                       {formatCurrency(order["Cod Amount"])}
                     </TableCell>
                   )}
@@ -1032,7 +1035,7 @@ export default function OrdersDashboard() {
                     <TableCell className="text-center">{order[" Quantity"]}</TableCell>
                   )}
                   {visibleColumns["City"] && (
-                    <TableCell>
+                    <TableCell className="text-center">
                       <div
                         className="max-w-[120px] truncate"
                         title={order["City"]}
@@ -1042,10 +1045,10 @@ export default function OrdersDashboard() {
                     </TableCell>
                   )}
                   {visibleColumns["Receier Country*"] && (
-                    <TableCell>{order["Receier Country*"]}</TableCell>
+                    <TableCell className="text-center">{order["Receier Country*"]}</TableCell>
                   )}
                   {visibleColumns["STATUS"] && (
-                    <TableCell>{getStatusBadge(order["STATUS"])}</TableCell>
+                    <TableCell className="text-center">{getStatusBadge(order["STATUS"])}</TableCell>
                   )}
                 </TableRow>
               ))
