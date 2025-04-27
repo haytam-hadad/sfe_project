@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
+
 import {
   Table,
   TableBody,
@@ -260,20 +261,12 @@ export default function OrdersDashboard() {
     setEndDate(null);
     setCurrentPage(1);
   }, []);
-
   const handleSort = (field) => {
-    setSortField((prevField) => {
-      if (prevField === field) {
-        // If the same field is clicked, toggle the sort direction
-        setSortDirection((prevDirection) =>
-          prevDirection === "asc" ? "desc" : "asc"
-        );
-      } else {
-        // If a new field is clicked, keep the current sort direction
-        setSortDirection((prevDirection) => prevDirection);
-      }
-      return field; // Update the sort field
-    });
+    const isSameField = field === sortField;
+    setSortField(field);
+    setSortDirection(
+      isSameField ? sortDirection === "asc" ? "desc" : "asc" : "asc"
+    );
   };
 
   const goToPage = useCallback((page) => {
@@ -511,10 +504,10 @@ export default function OrdersDashboard() {
   }
 
   return (
-    <div className="mx-auto p-2 sm:p-3 md:p-4 lg:p-5">
-      <div className="w-full mb-5 p-1">
+    <div className="mx-auto p-2 sm:p-3 md:p-4 lg:p-5 w-full">
+      <div className="w-full mb-5">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-3">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-2">
           <div className="flex-1">
             <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold tracking-tight">
               Orders List
@@ -607,10 +600,10 @@ export default function OrdersDashboard() {
               >
                 <div className="p-2">
                   <h4 className="font-medium text-sm mb-2">Toggle Columns</h4>
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     {Object.keys(visibleColumns).map((column) => (
                       <div key={column} className="flex items-center">
-                        <input
+                        <Input
                           type="checkbox"
                           checked={visibleColumns[column]}
                           onChange={() =>
@@ -649,7 +642,7 @@ export default function OrdersDashboard() {
             <Button
               variant="outline"
               size="sm"
-              className="h-9 border hover:bg-mainColor hover:text-white"
+              className="h-9 border-2 hover:bg-mainColor hover:text-white"
               onClick={() =>
                 setSortDirection((prevDirection) =>
                   prevDirection === "asc" ? "desc" : "asc"
@@ -657,20 +650,19 @@ export default function OrdersDashboard() {
               }
             >
               {sortDirection === "asc" ? (
-                <ArrowUpIcon className="mr-2 h-4 w-4" />
+                <ArrowUpIcon className="h-4 w-4" />
               ) : (
-                <ArrowDownIcon className="mr-2 h-4 w-4" />
+                <ArrowDownIcon className="h-4 w-4" />
               )}
-              {sortDirection === "asc" ? "Ascending" : "Descending"}
             </Button>
           </div>
         </div>
         <div
-          className={`mb-3 md:mb-4 w-full p-2 transition-all ${showFilters ? "opacity-100" : "opacity-0 h-0 overflow-hidden"
+          className={`mb-3 md:mb-4 w-full p-1 transition-all ${showFilters ? "opacity-100" : "opacity-0 h-0 overflow-hidden"
             }`}
         >
           {showFilters && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 max-w-[100vw] lg:grid-cols-4 gap-2">
               {/* Filters */}
               <div className="relative col-span-full">
                 <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -779,18 +771,18 @@ export default function OrdersDashboard() {
           )}
         </div>
       </div>
-
       {/* Orders Table */}
       <div
         id="orders-table"
-        className="mb-3 md:mb-4 bg-white dark:bg-zinc-900 rounded-md border overflow-x-auto max-w-full"
+        className="bg-white dark:bg-zinc-900 rounded-md border max-w-full overflow-auto"
+        style={{ maxHeight: "80vh", maxWidth: "100vw", overflowX: "scroll" }}
       >
         <Table className="min-w-full">
           <TableHeader className="bg-gray-100 text-center dark:bg-zinc-950 sticky top-0 z-10">
             <TableRow>
               {visibleColumns["Order date"] && (
                 <TableHead
-                  className="cursor-pointer"
+                  className="cursor-pointer user-select-none"
                   onClick={() => handleSort("Order date")}
                   role="columnheader"
                   aria-sort={sortField === "Order date" ? sortDirection : "none"}
@@ -993,7 +985,7 @@ export default function OrdersDashboard() {
                     {(searchQuery || statusFilter || countryFilter || startDate || endDate) && (
                       <Button
                         variant="outline"
-                        className="mt-4"
+                        className="mt-3"
                         onClick={resetFilters}
                       >
                         <XCircle className="mr-2 h-4 w-4" />
@@ -1056,7 +1048,6 @@ export default function OrdersDashboard() {
           </TableBody>
         </Table>
       </div>
-
       <div className="flex justify-between items-center mt-4">
         <Button
           variant="outline"
