@@ -603,7 +603,7 @@ export default function OrdersDashboard() {
                   <div className="space-y-2">
                     {Object.keys(visibleColumns).map((column) => (
                       <div key={column} className="flex items-center">
-                        <Input
+                        <input
                           type="checkbox"
                           checked={visibleColumns[column]}
                           onChange={() =>

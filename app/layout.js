@@ -6,22 +6,25 @@ import { useState } from "react";
 import AdminHeader from "@/components/admin-header";
 import AdminSideMenu from "@/components/admin-side-menu";
 import { AnimatePresence } from "framer-motion";
-import { Toaster } from "@/components/ui/toaster"
-
-// export const metadata = {
-//   title: "My App",
-//   description: "This is a description of my app.",
-//   keywords: "app, react, next.js",
-//   author: "Author Name",
-//   viewport: "width=device-width, initial-scale=1",
-// };
-
+import { Toaster } from "@/components/ui/toaster";
 
 export default function RootLayout({ children }) {
-  const [sideMenuVisible, setSideMenuVisible] = useState(true);
+  const [sideMenuVisible, setSideMenuVisible] = useState(false);
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
+      <head>
+        {/* Metadata */}
+        <title>Ecomark Dashboard</title>
+        <meta name="description" content="This is a description of my app." />
+        <meta name="keywords" content="app, react, next.js, admin dashboard" />
+        <meta name="author" content="Author Name" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta charSet="UTF-8" />
+
+        {/* Favicon */}
+        <link rel="icon" href="/images/i1.svg" type="image/svg+xml" />
+      </head>
       <body className="bg-secondaryColor dark:bg-thirdColor">
         <ThemeProvider>
           <div className="flex flex-col min-h-screen">

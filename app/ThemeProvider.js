@@ -1,7 +1,6 @@
 "use client"
 
 import { createContext, useState, useEffect } from "react"
-import { useRouter, usePathname } from "next/navigation"
 
 // Create context with default values to avoid undefined errors
 export const ThemeContext = createContext({
