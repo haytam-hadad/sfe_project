@@ -19,7 +19,7 @@ export default function AdminHeader({ onToggleMenu }) {
         <div className="flex items-center justify-between py-3">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <ShieldAlert className="text-red-500 w-6 h-6" />
+            <ShieldAlert className="w-8 h-8 text-mainColor" />
             <span className="text-2xl font-bold text-gray-800 dark:text-gray-100">
               Ecomark
             </span>
@@ -58,4 +58,5 @@ export default function AdminHeader({ onToggleMenu }) {
     </header>
   );
 }
+
 

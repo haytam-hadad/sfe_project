@@ -519,7 +519,7 @@ export default function OrdersDashboard() {
               size="sm"
               onClick={refreshData}
               disabled={loading}
-              className="h-9"
+              className="h-9 hover:text-white"
             >
               <RefreshCwIcon className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
               Refresh
@@ -535,7 +535,7 @@ export default function OrdersDashboard() {
             {Object.keys(orderStats).length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-9">
+                  <Button variant="outline" size="sm" className="h-9 hover:text-white">
                     <SlidersIcon className="mr-2 h-4 w-4" />
                     Stats
                   </Button>
@@ -589,7 +589,7 @@ export default function OrdersDashboard() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-9">
+                <Button variant="outline" size="sm" className="h-9 hover:text-white">
                   <SlidersIcon className="mr-2 h-4 w-4" />
                   Columns
                 </Button>
@@ -640,9 +640,7 @@ export default function OrdersDashboard() {
               {showFilters ? "Hide Filters" : "Show Filters"}
             </Button>
             <Button
-              variant="outline"
-              size="sm"
-              className="h-9 border-2 hover:bg-mainColor hover:text-white"
+              className="h-9 hover:bg-mainColor hover:text-white"
               onClick={() =>
                 setSortDirection((prevDirection) =>
                   prevDirection === "asc" ? "desc" : "asc"
@@ -774,10 +772,10 @@ export default function OrdersDashboard() {
       {/* Orders Table */}
       <div
         id="orders-table"
-        className="bg-white dark:bg-zinc-900 rounded-md border max-w-full overflow-auto"
+        className="bg-white p-1 border dark:bg-zinc-900 rounded-md max-w-full overflow-auto"
         style={{ maxHeight: "80vh", maxWidth: "100vw", overflowX: "scroll" }}
       >
-        <Table className="min-w-full">
+        <Table>
           <TableHeader className="bg-gray-100 text-center dark:bg-zinc-950 sticky top-0 z-10">
             <TableRow>
               {visibleColumns["Order date"] && (
@@ -787,7 +785,7 @@ export default function OrdersDashboard() {
                   role="columnheader"
                   aria-sort={sortField === "Order date" ? sortDirection : "none"}
                 >
-                  <div className="flex items-center">
+                  <div className="flex justify-center items-center">
                     <span
                       className={sortField === "Order date" ? "text-mainColor" : ""}
                     >
@@ -810,7 +808,7 @@ export default function OrdersDashboard() {
                   role="columnheader"
                   aria-sort={sortField === "Order ID" ? sortDirection : "none"}
                 >
-                  <div className="flex items-center">
+                  <div className="flex justify-center items-center">
                     <span
                       className={sortField === "Order ID" ? "text-mainColor" : ""}
                     >
@@ -833,7 +831,7 @@ export default function OrdersDashboard() {
                   role="columnheader"
                   aria-sort={sortField === "sku number" ? sortDirection : "none"}
                 >
-                  <div className="flex items-center">
+                  <div className="flex justify-center items-center">
                     <span
                       className={sortField === "sku number" ? "text-mainColor" : ""}
                     >
@@ -856,7 +854,7 @@ export default function OrdersDashboard() {
                   role="columnheader"
                   aria-sort={sortField === "Cod Amount" ? sortDirection : "none"}
                 >
-                  <div className="flex items-center justify-end">
+                  <div className="flex justify-center items-center">
                     <span
                       className={sortField === "Cod Amount" ? "text-mainColor" : ""}
                     >
@@ -879,7 +877,7 @@ export default function OrdersDashboard() {
                   role="columnheader"
                   aria-sort={sortField === "Quantity" ? sortDirection : "none"}
                 >
-                  <div className="flex items-center justify-center">
+                  <div className="flex justify-center items-center">
                     <span
                       className={sortField === "Quantity" ? "text-mainColor" : ""}
                     >
@@ -902,7 +900,7 @@ export default function OrdersDashboard() {
                   role="columnheader"
                   aria-sort={sortField === "City" ? sortDirection : "none"}
                 >
-                  <div className="flex items-center">
+                  <div className="flex justify-center items-center">
                     <span
                       className={sortField === "City" ? "text-mainColor" : ""}
                     >
@@ -925,7 +923,7 @@ export default function OrdersDashboard() {
                   role="columnheader"
                   aria-sort={sortField === "Receier Country*" ? sortDirection : "none"}
                 >
-                  <div className="flex items-center">
+                  <div className="flex justify-center items-center">
                     <span
                       className={
                         sortField === "Receier Country*" ? "text-mainColor" : ""
@@ -950,7 +948,7 @@ export default function OrdersDashboard() {
                   role="columnheader"
                   aria-sort={sortField === "STATUS" ? sortDirection : "none"}
                 >
-                  <div className="flex items-center">
+                  <div className="flex justify-center items-center">
                     <span
                       className={sortField === "STATUS" ? "text-mainColor" : ""}
                     >

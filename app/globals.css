@@ -94,6 +94,7 @@ body {
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
+    background: transparent;
   }
 
   ::-webkit-scrollbar-track {
@@ -102,7 +103,7 @@ body {
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #bbb;
+    background: var(--mainColor);
     border-radius: 10px;
     transition: background-color 0.2s ease;
   }
@@ -114,20 +115,7 @@ body {
   /* Firefox scrollbar styling */
   * {
     scrollbar-width: thin;
-    scrollbar-color: #bbb transparent;
-  }
-
-  .dark ::-webkit-scrollbar-thumb {
-    background: #2a2a3c;
-  }
-
-  .dark ::-webkit-scrollbar-thumb:hover {
-    background: var(--mainColor);
-  }
-
-  /* Firefox dark mode scrollbar */
-  .dark * {
-    scrollbar-color: #2a2a3c transparent;
+    scrollbar-color: var(--mainColor) transparent;
   }
 
   /* Border utility */
