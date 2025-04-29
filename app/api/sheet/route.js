@@ -10,10 +10,9 @@ export async function GET() {
     if (!res.ok) {
       throw new Error(`Failed to fetch Google Sheet data: ${res.status}`);
     }
-
     const filteredData = data.slice(1).filter((row) => {
       const orderId = row?.["Order ID"];
-      return orderId != null;
+      return orderId != null && orderId !== "#REF!";
     });
 
     return Response.json(filteredData);

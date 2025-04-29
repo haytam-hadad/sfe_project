@@ -25,6 +25,11 @@ export default function AdminHeader({ onToggleMenu }) {
             </span>
           </Link>
 
+          {/* Welcome Admin */}
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Welcome, Admin!
+          </p>
+
           {/* Control Group */}
           <div className="flex items-center gap-4">
             {/* Dark Mode Toggle */}
@@ -58,5 +63,4 @@ export default function AdminHeader({ onToggleMenu }) {
     </header>
   );
 }
-
 

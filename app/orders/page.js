@@ -642,7 +642,7 @@ export default function OrdersDashboard() {
                 <Input
                   type="search"
                   placeholder="Search by ID, city, SKU or any field..."
-                  className="pl-8 w-full"
+                  className="pl-8 w-full border-2 border-l-mainColor"
                   value={searchQuery}
                   onChange={(e) => handleSearchQueryChange(e.target.value)}
                   aria-label="Search orders"
@@ -1029,7 +1029,7 @@ export default function OrdersDashboard() {
             Page {currentPage} of {totalPages || 1}
           </span>
           <select
-            className="border rounded-md px-2 py-1 text-sm h-8"
+            className="border dark:bg-black rounded-md px-2 py-1 text-sm h-8"
             value={itemsPerPage}
             onChange={(e) => {
               setItemsPerPage(Number(e.target.value))

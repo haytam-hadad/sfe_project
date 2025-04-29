@@ -17,22 +17,22 @@ const links = [
   },
 ];
 
-const analyticsLinks = [
+const statisticsLinks = [
   {
     text: "Cities",
-    href: "/analytics/cities",
+    href: "/cities",
     icon: MapPin,
   },
   {
     text: "Products",
-    href: "/analytics/products",
+    href: "/products",
     icon: Package,
   },
 ];
 
 const AdminSideMenu = () => {
   const activePath = usePathname();
-  const [analyticsOpen, setAnalyticsOpen] = useState(true); // State to toggle the accordion
+  const [statisticsOpen, setStatisticsOpen] = useState(true); // State to toggle the accordion
 
   return (
     <motion.div
@@ -60,27 +60,27 @@ const AdminSideMenu = () => {
           </Link>
         ))}
 
-        {/* Analytics Accordion */}
+        {/* Statistics Accordion */}
         <div>
           <button
-            onClick={() => setAnalyticsOpen((prev) => !prev)}
+            onClick={() => setStatisticsOpen((prev) => !prev)}
             className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${
-              activePath.startsWith("/analytics")
+              activePath.startsWith("/statistics")
                 ? "bg-white text-gray-900 font-medium"
                 : "hover:bg-gray-100 hover:text-gray-900 text-white"
             }`}
           >
             <ChartBar size={20} className="mr-3" />
-            <span className="text-base font-medium">Analytics</span>
-            {analyticsOpen ? (
+            <span className="text-base font-medium">Statistics</span>
+            {statisticsOpen ? (
               <ChevronUp size={20} className="ml-auto" />
             ) : (
               <ChevronDown size={20} className="ml-auto" />
             )}
           </button>
-          {analyticsOpen && (
+          {statisticsOpen && (
             <div className="mt-2 space-y-1">
-              {analyticsLinks.map((subLink) => (
+              {statisticsLinks.map((subLink) => (
                 <Link key={subLink.href} href={subLink.href} className="block">
                   <button
                     className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${

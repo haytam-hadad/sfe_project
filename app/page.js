@@ -17,19 +17,10 @@ import {
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import {
-  CalendarIcon,
-  FilterIcon,
-  RefreshCwIcon,
-  PackageIcon,
-  DollarSignIcon,
-  TruckIcon,
-  BarChart3Icon,
-} from "lucide-react"
+import { CalendarIcon, FilterIcon, RefreshCwIcon, XCircleIcon } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
 
 export default function Page() {
@@ -43,6 +34,7 @@ export default function Page() {
   // Filter states
   const [statusFilter, setStatusFilter] = useState("")
   const [countryFilter, setCountryFilter] = useState("")
+  const [productFilter, setProductFilter] = useState("") // New product filter
   const [startDate, setStartDate] = useState(null)
   const [endDate, setEndDate] = useState(null)
 
@@ -95,6 +87,13 @@ export default function Page() {
     return uniqueStatuses.sort()
   }, [orders])
 
+  // Extract all unique SKU numbers
+  const products = useMemo(() => {
+    if (!orders.length) return []
+    const uniqueProducts = [...new Set(orders.map((order) => order["sku number"]).filter(Boolean))]
+    return uniqueProducts.sort()
+  }, [orders])
+
   // Apply filters to the data
   const applyFilters = useCallback(() => {
     if (!orders.length) return
@@ -102,6 +101,7 @@ export default function Page() {
     const filtered = orders.filter((order) => {
       const matchesStatus = !statusFilter || order["STATUS"] === statusFilter
       const matchesCountry = !countryFilter || order["Receier Country*"] === countryFilter
+      const matchesProduct = !productFilter || order["sku number"] === productFilter
 
       let matchesDateRange = true
       if (startDate || endDate) {
@@ -118,16 +118,17 @@ export default function Page() {
         }
       }
 
-      return matchesStatus && matchesCountry && matchesDateRange
+      return matchesStatus && matchesCountry && matchesProduct && matchesDateRange
     })
 
     setFilteredOrders(filtered)
-  }, [orders, statusFilter, countryFilter, startDate, endDate])
+  }, [orders, statusFilter, countryFilter, productFilter, startDate, endDate])
 
   // Reset filters
   const resetFilters = useCallback(() => {
     setStatusFilter("")
     setCountryFilter("")
+    setProductFilter("")
     setStartDate(null)
     setEndDate(null)
     setFilteredOrders(orders)
@@ -170,35 +171,64 @@ export default function Page() {
       .slice(0, 5) // Top 5 countries
   }, [filteredOrders])
 
-  // Calculate key metrics
+  // Calculate key metrics based on the Excel formulas
   const metrics = useMemo(() => {
     if (!filteredOrders.length)
       return {
-        totalOrders: 0,
-        totalRevenue: 0,
-        averageOrderValue: 0,
-        deliveredOrders: 0,
+        totalLeads: 0,
+        confirmation: 0,
+        confirmationRate: 0,
+        delivery: 0,
         deliveryRate: 0,
+        returned: 0,
+        returnRate: 0,
+        inProcess: 0,
+        inProcessRate: 0,
       }
 
-    const totalOrders = filteredOrders.length
+    const totalLeads = filteredOrders.length
 
-    const totalRevenue = filteredOrders.reduce((sum, order) => {
-      const amount = Number.parseFloat(order["Cod Amount"]) || 0
-      return sum + amount
-    }, 0)
+    // Count confirmation based on formula (Scheduled + Awaiting Dispatch + Delivered + In Transit + Returned)
+    const confirmation = filteredOrders.filter(
+      (order) =>
+        order["STATUS"] === "Scheduled" ||
+        order["STATUS"] === "Awaiting Dispatch" ||
+        order["STATUS"] === "Delivered" ||
+        order["STATUS"] === "In Transit" ||
+        order["STATUS"] === "Returned" ||
+        order["STATUS"] === "Cancelled",
+    ).length
 
-    const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
+    // Count delivery (only Delivered status)
+    const delivery = filteredOrders.filter((order) => order["STATUS"] === "Delivered").length
 
-    const deliveredOrders = filteredOrders.filter((order) => order["STATUS"] === "Delivered").length
-    const deliveryRate = totalOrders > 0 ? (deliveredOrders / totalOrders) * 100 : 0
+    // Count returned (only Returned and Cancelled status)
+    const returned = filteredOrders.filter(
+      (order) => order["STATUS"] === "Returned" || order["STATUS"] === "Cancelled",
+    ).length
+
+    // Count in process based on formula (Scheduled + Awaiting Dispatch + In Transit)
+    const inProcess = filteredOrders.filter(
+      (order) =>
+        order["STATUS"] === "Scheduled" || order["STATUS"] === "Awaiting Dispatch" || order["STATUS"] === "In Transit",
+    ).length
+
+    // Calculate rates
+    const confirmationRate = totalLeads > 0 ? (confirmation / totalLeads) * 100 : 0
+    const deliveryRate = confirmation > 0 ? (delivery / confirmation) * 100 : 0
+    const returnRate = confirmation > 0 ? (returned / confirmation) * 100 : 0
+    const inProcessRate = totalLeads > 0 ? (inProcess / totalLeads) * 100 : 0
 
     return {
-      totalOrders,
-      totalRevenue,
-      averageOrderValue,
-      deliveredOrders,
-      deliveryRate,
+      totalLeads,
+      confirmation,
+      confirmationRate: Number.parseFloat(confirmationRate.toFixed(2)),
+      delivery,
+      deliveryRate: Number.parseFloat(deliveryRate.toFixed(2)),
+      returned,
+      returnRate: Number.parseFloat(returnRate.toFixed(2)),
+      inProcess,
+      inProcessRate: Number.parseFloat(inProcessRate.toFixed(2)),
     }
   }, [filteredOrders])
 
@@ -218,17 +248,17 @@ export default function Page() {
   // Render loading skeletons
   if (loading) {
     return (
-      <main className="p-4 md:p-6">
+      <main className="p-2 md:p-5">
         <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {[1, 2, 3, 4].map((i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          {[1, 2, 3, 4, 5].map((i) => (
             <Card key={i} className="p-4">
               <Skeleton className="h-8 w-3/4 mb-2" />
               <Skeleton className="h-12 w-1/2" />
             </Card>
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <Card className="p-4">
             <Skeleton className="h-8 w-1/3 mx-auto mb-4" />
             <Skeleton className="h-[300px] w-full rounded-md" />
@@ -280,7 +310,27 @@ export default function Page() {
 
       {/* Filters Section */}
       {showFilters && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-muted/30 rounded-lg">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 mb-6 p-3 bg-muted/30 border rounded-lg">
+          {/* Product Filter */}
+          <div>
+            <label htmlFor="product-filter" className="block text-sm font-medium mb-1">
+              Product
+            </label>
+            <select
+              id="product-filter"
+              className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
+              value={productFilter}
+              onChange={(e) => setProductFilter(e.target.value)}
+            >
+              <option value="">All Products</option>
+              {products.map((product) => (
+                <option key={product} value={product}>
+                  {product}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div>
             <label htmlFor="status-filter" className="block text-sm font-medium mb-1">
               Status
@@ -361,81 +411,75 @@ export default function Page() {
             </Popover>
           </div>
 
-          <div className="sm:col-span-2 md:col-span-4 flex justify-end">
+          <div className="sm:col-span-2 md:col-span-3 lg:col-span-5 flex justify-between">
+            <Button variant="outline" size="sm" onClick={resetFilters} className="h-9">
+              <XCircleIcon className="mr-2 h-4 w-4" />
+              Reset Filters
+            </Button>
             <Button onClick={applyFilters}>Apply Filters</Button>
           </div>
         </div>
       )}
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {/* Key Metrics Cards - Matching the image */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 mb-8">
+        {/* Total Leads Card */}
         <Card className="overflow-hidden">
-          <CardHeader className="bg-green-500 text-white p-4 pb-2">
-            <CardTitle className="flex items-center text-lg">
-              <PackageIcon className="mr-2 h-5 w-5" />
-              Total Orders
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-2">
-            <p className="text-3xl font-bold">{metrics.totalOrders}</p>
-            <p className="text-sm text-muted-foreground">
-              {filteredOrders.length !== orders.length ? `Filtered from ${orders.length} total orders` : "All orders"}
-            </p>
+          <div className="bg-orange-500 text-white p-2 pt-3">
+            <h3 className="text-md font-bold uppercase">Total Leads</h3>
+          </div>
+          <CardContent className="p-4 pt-6 flex justify-center items-center">
+            <p className="text-3xl font-bold">{metrics.totalLeads}</p>
           </CardContent>
         </Card>
 
+        {/* Confirmation Rate Card */}
         <Card className="overflow-hidden">
-          <CardHeader className="bg-blue-500 text-white p-4 pb-2">
-            <CardTitle className="flex items-center text-lg">
-              <DollarSignIcon className="mr-2 h-5 w-5" />
-              Total Revenue
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-2">
-            <p className="text-3xl font-bold">{formatCurrency(metrics.totalRevenue)}</p>
-            <p className="text-sm text-muted-foreground">Avg. {formatCurrency(metrics.averageOrderValue)} per order</p>
+          <div className="bg-blue-600 text-white p-2 pt-3">
+            <h3 className="text-md font-bold uppercase">Confirmation Rate</h3>
+          </div>
+          <CardContent className="p-4 pt-6 flex justify-center items-center gap-4">
+            <p className="text-2xl font-bold">{metrics.confirmation}</p>
+            <p className="text-xl font-bold">{metrics.confirmationRate}%</p>
           </CardContent>
         </Card>
 
+        {/* Delivery Rate Card */}
         <Card className="overflow-hidden">
-          <CardHeader className="bg-purple-500 text-white p-4 pb-2">
-            <CardTitle className="flex items-center text-lg">
-              <TruckIcon className="mr-2 h-5 w-5" />
-              Delivered Orders
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-2">
-            <p className="text-3xl font-bold">{metrics.deliveredOrders}</p>
-            <p className="text-sm text-muted-foreground">{metrics.deliveryRate.toFixed(1)}% delivery rate</p>
+          <div className="bg-green-500 text-white p-2 pt-3">
+            <h3 className="text-md font-bold uppercase">Delivery Rate</h3>
+          </div>
+          <CardContent className="p-4 pt-6 flex justify-center items-center gap-4">
+            <p className="text-2xl font-bold">{metrics.delivery}</p>
+            <p className="text-xl font-bold">{metrics.deliveryRate}%</p>
           </CardContent>
         </Card>
 
+        {/* Return Rate Card */}
         <Card className="overflow-hidden">
-          <CardHeader className="bg-amber-500 text-white p-4 pb-2">
-            <CardTitle className="flex items-center text-lg">
-              <BarChart3Icon className="mr-2 h-5 w-5" />
-              Status Breakdown
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-2">
-            <div className="flex flex-wrap gap-1">
-              {statusChartData.slice(0, 3).map((status, index) => (
-                <Badge key={status.name} variant="outline" className="bg-muted/30">
-                  {status.name}: {status.value}
-                </Badge>
-              ))}
-              {statusChartData.length > 3 && (
-                <Badge variant="outline" className="bg-muted/30">
-                  +{statusChartData.length - 3} more
-                </Badge>
-              )}
-            </div>
+          <div className="bg-red-600 text-white p-2 pt-3">
+            <h3 className="text-md font-bold uppercase">Return Rate</h3>
+          </div>
+          <CardContent className="p-4 pt-6 flex justify-center items-center gap-4">
+            <p className="text-2xl font-bold">{metrics.returned}</p>
+            <p className="text-xl font-bold">{metrics.returnRate}%</p>
+          </CardContent>
+        </Card>
+
+        {/* In Process Rate Card */}
+        <Card className="overflow-hidden">
+          <div className="bg-purple-600 text-white p-2 pt-3">
+            <h3 className="text-md font-bold uppercase">In Process Rate</h3>
+          </div>
+          <CardContent className="p-4 pt-6 flex justify-center items-center gap-4">
+            <p className="text-2xl font-bold">{metrics.inProcess}</p>
+            <p className="text-xl font-bold">{metrics.inProcessRate}%</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
         {/* Status Distribution Chart */}
         <Card className="p-4">
           <CardHeader className="px-0 pt-0">
@@ -462,7 +506,7 @@ export default function Page() {
                   </Pie>
                   <Tooltip
                     formatter={(value, name) => [
-                      `${value} orders (${((value / metrics.totalOrders) * 100).toFixed(1)}%)`,
+                      `${value} orders (${((value / metrics.totalLeads) * 100).toFixed(1)}%)`,
                       name,
                     ]}
                   />
@@ -510,6 +554,94 @@ export default function Page() {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Status Column Chart */}
+      <div className="mb-8">
+        <Card className="p-4">
+          <CardHeader className="px-0 pt-0">
+            <CardTitle className="text-xl text-center">Order Status Comparison</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {filteredOrders.length ? (
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={statusChartData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} interval={0} />
+                  <YAxis label={{ value: "Number of Orders", angle: -90, position: "insideLeft" }} />
+                  <Tooltip
+                    formatter={(value, name, props) => [
+                      `${value} orders (${props.payload.percentage.toFixed(1)}%)`,
+                      "Count",
+                    ]}
+                  />
+                  <Legend />
+                  <Bar dataKey="value" name="Order Count" fill="#8884d8">
+                    {statusChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[400px]">
+                <p className="text-muted-foreground">No data available</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-4 text-sm text-muted-foreground">
+        <p>
+          <strong>Metrics Calculation:</strong>
+        </p>
+        <ul className="list-disc pl-5 mt-1 space-y-1">
+          <li>
+            <strong>Confirmation:</strong> Orders with status Scheduled, Awaiting Dispatch, Delivered, In Transit, or
+            Returned/Cancelled
+          </li>
+          <li>
+            <strong>Delivery:</strong> Orders with status Delivered
+          </li>
+          <li>
+            <strong>Returned:</strong> Orders with status Returned or Cancelled
+          </li>
+          <li>
+            <strong>In Process:</strong> Orders with status Scheduled, Awaiting Dispatch, or In Transit
+          </li>
+        </ul>
+        {filteredOrders.length !== orders.length && (
+          <p className="mt-2">
+            <strong>Filtered Data:</strong> Showing statistics for {filteredOrders.length} of {orders.length} total
+            orders.
+            {productFilter && (
+              <span>
+                {" "}
+                Product: <strong>{productFilter}</strong>
+              </span>
+            )}
+            {statusFilter && (
+              <span>
+                {" "}
+                Status: <strong>{statusFilter}</strong>
+              </span>
+            )}
+            {countryFilter && (
+              <span>
+                {" "}
+                Country: <strong>{countryFilter}</strong>
+              </span>
+            )}
+            {(startDate || endDate) && (
+              <span>
+                {" "}
+                Date range: <strong>{startDate ? format(startDate, "PP") : "Any"}</strong> to{" "}
+                <strong>{endDate ? format(endDate, "PP") : "Any"}</strong>
+              </span>
+            )}
+          </p>
+        )}
       </div>
     </main>
   )
