@@ -20,12 +20,12 @@ const links = [
 const statisticsLinks = [
   {
     text: "Cities",
-    href: "/cities",
+    href: "/city-stats",
     icon: MapPin,
   },
   {
     text: "Products",
-    href: "/products",
+    href: "/product-stats",
     icon: Package,
   },
 ];
