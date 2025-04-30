@@ -295,7 +295,7 @@ export default function Page() {
   return (
     <main className="p-4 md:p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <h1 className="text-3xl font-bold">Orders Dashboard</h1>
+        <h1 className="text-3xl font-bold">Overview</h1>
         <div className="flex items-center gap-2 mt-2 md:mt-0">
           <Button variant="outline" size="sm" className="h-9" onClick={() => setShowFilters((prev) => !prev)}>
             <FilterIcon className="mr-2 h-4 w-4" />

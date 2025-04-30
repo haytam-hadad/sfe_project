@@ -441,10 +441,10 @@ export default function ProductStatsPage() {
         </Card>
       )}
 
-      <div className="shadow-md w-full overflow-x-auto">
+      <div className="w-full overflow-x-auto">
         <div className="bg-gray-50 dark:bg-gray-900 p-2 overflow-x-auto">
-          <div className="text-xl flex items-center justify-between">
-            <h2>Product Performance Statistics</h2>
+          <div className="text-lg flex items-center justify-between">
+            <h4>Product Performance Statistics</h4>
             <span className="text-sm font-normal text-muted-foreground">
               {filteredOrders.length} orders across {productStats.length} products
             </span>

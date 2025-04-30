@@ -441,17 +441,17 @@ export default function CityStatsPage() {
         </Card>
       )}
 
-      <div className="shadow-md w-full overflow-x-auto">
-        <div className="bg-gray-50 dark:bg-gray-900 p-2 overflow-x-auto">
-          <div className="text-xl flex items-center justify-between">
-            <h2>City Performance Statistics</h2>
+      <div className="w-full overflow-x-auto">
+        <div className="border p-2 overflow-x-auto">
+          <div className="text-lg flex items-center justify-between">
+            <h4>City Performance Statistics</h4>
             <span className="text-sm font-normal text-muted-foreground">
               {filteredOrders.length} orders across {cities.length} cities
             </span>
           </div>
         </div>
-        <div className="w-full">
-          <table className="w-full border-collapse">
+        <div className="w-full overflow-auto">
+          <table className="w-full border-collapse overflow-x-auto">
             {/* Table Header */}
             <thead>
               <tr>

@@ -36,7 +36,7 @@ const AdminSideMenu = () => {
 
   return (
     <motion.div
-      className="bg-black h-full fixed top-0 md:pt-16 overflow-y-auto left-0 w-[250px]"
+      className="bg-zinc-950  h-full fixed top-0 md:pt-16 overflow-y-auto left-0 w-[250px]"
       initial={{ x: -260 }}
       animate={{ x: 0 }}
       exit={{ x: -260 }}
