@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo, useCallback } from "react"
@@ -8,8 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { RefreshCwIcon, DownloadIcon, FilterIcon, CalendarIcon, XCircleIcon, ArrowUpDownIcon, InfoIcon } from 'lucide-react'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { RefreshCwIcon, DownloadIcon, FilterIcon, CalendarIcon, XCircleIcon } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
 
 export default function CityStatsPage() {
@@ -194,7 +192,7 @@ export default function CityStatsPage() {
         // Sort based on the selected field and direction
         const fieldA = a[sortField]
         const fieldB = b[sortField]
-        
+
         if (sortDirection === "asc") {
           return fieldA - fieldB
         } else {
@@ -323,7 +321,7 @@ export default function CityStatsPage() {
   }
 
   return (
-    <div className="p-4 md:p-6">
+    <div className="p-3 md:p-5">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">City Statistics</h1>
@@ -439,191 +437,214 @@ export default function CityStatsPage() {
                 </Popover>
               </div>
             </div>
-
-            <div className="flex justify-between mt-4">
-              <Button variant="outline" size="sm" onClick={resetFilters} className="h-9">
-                <XCircleIcon className="mr-2 h-4 w-4" />
-                Reset Filters
-              </Button>
-              <Button onClick={() => window.location.reload()}>Apply Filters</Button>
-            </div>
           </CardContent>
         </Card>
       )}
 
-      <Card className="shadow-md">
-        <CardHeader className="bg-gray-50 dark:bg-gray-900 pb-0">
-          <CardTitle className="text-xl flex items-center justify-between">
-            <span>City Performance Statistics</span>
+      <div className="shadow-md w-full overflow-x-auto">
+        <div className="bg-gray-50 dark:bg-gray-900 p-2 overflow-x-auto">
+          <div className="text-xl flex items-center justify-between">
+            <h2>City Performance Statistics</h2>
             <span className="text-sm font-normal text-muted-foreground">
               {filteredOrders.length} orders across {cities.length} cities
             </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              {/* Table Header */}
-              <thead>
-                <tr>
-                  <th
-                    className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-3 border border-gray-300 font-bold sticky left-0 z-10"
-                    style={{ minWidth: "150px" }}
-                  >
-                    CITY
-                  </th>
-                  <th
-                    className="bg-gradient-to-r from-orange-600 to-orange-500 text-white text-center p-3 border border-gray-300 font-bold"
-                    colSpan={isMobile ? 1 : 1}
-                  >
-                    TOTAL LEADS
-                  </th>
-                  <th
-                    className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-3 border border-gray-300 font-bold"
-                    colSpan={isMobile ? 1 : 2}
-                  >
-                    CONFIRMATION
-                  </th>
-                  <th
-                    className="bg-gradient-to-r from-green-600 to-green-500 text-white text-center p-3 border border-gray-300 font-bold"
-                    colSpan={isMobile ? 1 : 2}
-                  >
-                    DELIVERY
-                  </th>
-                  <th
-                    className="bg-gradient-to-r from-red-700 to-red-600 text-white text-center p-3 border border-gray-300 font-bold"
-                    colSpan={isMobile ? 1 : 2}
-                  >
-                    RETURNED
-                  </th>
-                  <th
-                    className="bg-gradient-to-r from-purple-700 to-purple-600 text-white text-center p-3 border border-gray-300 font-bold"
-                    colSpan={isMobile ? 1 : 2}
-                  >
-                    IN PROCESS
-                  </th>
-                </tr>
-                {!isMobile && (
-                  <tr>
-                    <th className="bg-blue-600 text-white p-2 border border-gray-300 sticky left-0 z-10"></th>
-                    <th className="bg-orange-500 text-white p-2 border border-gray-300"></th>
-                    <th className="bg-blue-500 text-white p-2 border border-gray-300 w-20">COUNT</th>
-                    <th className="bg-blue-500 text-white p-2 border border-gray-300 w-20">%</th>
-                    <th className="bg-green-400 text-white p-2 border border-gray-300 w-20">COUNT</th>
-                    <th className="bg-green-400 text-white p-2 border border-gray-300 w-20">%</th>
-                    <th className="bg-red-500 text-white p-2 border border-gray-300 w-20">COUNT</th>
-                    <th className="bg-red-500 text-white p-2 border border-gray-300 w-20">%</th>
-                    <th className="bg-purple-500 text-white p-2 border border-gray-300 w-20">COUNT</th>
-                    <th className="bg-purple-500 text-white p-2 border border-gray-300 w-20">%</th>
-                  </tr>
-                )}
-              </thead>
-
-              {/* Table Body */}
-              <tbody>
-                {/* Total Row */}
-                <tr className="font-bold hover:bg-gray-100 dark:hover:bg-gray-800">
-                  <td className="p-2 border border-gray-300 bg-gray-100 dark:bg-gray-800 sticky left-0 z-10">TOTAL</td>
-                  <td className="p-2 border border-gray-300 text-center bg-orange-100 dark:bg-orange-950">{totals.totalLeads}</td>
-                  {!isMobile ? (
-                    <>
-                      <td className="p-2 border border-gray-300 text-center bg-blue-100 dark:bg-blue-950">{totals.confirmation}</td>
-                      <td className="p-2 border border-gray-300 text-center bg-blue-100 dark:bg-blue-950">
-                        {totals.confirmationPercent}%
-                      </td>
-                      <td className="p-2 border border-gray-300 text-center bg-green-100 dark:bg-green-950">{totals.delivery}</td>
-                      <td className="p-2 border border-gray-300 text-center bg-green-100 dark:bg-green-950">{totals.deliveryPercent}%</td>
-                      <td className="p-2 border border-gray-300 text-center bg-red-100 dark:bg-red-950">{totals.returned}</td>
-                      <td className="p-2 border border-gray-300 text-center bg-red-100 dark:bg-red-950">{totals.returnedPercent}%</td>
-                      <td className="p-2 border border-gray-300 text-center bg-purple-100 dark:bg-purple-950">{totals.inProcess}</td>
-                      <td className="p-2 border border-gray-300 text-center bg-purple-100 dark:bg-purple-950">
-                        {totals.inProcessPercent}%
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td className="p-2 border border-gray-300 text-center bg-blue-100 dark:bg-blue-950">
-                        {totals.confirmation} ({totals.confirmationPercent}%)
-                      </td>
-                      <td className="p-2 border border-gray-300 text-center bg-green-100 dark:bg-green-950">
-                        {totals.delivery} ({totals.deliveryPercent}%)
-                      </td>
-                      <td className="p-2 border border-gray-300 text-center bg-red-100 dark:bg-red-950">
-                        {totals.returned} ({totals.returnedPercent}%)
-                      </td>
-                      <td className="p-2 border border-gray-300 text-center bg-purple-100 dark:bg-purple-950">
-                        {totals.inProcess} ({totals.inProcessPercent}%)
-                      </td>
-                    </>
-                  )}
-                </tr>
-
-                {/* City Rows */}
-                {cityStats.length > 0 ? (
-                  cityStats.map((item, index) => (
-                    <tr key={index} className={`${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""} hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}>
-                      <td className={`p-2 border border-gray-300 font-medium sticky left-0 z-10 ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "bg-white dark:bg-gray-950"}`}>{item.city}</td>
-                      <td className="p-2 border border-gray-300 text-center bg-orange-50 dark:bg-orange-950/30">{item.totalLeads}</td>
-                      {!isMobile ? (
-                        <>
-                          <td className="p-2 border border-gray-300 text-center bg-blue-50 dark:bg-blue-950/30">{item.confirmation}</td>
-                          <td className="p-2 border border-gray-300 text-center bg-blue-50 dark:bg-blue-950/30">
-                            {item.confirmationPercent}%
-                          </td>
-                          <td className="p-2 border border-gray-300 text-center bg-green-50 dark:bg-green-950/30">{item.delivery}</td>
-                          <td className="p-2 border border-gray-300 text-center bg-green-50 dark:bg-green-950/30">
-                            {item.deliveryPercent}%
-                          </td>
-                          <td className="p-2 border border-gray-300 text-center bg-red-50 dark:bg-red-950/30">{item.returned}</td>
-                          <td className="p-2 border border-gray-300 text-center bg-red-50 dark:bg-red-950/30">{item.returnedPercent}%</td>
-                          <td className="p-2 border border-gray-300 text-center bg-purple-50 dark:bg-purple-950/30">{item.inProcess}</td>
-                          <td className="p-2 border border-gray-300 text-center bg-purple-50 dark:bg-purple-950/30">
-                            {item.inProcessPercent}%
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td className="p-2 border border-gray-300 text-center bg-blue-50 dark:bg-blue-950/30">
-                            {item.confirmation} ({item.confirmationPercent}%)
-                          </td>
-                          <td className="p-2 border border-gray-300 text-center bg-green-50 dark:bg-green-950/30">
-                            {item.delivery} ({item.deliveryPercent}%)
-                          </td>
-                          <td className="p-2 border border-gray-300 text-center bg-red-50 dark:bg-red-950/30">
-                            {item.returned} ({item.returnedPercent}%)
-                          </td>
-                          <td className="p-2 border border-gray-300 text-center bg-purple-50 dark:bg-purple-950/30">
-                            {item.inProcess} ({item.inProcessPercent}%)
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={isMobile ? 6 : 10} className="p-8 text-center text-muted-foreground">
-                      <div className="flex flex-col items-center justify-center">
-                        <p className="text-lg font-medium mb-2">No data available</p>
-                        <p className="text-sm max-w-md">
-                          {cityFilter || productFilter || startDate || endDate 
-                            ? "Try adjusting your filters to see more results." 
-                            : "There are no city statistics to display. Try refreshing or check back later."}
-                        </p>
-                        {(cityFilter || productFilter || startDate || endDate) && (
-                          <Button variant="outline" className="mt-4" onClick={resetFilters}>
-                            <XCircleIcon className="mr-2 h-4 w-4" />
-                            Clear filters
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="w-full">
+          <table className="w-full border-collapse">
+            {/* Table Header */}
+            <thead>
+              <tr>
+                <th
+                  className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-3 border border-gray-300 font-bold sticky left-0 z-10"
+                  style={{ minWidth: "150px" }}
+                >
+                  CITY
+                </th>
+                <th
+                  className="bg-gradient-to-r from-orange-600 to-orange-500 text-white text-center p-3 border border-gray-300 font-bold"
+                  colSpan={isMobile ? 1 : 1}
+                >
+                  TOTAL LEADS
+                </th>
+                <th
+                  className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-3 border border-gray-300 font-bold"
+                  colSpan={isMobile ? 1 : 2}
+                >
+                  CONFIRMATION
+                </th>
+                <th
+                  className="bg-gradient-to-r from-green-600 to-green-500 text-white text-center p-3 border border-gray-300 font-bold"
+                  colSpan={isMobile ? 1 : 2}
+                >
+                  DELIVERY
+                </th>
+                <th
+                  className="bg-gradient-to-r from-red-700 to-red-600 text-white text-center p-3 border border-gray-300 font-bold"
+                  colSpan={isMobile ? 1 : 2}
+                >
+                  RETURNED
+                </th>
+                <th
+                  className="bg-gradient-to-r from-purple-700 to-purple-600 text-white text-center p-3 border border-gray-300 font-bold"
+                  colSpan={isMobile ? 1 : 2}
+                >
+                  IN PROCESS
+                </th>
+              </tr>
+              {!isMobile && (
+                <tr>
+                  <th className="bg-blue-600 text-white p-2 border border-gray-300 sticky left-0 z-10"></th>
+                  <th className="bg-orange-500 text-white p-2 border border-gray-300"></th>
+                  <th className="bg-blue-500 text-white p-2 border border-gray-300 w-20">COUNT</th>
+                  <th className="bg-blue-500 text-white p-2 border border-gray-300 w-20">%</th>
+                  <th className="bg-green-400 text-white p-2 border border-gray-300 w-20">COUNT</th>
+                  <th className="bg-green-400 text-white p-2 border border-gray-300 w-20">%</th>
+                  <th className="bg-red-500 text-white p-2 border border-gray-300 w-20">COUNT</th>
+                  <th className="bg-red-500 text-white p-2 border border-gray-300 w-20">%</th>
+                  <th className="bg-purple-500 text-white p-2 border border-gray-300 w-20">COUNT</th>
+                  <th className="bg-purple-500 text-white p-2 border border-gray-300 w-20">%</th>
+                </tr>
+              )}
+            </thead>
+
+            {/* Table Body */}
+            <tbody>
+              {/* Total Row */}
+              <tr className="font-bold hover:bg-gray-100 dark:hover:bg-gray-800">
+                <td className="p-2 border border-gray-300 bg-gray-100 dark:bg-gray-800 sticky left-0 z-10">TOTAL</td>
+                <td className="p-2 border border-gray-300 text-center bg-orange-100 dark:bg-orange-950">
+                  {totals.totalLeads}
+                </td>
+                {!isMobile ? (
+                  <>
+                    <td className="p-2 border border-gray-300 text-center bg-blue-100 dark:bg-blue-950">
+                      {totals.confirmation}
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-blue-100 dark:bg-blue-950">
+                      {totals.confirmationPercent}%
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-green-100 dark:bg-green-950">
+                      {totals.delivery}
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-green-100 dark:bg-green-950">
+                      {totals.deliveryPercent}%
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-red-100 dark:bg-red-950">
+                      {totals.returned}
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-red-100 dark:bg-red-950">
+                      {totals.returnedPercent}%
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-purple-100 dark:bg-purple-950">
+                      {totals.inProcess}
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-purple-100 dark:bg-purple-950">
+                      {totals.inProcessPercent}%
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td className="p-2 border border-gray-300 text-center bg-blue-100 dark:bg-blue-950">
+                      {totals.confirmation} ({totals.confirmationPercent}%)
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-green-100 dark:bg-green-950">
+                      {totals.delivery} ({totals.deliveryPercent}%)
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-red-100 dark:bg-red-950">
+                      {totals.returned} ({totals.returnedPercent}%)
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-purple-100 dark:bg-purple-950">
+                      {totals.inProcess} ({totals.inProcessPercent}%)
+                    </td>
+                  </>
+                )}
+              </tr>
+
+              {/* City Rows */}
+              {cityStats.length > 0 ? (
+                cityStats.map((item, index) => (
+                  <tr
+                    key={index}
+                    className={`${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""} hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
+                  >
+                    <td
+                      className={`p-2 border border-gray-300 font-medium sticky left-0 z-10 ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "bg-white dark:bg-gray-950"}`}
+                    >
+                      {item.city}
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-orange-50 dark:bg-orange-950/30">
+                      {item.totalLeads}
+                    </td>
+                    {!isMobile ? (
+                      <>
+                        <td className="p-2 border border-gray-300 text-center bg-blue-50 dark:bg-blue-950/30">
+                          {item.confirmation}
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-blue-50 dark:bg-blue-950/30">
+                          {item.confirmationPercent}%
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-green-50 dark:bg-green-950/30">
+                          {item.delivery}
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-green-50 dark:bg-green-950/30">
+                          {item.deliveryPercent}%
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-red-50 dark:bg-red-950/30">
+                          {item.returned}
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-red-50 dark:bg-red-950/30">
+                          {item.returnedPercent}%
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-purple-50 dark:bg-purple-950/30">
+                          {item.inProcess}
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-purple-50 dark:bg-purple-950/30">
+                          {item.inProcessPercent}%
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="p-2 border border-gray-300 text-center bg-blue-50 dark:bg-blue-950/30">
+                          {item.confirmation} ({item.confirmationPercent}%)
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-green-50 dark:bg-green-950/30">
+                          {item.delivery} ({item.deliveryPercent}%)
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-red-50 dark:bg-red-950/30">
+                          {item.returned} ({item.returnedPercent}%)
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-purple-50 dark:bg-purple-950/30">
+                          {item.inProcess} ({item.inProcessPercent}%)
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={isMobile ? 6 : 10} className="p-8 text-center text-muted-foreground">
+                    <div className="flex flex-col items-center justify-center">
+                      <p className="text-lg font-medium mb-2">No data available</p>
+                      <p className="text-sm max-w-md">
+                        {cityFilter || productFilter || startDate || endDate
+                          ? "Try adjusting your filters to see more results."
+                          : "There are no city statistics to display. Try refreshing or check back later."}
+                      </p>
+                      {(cityFilter || productFilter || startDate || endDate) && (
+                        <Button variant="outline" className="mt-4" onClick={resetFilters}>
+                          <XCircleIcon className="mr-2 h-4 w-4" />
+                          Clear filters
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   )
 }

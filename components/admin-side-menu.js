@@ -36,14 +36,14 @@ const AdminSideMenu = () => {
 
   return (
     <motion.div
-      className="bg-mainColor h-full fixed top-0 md:pt-16 overflow-y-auto left-0 w-[250px]"
+      className="bg-black h-full fixed top-0 md:pt-16 overflow-y-auto left-0 w-[250px]"
       initial={{ x: -260 }}
       animate={{ x: 0 }}
       exit={{ x: -260 }}
       transition={{ duration: 0.2, ease: "easeInOut" }}
       style={{ bottom: 0 }}
     >
-      <div className="flex flex-col p-4 space-y-3">
+      <div className="flex flex-col p-3 space-y-3">
         {/* Navigation Links */}
         {links.map((link) => (
           <Link key={link.href} href={link.href} className="block">
@@ -103,4 +103,3 @@ const AdminSideMenu = () => {
 };
 
 export default AdminSideMenu;
-

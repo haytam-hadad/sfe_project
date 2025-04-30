@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo, useCallback } from "react"
@@ -8,11 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { RefreshCwIcon, DownloadIcon, FilterIcon, CalendarIcon, XCircleIcon, ArrowUpDownIcon, InfoIcon } from 'lucide-react'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { RefreshCwIcon, DownloadIcon, FilterIcon, CalendarIcon, XCircleIcon } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
 
-export default function CityStatsPage() {
+export default function ProductStatsPage() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -62,6 +60,13 @@ export default function CityStatsPage() {
     return uniqueProducts.sort()
   }, [orders])
 
+  // Extract unique cities from orders
+  const cities = useMemo(() => {
+    if (!orders.length) return []
+    const uniqueCities = [...new Set(orders.map((order) => order["City"]).filter(Boolean))]
+    return uniqueCities.sort()
+  }, [orders])
+
   // Apply filters to the data
   const filteredOrders = useMemo(() => {
     if (!orders.length) return []
@@ -104,23 +109,15 @@ export default function CityStatsPage() {
     setEndDate(null)
   }, [])
 
-  // Extract unique cities from orders
-  const cities = useMemo(() => {
-    if (!filteredOrders.length) return []
-
-    const uniqueCities = [...new Set(filteredOrders.map((order) => order["City"]).filter(Boolean))]
-    return uniqueCities.sort()
-  }, [filteredOrders])
-
-  // Calculate statistics for each city using the updated calculation logic
-  const cityStats = useMemo(() => {
+  // Calculate statistics for each product using the updated calculation logic
+  const productStats = useMemo(() => {
     if (!filteredOrders.length) return []
 
     const stats = {}
 
-    // Initialize stats for each city
-    cities.forEach((city) => {
-      stats[city] = {
+    // Initialize stats for each product
+    products.forEach((product) => {
+      stats[product] = {
         totalLeads: 0,
         confirmation: 0,
         delivery: 0,
@@ -131,11 +128,11 @@ export default function CityStatsPage() {
 
     // Process each order
     filteredOrders.forEach((order) => {
-      const city = order["City"]
-      if (!city || !stats[city]) return
+      const product = order["sku number"]
+      if (!product || !stats[product]) return
 
-      // Count total leads for this city
-      stats[city].totalLeads++
+      // Count total leads for this product
+      stats[product].totalLeads++
 
       // Count by status using the updated logic from the dashboard
       const status = order["STATUS"]
@@ -150,35 +147,36 @@ export default function CityStatsPage() {
         status === "Returned" ||
         status === "Cancelled"
       ) {
-        stats[city].confirmation++
+        stats[product].confirmation++
       }
 
       // Delivery: only Delivered status
       if (status === "Delivered") {
-        stats[city].delivery++
+        stats[product].delivery++
       }
 
       // Returned: Returned or Cancelled
       if (status === "Returned" || status === "Cancelled") {
-        stats[city].returned++
+        stats[product].returned++
       }
 
       // In Process: Scheduled, Awaiting Dispatch, In Transit
       if (status === "Scheduled" || status === "Awaiting Dispatch" || status === "In Transit") {
-        stats[city].inProcess++
+        stats[product].inProcess++
       }
     })
 
     // Convert to array and calculate percentages
     return Object.entries(stats)
-      .map(([city, data]) => {
+      .filter(([_, data]) => data.totalLeads > 0) // Only include products with orders
+      .map(([product, data]) => {
         const confirmationPercent = data.totalLeads > 0 ? (data.confirmation / data.totalLeads) * 100 : 0
         const deliveryPercent = data.confirmation > 0 ? (data.delivery / data.confirmation) * 100 : 0
         const returnedPercent = data.confirmation > 0 ? (data.returned / data.confirmation) * 100 : 0
         const inProcessPercent = data.totalLeads > 0 ? (data.inProcess / data.totalLeads) * 100 : 0
 
         return {
-          city,
+          product,
           totalLeads: data.totalLeads,
           confirmation: data.confirmation,
           confirmationPercent: Number.parseFloat(confirmationPercent.toFixed(2)),
@@ -194,18 +192,18 @@ export default function CityStatsPage() {
         // Sort based on the selected field and direction
         const fieldA = a[sortField]
         const fieldB = b[sortField]
-        
+
         if (sortDirection === "asc") {
           return fieldA - fieldB
         } else {
           return fieldB - fieldA
         }
       })
-  }, [filteredOrders, cities, sortField, sortDirection])
+  }, [filteredOrders, products, sortField, sortDirection])
 
   // Calculate totals
   const totals = useMemo(() => {
-    if (!cityStats.length)
+    if (!productStats.length)
       return {
         totalLeads: 0,
         confirmation: 0,
@@ -218,11 +216,11 @@ export default function CityStatsPage() {
         inProcessPercent: 0,
       }
 
-    const totalLeads = cityStats.reduce((sum, item) => sum + item.totalLeads, 0)
-    const confirmation = cityStats.reduce((sum, item) => sum + item.confirmation, 0)
-    const delivery = cityStats.reduce((sum, item) => sum + item.delivery, 0)
-    const returned = cityStats.reduce((sum, item) => sum + item.returned, 0)
-    const inProcess = cityStats.reduce((sum, item) => sum + item.inProcess, 0)
+    const totalLeads = productStats.reduce((sum, item) => sum + item.totalLeads, 0)
+    const confirmation = productStats.reduce((sum, item) => sum + item.confirmation, 0)
+    const delivery = productStats.reduce((sum, item) => sum + item.delivery, 0)
+    const returned = productStats.reduce((sum, item) => sum + item.returned, 0)
+    const inProcess = productStats.reduce((sum, item) => sum + item.inProcess, 0)
 
     const confirmationPercent = totalLeads > 0 ? (confirmation / totalLeads) * 100 : 0
     const deliveryPercent = confirmation > 0 ? (delivery / confirmation) * 100 : 0
@@ -240,7 +238,7 @@ export default function CityStatsPage() {
       inProcess,
       inProcessPercent: Number.parseFloat(inProcessPercent.toFixed(2)),
     }
-  }, [cityStats])
+  }, [productStats])
 
   // Handle sorting
   const handleSort = (field) => {
@@ -254,28 +252,28 @@ export default function CityStatsPage() {
 
   // Handle export
   const handleExport = () => {
-    if (!cityStats.length) return
+    if (!productStats.length) return
 
     // Create CSV content
     let csvContent = "data:text/csv;charset=utf-8,"
 
     // Add headers
     csvContent +=
-      "City,Total Leads,Confirmation,Confirmation %,Delivery,Delivery %,Returned,Returned %,In Process,In Process %\n"
+      "Product,Total Leads,Confirmation,Confirmation %,Delivery,Delivery %,Returned,Returned %,In Process,In Process %\n"
 
     // Add total row
     csvContent += `TOTAL,${totals.totalLeads},${totals.confirmation},${totals.confirmationPercent}%,${totals.delivery},${totals.deliveryPercent}%,${totals.returned},${totals.returnedPercent}%,${totals.inProcess},${totals.inProcessPercent}%\n`
 
-    // Add city rows
-    cityStats.forEach((item) => {
-      csvContent += `${item.city},${item.totalLeads},${item.confirmation},${item.confirmationPercent}%,${item.delivery},${item.deliveryPercent}%,${item.returned},${item.returnedPercent}%,${item.inProcess},${item.inProcessPercent}%\n`
+    // Add product rows
+    productStats.forEach((item) => {
+      csvContent += `"${item.product}",${item.totalLeads},${item.confirmation},${item.confirmationPercent}%,${item.delivery},${item.deliveryPercent}%,${item.returned},${item.returnedPercent}%,${item.inProcess},${item.inProcessPercent}%\n`
     })
 
     // Create download link
     const encodedUri = encodeURI(csvContent)
     const link = document.createElement("a")
     link.setAttribute("href", encodedUri)
-    link.setAttribute("download", `city-stats-${new Date().toISOString().split("T")[0]}.csv`)
+    link.setAttribute("download", `product-stats-${new Date().toISOString().split("T")[0]}.csv`)
     document.body.appendChild(link)
 
     // Trigger download
@@ -287,7 +285,7 @@ export default function CityStatsPage() {
   if (loading) {
     return (
       <div className="p-4 md:p-6">
-        <h1 className="text-3xl font-bold mb-6">City Statistics</h1>
+        <h1 className="text-3xl font-bold mb-6">Product Statistics</h1>
         <Card>
           <CardHeader>
             <CardTitle>Loading data...</CardTitle>
@@ -306,7 +304,7 @@ export default function CityStatsPage() {
   if (error) {
     return (
       <div className="p-4 md:p-6">
-        <h1 className="text-3xl font-bold mb-6">City Statistics</h1>
+        <h1 className="text-3xl font-bold mb-6">Product Statistics</h1>
         <Card>
           <CardHeader>
             <CardTitle className="text-red-600">Error Loading Data</CardTitle>
@@ -323,12 +321,12 @@ export default function CityStatsPage() {
   }
 
   return (
-    <div className="p-4 md:p-6">
+    <div className="p-3 md:p-5">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">City Statistics</h1>
+          <h1 className="text-3xl font-bold">Product Statistics</h1>
           <p className="text-muted-foreground mt-1">
-            Analyzing {totals.totalLeads} orders across {cityStats.length} cities
+            Analyzing {totals.totalLeads} orders across {productStats.length} products
           </p>
         </div>
         <div className="flex items-center gap-2 mt-2 md:mt-0">
@@ -336,7 +334,7 @@ export default function CityStatsPage() {
             <FilterIcon className="mr-2 h-4 w-4" />
             {showFilters ? "Hide Filters" : "Show Filters"}
           </Button>
-          <Button variant="outline" size="sm" className="h-9" onClick={handleExport} disabled={!cityStats.length}>
+          <Button variant="outline" size="sm" className="h-9" onClick={handleExport} disabled={!productStats.length}>
             <DownloadIcon className="mr-2 h-4 w-4" />
             Export CSV
           </Button>
@@ -361,7 +359,7 @@ export default function CityStatsPage() {
               {/* Product Filter */}
               <div>
                 <label htmlFor="product-filter" className="block text-sm font-medium mb-1">
-                  Product
+                  Filter by Product
                 </label>
                 <select
                   id="product-filter"
@@ -439,191 +437,214 @@ export default function CityStatsPage() {
                 </Popover>
               </div>
             </div>
-
-            <div className="flex justify-between mt-4">
-              <Button variant="outline" size="sm" onClick={resetFilters} className="h-9">
-                <XCircleIcon className="mr-2 h-4 w-4" />
-                Reset Filters
-              </Button>
-              <Button onClick={() => window.location.reload()}>Apply Filters</Button>
-            </div>
           </CardContent>
         </Card>
       )}
 
-      <Card className="shadow-md">
-        <CardHeader className="bg-gray-50 dark:bg-gray-900 p-1">
-          <CardTitle className="text-xl flex items-center justify-between">
-            <span>City Performance Statistics</span>
+      <div className="shadow-md w-full overflow-x-auto">
+        <div className="bg-gray-50 dark:bg-gray-900 p-2 overflow-x-auto">
+          <div className="text-xl flex items-center justify-between">
+            <h2>Product Performance Statistics</h2>
             <span className="text-sm font-normal text-muted-foreground">
-              {filteredOrders.length} orders across {cities.length} cities
+              {filteredOrders.length} orders across {productStats.length} products
             </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              {/* Table Header */}
-              <thead>
-                <tr>
-                  <th
-                    className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-3 border border-gray-300 font-bold sticky left-0 z-10"
-                    style={{ minWidth: "150px" }}
-                  >
-                    CITY
-                  </th>
-                  <th
-                    className="bg-gradient-to-r from-orange-600 to-orange-500 text-white text-center p-3 border border-gray-300 font-bold"
-                    colSpan={isMobile ? 1 : 1}
-                  >
-                    TOTAL LEADS
-                  </th>
-                  <th
-                    className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-3 border border-gray-300 font-bold"
-                    colSpan={isMobile ? 1 : 2}
-                  >
-                    CONFIRMATION
-                  </th>
-                  <th
-                    className="bg-gradient-to-r from-green-600 to-green-500 text-white text-center p-3 border border-gray-300 font-bold"
-                    colSpan={isMobile ? 1 : 2}
-                  >
-                    DELIVERY
-                  </th>
-                  <th
-                    className="bg-gradient-to-r from-red-700 to-red-600 text-white text-center p-3 border border-gray-300 font-bold"
-                    colSpan={isMobile ? 1 : 2}
-                  >
-                    RETURNED
-                  </th>
-                  <th
-                    className="bg-gradient-to-r from-purple-700 to-purple-600 text-white text-center p-3 border border-gray-300 font-bold"
-                    colSpan={isMobile ? 1 : 2}
-                  >
-                    IN PROCESS
-                  </th>
-                </tr>
-                {!isMobile && (
-                  <tr>
-                    <th className="bg-blue-600 text-white p-2 border border-gray-300 sticky left-0 z-10"></th>
-                    <th className="bg-orange-500 text-white p-2 border border-gray-300"></th>
-                    <th className="bg-blue-500 text-white p-2 border border-gray-300 w-20">COUNT</th>
-                    <th className="bg-blue-500 text-white p-2 border border-gray-300 w-20">%</th>
-                    <th className="bg-green-400 text-white p-2 border border-gray-300 w-20">COUNT</th>
-                    <th className="bg-green-400 text-white p-2 border border-gray-300 w-20">%</th>
-                    <th className="bg-red-500 text-white p-2 border border-gray-300 w-20">COUNT</th>
-                    <th className="bg-red-500 text-white p-2 border border-gray-300 w-20">%</th>
-                    <th className="bg-purple-500 text-white p-2 border border-gray-300 w-20">COUNT</th>
-                    <th className="bg-purple-500 text-white p-2 border border-gray-300 w-20">%</th>
-                  </tr>
-                )}
-              </thead>
-
-              {/* Table Body */}
-              <tbody>
-                {/* Total Row */}
-                <tr className="font-bold hover:bg-gray-100 dark:hover:bg-gray-800">
-                  <td className="p-2 border border-gray-300 bg-gray-100 dark:bg-gray-800 sticky left-0 z-10">TOTAL</td>
-                  <td className="p-2 border border-gray-300 text-center bg-orange-100 dark:bg-orange-950">{totals.totalLeads}</td>
-                  {!isMobile ? (
-                    <>
-                      <td className="p-2 border border-gray-300 text-center bg-blue-100 dark:bg-blue-950">{totals.confirmation}</td>
-                      <td className="p-2 border border-gray-300 text-center bg-blue-100 dark:bg-blue-950">
-                        {totals.confirmationPercent}%
-                      </td>
-                      <td className="p-2 border border-gray-300 text-center bg-green-100 dark:bg-green-950">{totals.delivery}</td>
-                      <td className="p-2 border border-gray-300 text-center bg-green-100 dark:bg-green-950">{totals.deliveryPercent}%</td>
-                      <td className="p-2 border border-gray-300 text-center bg-red-100 dark:bg-red-950">{totals.returned}</td>
-                      <td className="p-2 border border-gray-300 text-center bg-red-100 dark:bg-red-950">{totals.returnedPercent}%</td>
-                      <td className="p-2 border border-gray-300 text-center bg-purple-100 dark:bg-purple-950">{totals.inProcess}</td>
-                      <td className="p-2 border border-gray-300 text-center bg-purple-100 dark:bg-purple-950">
-                        {totals.inProcessPercent}%
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td className="p-2 border border-gray-300 text-center bg-blue-100 dark:bg-blue-950">
-                        {totals.confirmation} ({totals.confirmationPercent}%)
-                      </td>
-                      <td className="p-2 border border-gray-300 text-center bg-green-100 dark:bg-green-950">
-                        {totals.delivery} ({totals.deliveryPercent}%)
-                      </td>
-                      <td className="p-2 border border-gray-300 text-center bg-red-100 dark:bg-red-950">
-                        {totals.returned} ({totals.returnedPercent}%)
-                      </td>
-                      <td className="p-2 border border-gray-300 text-center bg-purple-100 dark:bg-purple-950">
-                        {totals.inProcess} ({totals.inProcessPercent}%)
-                      </td>
-                    </>
-                  )}
-                </tr>
-
-                {/* City Rows */}
-                {cityStats.length > 0 ? (
-                  cityStats.map((item, index) => (
-                    <tr key={index} className={`${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""} hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}>
-                      <td className={`p-2 border border-gray-300 font-medium sticky left-0 z-10 ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "bg-white dark:bg-gray-950"}`}>{item.city}</td>
-                      <td className="p-2 border border-gray-300 text-center bg-orange-50 dark:bg-orange-950/30">{item.totalLeads}</td>
-                      {!isMobile ? (
-                        <>
-                          <td className="p-2 border border-gray-300 text-center bg-blue-50 dark:bg-blue-950/30">{item.confirmation}</td>
-                          <td className="p-2 border border-gray-300 text-center bg-blue-50 dark:bg-blue-950/30">
-                            {item.confirmationPercent}%
-                          </td>
-                          <td className="p-2 border border-gray-300 text-center bg-green-50 dark:bg-green-950/30">{item.delivery}</td>
-                          <td className="p-2 border border-gray-300 text-center bg-green-50 dark:bg-green-950/30">
-                            {item.deliveryPercent}%
-                          </td>
-                          <td className="p-2 border border-gray-300 text-center bg-red-50 dark:bg-red-950/30">{item.returned}</td>
-                          <td className="p-2 border border-gray-300 text-center bg-red-50 dark:bg-red-950/30">{item.returnedPercent}%</td>
-                          <td className="p-2 border border-gray-300 text-center bg-purple-50 dark:bg-purple-950/30">{item.inProcess}</td>
-                          <td className="p-2 border border-gray-300 text-center bg-purple-50 dark:bg-purple-950/30">
-                            {item.inProcessPercent}%
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td className="p-2 border border-gray-300 text-center bg-blue-50 dark:bg-blue-950/30">
-                            {item.confirmation} ({item.confirmationPercent}%)
-                          </td>
-                          <td className="p-2 border border-gray-300 text-center bg-green-50 dark:bg-green-950/30">
-                            {item.delivery} ({item.deliveryPercent}%)
-                          </td>
-                          <td className="p-2 border border-gray-300 text-center bg-red-50 dark:bg-red-950/30">
-                            {item.returned} ({item.returnedPercent}%)
-                          </td>
-                          <td className="p-2 border border-gray-300 text-center bg-purple-50 dark:bg-purple-950/30">
-                            {item.inProcess} ({item.inProcessPercent}%)
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={isMobile ? 6 : 10} className="p-8 text-center text-muted-foreground">
-                      <div className="flex flex-col items-center justify-center">
-                        <p className="text-lg font-medium mb-2">No data available</p>
-                        <p className="text-sm max-w-md">
-                          {cityFilter || productFilter || startDate || endDate 
-                            ? "Try adjusting your filters to see more results." 
-                            : "There are no city statistics to display. Try refreshing or check back later."}
-                        </p>
-                        {(cityFilter || productFilter || startDate || endDate) && (
-                          <Button variant="outline" className="mt-4" onClick={resetFilters}>
-                            <XCircleIcon className="mr-2 h-4 w-4" />
-                            Clear filters
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="w-full">
+          <table className="w-full border-collapse">
+            {/* Table Header */}
+            <thead>
+              <tr>
+                <th
+                  className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-3 border border-gray-300 font-bold sticky left-0 z-10"
+                  style={{ minWidth: "150px" }}
+                >
+                  PRODUCT
+                </th>
+                <th
+                  className="bg-gradient-to-r from-orange-600 to-orange-500 text-white text-center p-3 border border-gray-300 font-bold"
+                  colSpan={isMobile ? 1 : 1}
+                >
+                  TOTAL LEADS
+                </th>
+                <th
+                  className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-3 border border-gray-300 font-bold"
+                  colSpan={isMobile ? 1 : 2}
+                >
+                  CONFIRMATION
+                </th>
+                <th
+                  className="bg-gradient-to-r from-green-600 to-green-500 text-white text-center p-3 border border-gray-300 font-bold"
+                  colSpan={isMobile ? 1 : 2}
+                >
+                  DELIVERY
+                </th>
+                <th
+                  className="bg-gradient-to-r from-red-700 to-red-600 text-white text-center p-3 border border-gray-300 font-bold"
+                  colSpan={isMobile ? 1 : 2}
+                >
+                  RETURNED
+                </th>
+                <th
+                  className="bg-gradient-to-r from-purple-700 to-purple-600 text-white text-center p-3 border border-gray-300 font-bold"
+                  colSpan={isMobile ? 1 : 2}
+                >
+                  IN PROCESS
+                </th>
+              </tr>
+              {!isMobile && (
+                <tr>
+                  <th className="bg-blue-600 text-white p-2 border border-gray-300 sticky left-0 z-10"></th>
+                  <th className="bg-orange-500 text-white p-2 border border-gray-300"></th>
+                  <th className="bg-blue-500 text-white p-2 border border-gray-300 w-20">COUNT</th>
+                  <th className="bg-blue-500 text-white p-2 border border-gray-300 w-20">%</th>
+                  <th className="bg-green-400 text-white p-2 border border-gray-300 w-20">COUNT</th>
+                  <th className="bg-green-400 text-white p-2 border border-gray-300 w-20">%</th>
+                  <th className="bg-red-500 text-white p-2 border border-gray-300 w-20">COUNT</th>
+                  <th className="bg-red-500 text-white p-2 border border-gray-300 w-20">%</th>
+                  <th className="bg-purple-500 text-white p-2 border border-gray-300 w-20">COUNT</th>
+                  <th className="bg-purple-500 text-white p-2 border border-gray-300 w-20">%</th>
+                </tr>
+              )}
+            </thead>
+
+            {/* Table Body */}
+            <tbody>
+              {/* Total Row */}
+              <tr className="font-bold hover:bg-gray-100 dark:hover:bg-gray-800">
+                <td className="p-2 border border-gray-300 bg-gray-100 dark:bg-gray-800 sticky left-0 z-10">TOTAL</td>
+                <td className="p-2 border border-gray-300 text-center bg-orange-100 dark:bg-orange-950">
+                  {totals.totalLeads}
+                </td>
+                {!isMobile ? (
+                  <>
+                    <td className="p-2 border border-gray-300 text-center bg-blue-100 dark:bg-blue-950">
+                      {totals.confirmation}
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-blue-100 dark:bg-blue-950">
+                      {totals.confirmationPercent}%
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-green-100 dark:bg-green-950">
+                      {totals.delivery}
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-green-100 dark:bg-green-950">
+                      {totals.deliveryPercent}%
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-red-100 dark:bg-red-950">
+                      {totals.returned}
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-red-100 dark:bg-red-950">
+                      {totals.returnedPercent}%
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-purple-100 dark:bg-purple-950">
+                      {totals.inProcess}
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-purple-100 dark:bg-purple-950">
+                      {totals.inProcessPercent}%
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td className="p-2 border border-gray-300 text-center bg-blue-100 dark:bg-blue-950">
+                      {totals.confirmation} ({totals.confirmationPercent}%)
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-green-100 dark:bg-green-950">
+                      {totals.delivery} ({totals.deliveryPercent}%)
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-red-100 dark:bg-red-950">
+                      {totals.returned} ({totals.returnedPercent}%)
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-purple-100 dark:bg-purple-950">
+                      {totals.inProcess} ({totals.inProcessPercent}%)
+                    </td>
+                  </>
+                )}
+              </tr>
+
+              {/* Product Rows */}
+              {productStats.length > 0 ? (
+                productStats.map((item, index) => (
+                  <tr
+                    key={index}
+                    className={`${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""} hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
+                  >
+                    <td
+                      className={`p-2 border border-gray-300 font-medium sticky left-0 z-10 ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "bg-white dark:bg-gray-950"}`}
+                    >
+                      {item.product}
+                    </td>
+                    <td className="p-2 border border-gray-300 text-center bg-orange-50 dark:bg-orange-950/30">
+                      {item.totalLeads}
+                    </td>
+                    {!isMobile ? (
+                      <>
+                        <td className="p-2 border border-gray-300 text-center bg-blue-50 dark:bg-blue-950/30">
+                          {item.confirmation}
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-blue-50 dark:bg-blue-950/30">
+                          {item.confirmationPercent}%
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-green-50 dark:bg-green-950/30">
+                          {item.delivery}
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-green-50 dark:bg-green-950/30">
+                          {item.deliveryPercent}%
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-red-50 dark:bg-red-950/30">
+                          {item.returned}
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-red-50 dark:bg-red-950/30">
+                          {item.returnedPercent}%
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-purple-50 dark:bg-purple-950/30">
+                          {item.inProcess}
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-purple-50 dark:bg-purple-950/30">
+                          {item.inProcessPercent}%
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="p-2 border border-gray-300 text-center bg-blue-50 dark:bg-blue-950/30">
+                          {item.confirmation} ({item.confirmationPercent}%)
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-green-50 dark:bg-green-950/30">
+                          {item.delivery} ({item.deliveryPercent}%)
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-red-50 dark:bg-red-950/30">
+                          {item.returned} ({item.returnedPercent}%)
+                        </td>
+                        <td className="p-2 border border-gray-300 text-center bg-purple-50 dark:bg-purple-950/30">
+                          {item.inProcess} ({item.inProcessPercent}%)
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={isMobile ? 6 : 10} className="p-8 text-center text-muted-foreground">
+                    <div className="flex flex-col items-center justify-center">
+                      <p className="text-lg font-medium mb-2">No data available</p>
+                      <p className="text-sm max-w-md">
+                        {cityFilter || productFilter || startDate || endDate
+                          ? "Try adjusting your filters to see more results."
+                          : "There are no product statistics to display. Try refreshing or check back later."}
+                      </p>
+                      {(cityFilter || productFilter || startDate || endDate) && (
+                        <Button variant="outline" className="mt-4" onClick={resetFilters}>
+                          <XCircleIcon className="mr-2 h-4 w-4" />
+                          Clear filters
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   )
 }
