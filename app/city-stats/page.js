@@ -145,8 +145,7 @@ export default function CityStatsPage() {
         status === "Awaiting Dispatch" ||
         status === "Delivered" ||
         status === "In Transit" ||
-        status === "Returned" ||
-        status === "Cancelled"
+        status === "Returned"
       ) {
         stats[city].confirmation++
       }
@@ -157,7 +156,7 @@ export default function CityStatsPage() {
       }
 
       // Returned: Returned or Cancelled
-      if (status === "Returned" || status === "Cancelled") {
+      if (status === "Returned") {
         stats[city].returned++
       }
 

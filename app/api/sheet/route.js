@@ -11,8 +11,8 @@ export async function GET() {
       throw new Error(`Failed to fetch Google Sheet data: ${res.status}`);
     }
     const filteredData = data.slice(1).filter((row) => {
-      const datarow = row?.["Order date"];
-      return datarow != null && datarow !== "#REF!";
+      const orderId = row?.["Order ID"];
+      return orderId != null && orderId !== "#REF!";
     });
 
     return Response.json(filteredData);

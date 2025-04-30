@@ -195,8 +195,7 @@ export default function Page() {
         order["STATUS"] === "Awaiting Dispatch" ||
         order["STATUS"] === "Delivered" ||
         order["STATUS"] === "In Transit" ||
-        order["STATUS"] === "Returned" ||
-        order["STATUS"] === "Cancelled",
+        order["STATUS"] === "Returned" ,
     ).length
 
     // Count delivery (only Delivered status)
@@ -204,7 +203,7 @@ export default function Page() {
 
     // Count returned (only Returned and Cancelled status)
     const returned = filteredOrders.filter(
-      (order) => order["STATUS"] === "Returned" || order["STATUS"] === "Cancelled",
+      (order) => order["STATUS"] === "Returned" ,
     ).length
 
     // Count in process based on formula (Scheduled + Awaiting Dispatch + In Transit)
@@ -598,14 +597,13 @@ export default function Page() {
         </p>
         <ul className="list-disc pl-5 mt-1 space-y-1">
           <li>
-            <strong>Confirmation:</strong> Orders with status Scheduled, Awaiting Dispatch, Delivered, In Transit, or
-            Returned/Cancelled
+            <strong>Confirmation:</strong> Orders with status Scheduled, Awaiting Dispatch, Delivered, In Transit, Returned
           </li>
           <li>
             <strong>Delivery:</strong> Orders with status Delivered
           </li>
           <li>
-            <strong>Returned:</strong> Orders with status Returned or Cancelled
+            <strong>Returned:</strong> Orders with status Returned
           </li>
           <li>
             <strong>In Process:</strong> Orders with status Scheduled, Awaiting Dispatch, or In Transit

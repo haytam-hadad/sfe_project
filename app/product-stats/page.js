@@ -144,8 +144,7 @@ export default function ProductStatsPage() {
         status === "Awaiting Dispatch" ||
         status === "Delivered" ||
         status === "In Transit" ||
-        status === "Returned" ||
-        status === "Cancelled"
+        status === "Returned"
       ) {
         stats[product].confirmation++
       }
@@ -156,7 +155,7 @@ export default function ProductStatsPage() {
       }
 
       // Returned: Returned or Cancelled
-      if (status === "Returned" || status === "Cancelled") {
+      if (status === "Returned") {
         stats[product].returned++
       }
 
