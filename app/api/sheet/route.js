@@ -1,7 +1,7 @@
 // app/api/sheet/route.ts
 
 export async function GET() {
-  const sheetUrl =process.env.NEXT_PUBLIC_GOOGLE_SHEET_URL;
+  const sheetUrl = process.env.NEXT_PUBLIC_GOOGLE_SHEET_URL;
 
   try {
     const res = await fetch(sheetUrl);
@@ -11,8 +11,8 @@ export async function GET() {
       throw new Error(`Failed to fetch Google Sheet data: ${res.status}`);
     }
     const filteredData = data.slice(1).filter((row) => {
-      const orderId = row?.["Order ID"];
-      return orderId != null && orderId !== "#REF!";
+      const datarow = row?.["Order date"];
+      return datarow != null && datarow !== "#REF!";
     });
 
     return Response.json(filteredData);
