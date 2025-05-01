@@ -54,12 +54,12 @@ const AdminSideMenu = () => {
                   : "hover:bg-gray-100 hover:text-gray-900 text-white"
               }`}
             >
-              <link.icon size={20} className="mr-3" />
+              <link.icon size={20} className={`mr-3 ${activePath === link.href ? "text-mainColor" : ""}`} />
               <span className="text-base font-medium">{link.text}</span>
             </button>
           </Link>
         ))}
-
+        <div className="border-t border-gray-700 mx-3" />
         {/* Statistics Accordion */}
         <div>
           <button
@@ -79,17 +79,17 @@ const AdminSideMenu = () => {
             )}
           </button>
           {statisticsOpen && (
-            <div className="mt-2 space-y-1">
+            <div className="mt-2 space-y-2">
               {statisticsLinks.map((subLink) => (
                 <Link key={subLink.href} href={subLink.href} className="block">
                   <button
-                    className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${
+                    className={`flex items-center w-full p-2.5 rounded-full transition-all duration-300 ${
                       activePath === subLink.href
                         ? "bg-gray-100 text-gray-900 font-medium"
                         : "hover:bg-gray-200 hover:text-gray-900 text-white"
                     }`}
                   >
-                    <subLink.icon size={18} className="mr-3" />
+                    <subLink.icon size={20} className={`mr-3 ${activePath === subLink.href ? "text-mainColor" : ""}`} />
                     <span className="text-sm font-medium">{subLink.text}</span>
                   </button>
                 </Link>

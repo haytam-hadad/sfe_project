@@ -528,7 +528,7 @@ export default function Page() {
           </CardHeader>
           <CardContent className="p-0">
             {filteredOrders.length && countryChartData.length ? (
-              <ResponsiveContainer width="100%" height={350}>
+              <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={countryChartData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" />
@@ -565,7 +565,7 @@ export default function Page() {
           <CardContent className="p-0">
             {filteredOrders.length ? (
               <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={statusChartData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
+                <BarChart data={statusChartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} interval={0} />
                   <YAxis label={{ value: "Number of Orders", angle: -90, position: "insideLeft" }} />
