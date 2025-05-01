@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
-import { Menu, Moon, Sun, ShieldAlert } from "lucide-react";
+import { Menu, Moon, Sun } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useContext } from "react";
 import { ThemeContext } from "../app/ThemeProvider";
+import Image from "next/image";
 
 export default function AdminHeader({ onToggleMenu }) {
   const { theme, setTheme } = useContext(ThemeContext);
@@ -19,7 +20,7 @@ export default function AdminHeader({ onToggleMenu }) {
         <div className="flex items-center justify-between py-3">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <ShieldAlert className="w-8 h-8 text-mainColor" />
+            <Image src="/images/logo.svg" alt="Logo" className="w-8 h-8" width={40} height={40} />
             <span className="text-2xl font-bold text-gray-800 dark:text-gray-100">
               Ecomark
             </span>
@@ -31,7 +32,7 @@ export default function AdminHeader({ onToggleMenu }) {
           </p>
 
           {/* Control Group */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             {/* Dark Mode Toggle */}
             <div className="flex items-center">
               <Switch
@@ -40,11 +41,11 @@ export default function AdminHeader({ onToggleMenu }) {
                 onCheckedChange={toggleTheme}
                 className="data-[state=checked]:bg-mainColor"
               />
-              <span className="ml-2">
+              <span className="ml-1">
                 {theme ? (
-                  <Sun className="w-5 h-5 text-amber-500" />
+                  <Sun className="w-5 h-5 text-amber-600" />
                 ) : (
-                  <Moon className="w-5 h-5 text-indigo-400" />
+                  <Moon className="w-5 h-5 text-indigo-600" />
                 )}
               </span>
             </div>
