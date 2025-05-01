@@ -440,8 +440,8 @@ export default function CityStatsPage() {
         </Card>
       )}
 
-      <div className="w-full overflow-x-auto">
-        <div className="border p-2 overflow-x-auto">
+      <div className="w-full overflow-auto">
+        <div className="p-2">
           <div className="text-md flex items-center justify-between">
             <h4>City Performance Statistics</h4>
             <span className="text-sm font-normal text-muted-foreground">
@@ -450,7 +450,7 @@ export default function CityStatsPage() {
           </div>
         </div>
         <div className="w-full overflow-auto">
-          <table className="w-full border-collapse overflow-x-auto">
+          <table className="w-full border-collapse overflow-auto">
             {/* Table Header */}
             <thead>
               <tr>

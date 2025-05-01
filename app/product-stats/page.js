@@ -441,7 +441,7 @@ export default function ProductStatsPage() {
       )}
 
       <div className="w-full overflow-x-auto">
-        <div className="bg-gray-50 dark:bg-gray-900 p-2 overflow-x-auto">
+        <div className="p-2">
           <div className="text-md flex items-center justify-between">
             <h4>Product Performance Statistics</h4>
             <span className="text-sm font-normal text-muted-foreground">
@@ -450,7 +450,7 @@ export default function ProductStatsPage() {
           </div>
         </div>
         <div className="w-full">
-          <table className="w-full border-collapse">
+          <table className="w-full border-collapse overflow-auto">
             {/* Table Header */}
             <thead>
               <tr>

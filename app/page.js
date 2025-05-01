@@ -251,7 +251,7 @@ export default function Page() {
         <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-5">
           {[1, 2, 3, 4, 5].map((i) => (
-            <Card key={i} className="p-4">
+            <Card key={i} className="p-3">
               <Skeleton className="h-8 w-3/4 mb-2" />
               <Skeleton className="h-12 w-1/2" />
             </Card>
@@ -481,7 +481,7 @@ export default function Page() {
       <h4 className="text-md mt-5 font-semibold mb-3">Visual Data Representations</h4>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         {/* Status Distribution Chart */}
-        <Card className="p-4">
+        <Card className="p-3">
           <CardHeader className="px-0 pt-0">
             <CardTitle className="text-xl text-center">Order Status Distribution</CardTitle>
           </CardHeader>
@@ -522,7 +522,7 @@ export default function Page() {
         </Card>
 
         {/* Top Countries Chart */}
-        <Card className="p-4">
+        <Card className="p-3">
           <CardHeader className="px-0 pt-0">
             <CardTitle className="text-xl text-center">Top Countries by Order Volume</CardTitle>
           </CardHeader>
@@ -558,7 +558,7 @@ export default function Page() {
 
       {/* Status Column Chart */}
       <div className="mb-5">
-        <Card className="p-4">
+        <Card className="p-3">
           <CardHeader className="px-0 pt-0">
             <CardTitle className="text-xl text-center">Order Status Comparison</CardTitle>
           </CardHeader>
