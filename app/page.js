@@ -201,7 +201,7 @@ export default function Page() {
     // Count delivery (only Delivered status)
     const delivery = filteredOrders.filter((order) => order["STATUS"] === "Delivered").length
 
-    // Count returned (only Returned and Cancelled status)
+    // Count returned (only Returned)
     const returned = filteredOrders.filter(
       (order) => order["STATUS"] === "Returned" ,
     ).length
@@ -249,7 +249,7 @@ export default function Page() {
     return (
       <main className="p-2 md:p-5">
         <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-5">
           {[1, 2, 3, 4, 5].map((i) => (
             <Card key={i} className="p-4">
               <Skeleton className="h-8 w-3/4 mb-2" />
@@ -309,7 +309,7 @@ export default function Page() {
 
       {/* Filters Section */}
       {showFilters && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 mb-6 p-3 bg-muted/30 border rounded-lg">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 mb-6 p-3 bg-muted/30 shadow-md border rounded-lg">
           {/* Product Filter */}
           <div>
             <label htmlFor="product-filter" className="block text-sm font-medium mb-1">
@@ -421,9 +421,9 @@ export default function Page() {
       )}
 
       {/* Key Metrics Cards - Matching the image */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 mb-5">
         {/* Total Leads Card */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden border-orange-500">
           <div className="bg-orange-500 text-white p-2 pt-3">
             <h3 className="text-md font-bold uppercase">Total Leads</h3>
           </div>
@@ -433,7 +433,7 @@ export default function Page() {
         </Card>
 
         {/* Confirmation Rate Card */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden border-blue-600 ">
           <div className="bg-blue-600 text-white p-2 pt-3">
             <h3 className="text-md font-bold uppercase">Confirmation Rate</h3>
           </div>
@@ -444,7 +444,7 @@ export default function Page() {
         </Card>
 
         {/* Delivery Rate Card */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden border-green-500">
           <div className="bg-green-500 text-white p-2 pt-3">
             <h3 className="text-md font-bold uppercase">Delivery Rate</h3>
           </div>
@@ -455,7 +455,7 @@ export default function Page() {
         </Card>
 
         {/* Return Rate Card */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden border-red-600">
           <div className="bg-red-600 text-white p-2 pt-3">
             <h3 className="text-md font-bold uppercase">Return Rate</h3>
           </div>
@@ -466,7 +466,7 @@ export default function Page() {
         </Card>
 
         {/* In Process Rate Card */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden border-purple-600 ">
           <div className="bg-purple-600 text-white p-2 pt-3">
             <h3 className="text-md font-bold uppercase">In Process Rate</h3>
           </div>
@@ -478,7 +478,8 @@ export default function Page() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
+      <h4 className="text-md mt-5 font-semibold mb-3">Visual Data Representations</h4>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         {/* Status Distribution Chart */}
         <Card className="p-4">
           <CardHeader className="px-0 pt-0">
@@ -556,7 +557,7 @@ export default function Page() {
       </div>
 
       {/* Status Column Chart */}
-      <div className="mb-8">
+      <div className="mb-5">
         <Card className="p-4">
           <CardHeader className="px-0 pt-0">
             <CardTitle className="text-xl text-center">Order Status Comparison</CardTitle>

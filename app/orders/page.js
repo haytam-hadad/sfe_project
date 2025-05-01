@@ -598,7 +598,7 @@ export default function OrdersDashboard() {
         </div>
 
         {/* Filters */}
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center p-2 mb-1">
           <h2 className="text-lg flex items-center">
             <FilterIcon className="mr-2 h-4 w-4" />
             Filters
@@ -630,12 +630,12 @@ export default function OrdersDashboard() {
           </div>
         </div>
         <div
-          className={`mb-3 md:mb-4 w-full p-1 transition-all duration-300 ${
+          className={`mb-3 md:mb-4 w-full transition-all duration-300 ${
             showFilters ? "opacity-100 max-h-[500px]" : "opacity-0 max-h-0 overflow-hidden"
           }`}
         >
           {showFilters && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 max-w-[100vw] lg:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 max-w-[100vw] lg:grid-cols-4 p-1 gap-2">
               {/* Filters */}
               <div className="relative col-span-full">
                 <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -774,11 +774,11 @@ export default function OrdersDashboard() {
       {/* Orders Table */}
       <div
         id="orders-table"
-        className="bg-white p-1 border dark:bg-zinc-900 rounded-md max-w-full overflow-auto shadow-sm"
+        className="bg-white border border-t-2  dark:bg-zinc-900 rounded-md max-w-full overflow-auto shadow-sm"
         style={{ maxHeight: "70vh", maxWidth: "100vw" }}
       >
         <Table>
-          <TableHeader className="bg-gray-100 dark:bg-zinc-950 sticky top-0 z-10">
+          <TableHeader className="bg-zinc-100 dark:bg-zinc-950 sticky top-0 z-10">
             <TableRow>
               {visibleColumns["Order date"] && (
                 <TableHead

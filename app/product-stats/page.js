@@ -284,14 +284,14 @@ export default function ProductStatsPage() {
   if (loading) {
     return (
       <div className="p-4 md:p-6">
-        <h1 className="text-3xl font-bold mb-6">Product Statistics</h1>
+        <h1 className="text-2xl font-bold mb-6">City Statistics</h1>
         <Card>
           <CardHeader>
             <CardTitle>Loading data...</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <Skeleton className="h-[400px] w-full" />
+            <div className="flex items-center justify-center h-[400px]">
+              <RefreshCwIcon className="animate-spin h-10 w-10 text-primary" />
             </div>
           </CardContent>
         </Card>
@@ -346,7 +346,7 @@ export default function ProductStatsPage() {
 
       {/* Filters Section */}
       {showFilters && (
-        <Card className="mb-6">
+        <Card className="mb-6 shadow-sm dark:bg-zinc-900">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
               <FilterIcon className="mr-2 h-4 w-4" />
@@ -442,7 +442,7 @@ export default function ProductStatsPage() {
 
       <div className="w-full overflow-x-auto">
         <div className="bg-gray-50 dark:bg-gray-900 p-2 overflow-x-auto">
-          <div className="text-lg flex items-center justify-between">
+          <div className="text-md flex items-center justify-between">
             <h4>Product Performance Statistics</h4>
             <span className="text-sm font-normal text-muted-foreground">
               {filteredOrders.length} orders across {productStats.length} products

@@ -55,7 +55,7 @@ export default function RootLayout({ children }) {
                 </AnimatePresence>
 
                 {/* Main Content */}
-                <main className="flex-1 p-1 md:p-2">
+                <main className="flex-1">
                   <div className="max-w-7xl mx-auto">{children}</div>
                   <Toaster />
                 </main>
