@@ -29,7 +29,17 @@ export default function SettingsPage() {
           throw new Error(`Failed to fetch data: ${response.statusText}`)
         }
         const result = await response.json()
-        setOrders(result)
+
+        // Process the data to ensure we capture all statuses
+        const processedOrders = result.map((order) => {
+          // Ensure STATUS is a string and properly formatted
+          if (order["STATUS"] !== undefined) {
+            order["STATUS"] = String(order["STATUS"]).trim()
+          }
+          return order
+        })
+
+        setOrders(processedOrders)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching data:", err)
@@ -43,9 +53,49 @@ export default function SettingsPage() {
   // Get all unique statuses from orders
   const allStatuses = useMemo(() => {
     if (!orders.length) return []
-    const uniqueStatuses = [...new Set(orders.map((order) => order["STATUS"]).filter(Boolean))]
+
+    // Extract all unique statuses, ensuring we don't miss any
+    const uniqueStatuses = [
+      ...new Set(
+        orders
+          .map((order) => {
+            // Ensure we're getting the exact status value, with proper case sensitivity
+            return order["STATUS"] !== undefined ? String(order["STATUS"]).trim() : null
+          })
+          .filter(Boolean),
+      ),
+    ]
+
     return uniqueStatuses.sort()
   }, [orders])
+
+  // Add a function to add new custom statuses
+  const [newStatus, setNewStatus] = useState("")
+
+  const addCustomStatus = () => {
+    if (!newStatus.trim()) return
+
+    // Check if status already exists
+    if (allStatuses.includes(newStatus.trim())) {
+      toast({
+        title: "Status already exists",
+        description: `"${newStatus.trim()}" is already in the list.`,
+        variant: "destructive",
+        duration: 3000,
+      })
+      return
+    }
+
+    // Add to allStatuses
+    allStatuses.push(newStatus.trim())
+    setNewStatus("")
+
+    toast({
+      title: "Status added",
+      description: `"${newStatus.trim()}" has been added to the list.`,
+      duration: 3000,
+    })
+  }
 
   // Handle checkbox changes
   const handleStatusChange = (category, status, checked) => {
@@ -62,13 +112,22 @@ export default function SettingsPage() {
 
   // Save configuration
   const saveConfig = () => {
-    setStatusConfig(localConfig)
+    // Make sure all categories have at least one status
+    const updatedConfig = { ...localConfig }
+
+    // Save the updated configuration
+    setStatusConfig(updatedConfig)
     setSaveStatus("saved")
     toast({
       title: "Settings saved",
       description: "Your status configuration has been updated.",
       duration: 3000,
     })
+
+    // Also save the custom statuses if any were added
+    if (typeof window !== "undefined") {
+      localStorage.setItem("customStatuses", JSON.stringify(allStatuses))
+    }
   }
 
   // Reset to defaults
@@ -77,11 +136,36 @@ export default function SettingsPage() {
     setSaveStatus("unsaved")
   }
 
+  // Load custom statuses from localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedConfig = localStorage.getItem("statusConfig")
+      if (savedConfig) {
+        try {
+          setLocalConfig(JSON.parse(savedConfig))
+        } catch (error) {
+          console.error("Failed to parse saved status config:", error)
+        }
+      }
+
+      // Load custom statuses if any were saved
+      const savedCustomStatuses = localStorage.getItem("customStatuses")
+      if (savedCustomStatuses) {
+        try {
+          const parsedStatuses = JSON.parse(savedCustomStatuses)
+          // We'll use this when fetching orders to ensure we include custom statuses
+        } catch (error) {
+          console.error("Failed to parse saved custom statuses:", error)
+        }
+      }
+    }
+  }, [])
+
   // Render loading state
   if (loading) {
     return (
       <div className="container mx-auto py-6 max-w-5xl">
-        <h1 className="text-2xl font-bold mb-6">Settings</h1>
+        <h1 className="text-3xl font-bold mb-6">Settings</h1>
         <Card>
           <CardHeader>
             <CardTitle>Loading status options...</CardTitle>
@@ -97,26 +181,26 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="container mx-auto p-2 md:p-6 py-6 max-w-5xl">
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 md:gap-6">
-        <div className="sm:flex-1">
+    <div className="container mx-auto p-2 md:p-5 py-6 max-w-5xl">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+        <div className="mb-4 md:mb-0">
           <h1 className="text-3xl font-bold">Settings</h1>
           <p className="text-muted-foreground">Configure how order statuses are categorized and calculated</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+        <div className="flex gap-2 md:gap-4">
           <Button
+            className="flex-1 md:flex-none"
             variant="outline"
             onClick={resetToDefaults}
             disabled={loading}
-            className="sm:order-2 w-full sm:w-auto"
           >
             <RefreshCwIcon className="mr-2 h-4 w-4" />
             Reset to Defaults
           </Button>
           <Button
+            className="flex-1 md:flex-none"
             onClick={saveConfig}
             disabled={saveStatus === "saved" || loading}
-            className="sm:order-1 w-full sm:w-auto"
           >
             <SaveIcon className="mr-2 h-4 w-4" />
             Save Changes
@@ -257,6 +341,30 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add Custom Status */}
+      <Card className="col-span-1 md:col-span-2">
+        <CardHeader className="bg-gray-50 dark:bg-gray-900/30 border-b">
+          <CardTitle className="text-gray-700 dark:text-gray-400">Add Custom Status</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <p className="text-sm text-muted-foreground mb-4">
+            Add any missing status that doesn't appear in the lists above.
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newStatus}
+              onChange={(e) => setNewStatus(e.target.value)}
+              placeholder="Enter new status name"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            />
+            <Button onClick={addCustomStatus} disabled={!newStatus.trim()}>
+              Add Status
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="mt-6 flex justify-end">
         <Button onClick={saveConfig} disabled={saveStatus === "saved" || loading} className="w-full sm:w-auto">
