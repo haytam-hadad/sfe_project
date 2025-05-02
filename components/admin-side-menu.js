@@ -1,4 +1,4 @@
-import { Home, Database, ChartBar, ChevronDown, ChevronUp, MapPin, Package } from "lucide-react";
+import { Home, Database, ChartBar, ChevronDown, ChevronUp, MapPin, Package, Settings } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { usePathname } from "next/navigation";
@@ -97,9 +97,24 @@ const AdminSideMenu = () => {
             </div>
           )}
         </div>
+        {/* Settings Link */}
+        <div className="border-t border-gray-700 mx-3" />
+        <Link href="/settings" className="block">
+          <button
+            className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${
+              activePath === "/settings"
+                ? "bg-white text-gray-900 font-medium"
+                : "hover:bg-gray-100 hover:text-gray-900 text-white"
+            }`}
+          >
+            <Settings size={20} className={`mr-3 ${activePath === "/settings" ? "text-mainColor" : ""}`} />
+            <span className="text-base font-medium">Settings</span>
+          </button>
+        </Link>
       </div>
     </motion.div>
   );
 };
 
 export default AdminSideMenu;
+

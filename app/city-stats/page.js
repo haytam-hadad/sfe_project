@@ -4,11 +4,12 @@ import { useState, useEffect, useMemo, useCallback } from "react"
 import { format } from "date-fns"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { RefreshCwIcon, DownloadIcon, FilterIcon, CalendarIcon, XCircleIcon } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
+import { useStatusConfig } from "@/contexts/status-config-context"
+import { matchesStatus } from "@/lib/status-config"
 
 export default function CityStatsPage() {
   const [orders, setOrders] = useState([])
@@ -16,6 +17,9 @@ export default function CityStatsPage() {
   const [error, setError] = useState(null)
   const isMobile = useMobile()
   const [showFilters, setShowFilters] = useState(false)
+
+  // Get status configuration from context
+  const { statusConfig } = useStatusConfig()
 
   // Filter states
   const [startDate, setStartDate] = useState(null)
@@ -110,7 +114,7 @@ export default function CityStatsPage() {
     return uniqueCities.sort()
   }, [filteredOrders])
 
-  // Calculate statistics for each city using the updated calculation logic
+  // Calculate statistics for each city using the configurable status definitions
   const cityStats = useMemo(() => {
     if (!filteredOrders.length) return []
 
@@ -135,33 +139,24 @@ export default function CityStatsPage() {
       // Count total leads for this city
       stats[city].totalLeads++
 
-      // Count by status using the updated logic from the dashboard
+      // Count by status using the configurable status definitions
       const status = order["STATUS"]
       if (!status) return
 
-      // Confirmation: Scheduled, Awaiting Dispatch, Delivered, In Transit, Returned, Cancelled
-      if (
-        status === "Scheduled" ||
-        status === "Awaiting Dispatch" ||
-        status === "Delivered" ||
-        status === "In Transit" ||
-        status === "Returned"
-      ) {
+      // Use the status configuration to determine counts
+      if (matchesStatus(status, statusConfig.confirmation)) {
         stats[city].confirmation++
       }
 
-      // Delivery: only Delivered status
-      if (status === "Delivered") {
+      if (matchesStatus(status, statusConfig.delivery)) {
         stats[city].delivery++
       }
 
-      // Returned: Returned or Cancelled
-      if (status === "Returned") {
+      if (matchesStatus(status, statusConfig.returned)) {
         stats[city].returned++
       }
 
-      // In Process: Scheduled, Awaiting Dispatch, In Transit
-      if (status === "Scheduled" || status === "Awaiting Dispatch" || status === "In Transit") {
+      if (matchesStatus(status, statusConfig.inProcess)) {
         stats[city].inProcess++
       }
     })
@@ -198,7 +193,7 @@ export default function CityStatsPage() {
           return fieldB - fieldA
         }
       })
-  }, [filteredOrders, cities, sortField, sortDirection])
+  }, [filteredOrders, cities, sortField, sortDirection, statusConfig])
 
   // Calculate totals
   const totals = useMemo(() => {

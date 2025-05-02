@@ -4,11 +4,12 @@ import { useState, useEffect, useMemo, useCallback } from "react"
 import { format } from "date-fns"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { RefreshCwIcon, DownloadIcon, FilterIcon, CalendarIcon, XCircleIcon } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
+import { useStatusConfig } from "@/contexts/status-config-context"
+import { matchesStatus } from "@/lib/status-config"
 
 export default function ProductStatsPage() {
   const [orders, setOrders] = useState([])
@@ -16,6 +17,9 @@ export default function ProductStatsPage() {
   const [error, setError] = useState(null)
   const isMobile = useMobile()
   const [showFilters, setShowFilters] = useState(false)
+
+  // Get status configuration from context
+  const { statusConfig } = useStatusConfig()
 
   // Filter states
   const [startDate, setStartDate] = useState(null)
@@ -109,7 +113,7 @@ export default function ProductStatsPage() {
     setEndDate(null)
   }, [])
 
-  // Calculate statistics for each product using the updated calculation logic
+  // Calculate statistics for each product using the configurable status definitions
   const productStats = useMemo(() => {
     if (!filteredOrders.length) return []
 
@@ -134,33 +138,24 @@ export default function ProductStatsPage() {
       // Count total leads for this product
       stats[product].totalLeads++
 
-      // Count by status using the updated logic from the dashboard
+      // Count by status using the configurable status definitions
       const status = order["STATUS"]
       if (!status) return
 
-      // Confirmation: Scheduled, Awaiting Dispatch, Delivered, In Transit, Returned, Cancelled
-      if (
-        status === "Scheduled" ||
-        status === "Awaiting Dispatch" ||
-        status === "Delivered" ||
-        status === "In Transit" ||
-        status === "Returned"
-      ) {
+      // Use the status configuration to determine counts
+      if (matchesStatus(status, statusConfig.confirmation)) {
         stats[product].confirmation++
       }
 
-      // Delivery: only Delivered status
-      if (status === "Delivered") {
+      if (matchesStatus(status, statusConfig.delivery)) {
         stats[product].delivery++
       }
 
-      // Returned: Returned or Cancelled
-      if (status === "Returned") {
+      if (matchesStatus(status, statusConfig.returned)) {
         stats[product].returned++
       }
 
-      // In Process: Scheduled, Awaiting Dispatch, In Transit
-      if (status === "Scheduled" || status === "Awaiting Dispatch" || status === "In Transit") {
+      if (matchesStatus(status, statusConfig.inProcess)) {
         stats[product].inProcess++
       }
     })
@@ -198,7 +193,7 @@ export default function ProductStatsPage() {
           return fieldB - fieldA
         }
       })
-  }, [filteredOrders, products, sortField, sortDirection])
+  }, [filteredOrders, products, sortField, sortDirection, statusConfig])
 
   // Calculate totals
   const totals = useMemo(() => {
@@ -284,7 +279,7 @@ export default function ProductStatsPage() {
   if (loading) {
     return (
       <div className="p-4 md:p-6">
-        <h1 className="text-2xl font-bold mb-6">City Statistics</h1>
+        <h1 className="text-2xl font-bold mb-6">Product Statistics</h1>
         <Card>
           <CardHeader>
             <CardTitle>Loading data...</CardTitle>

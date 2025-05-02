@@ -22,6 +22,8 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { CalendarIcon, FilterIcon, RefreshCwIcon, XCircleIcon } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
+import { useStatusConfig } from "@/contexts/status-config-context"
+import { matchesStatus } from "@/lib/status-config"
 
 export default function Page() {
   const [orders, setOrders] = useState([])
@@ -30,6 +32,9 @@ export default function Page() {
   const [error, setError] = useState(null)
   const [showFilters, setShowFilters] = useState(false)
   const isMobile = useMobile()
+
+  // Get status configuration from context
+  const { statusConfig } = useStatusConfig()
 
   // Filter states
   const [statusFilter, setStatusFilter] = useState("")
@@ -171,7 +176,7 @@ export default function Page() {
       .slice(0, 5) // Top 5 countries
   }, [filteredOrders])
 
-  // Calculate key metrics based on the Excel formulas
+  // Calculate key metrics based on the configurable status definitions
   const metrics = useMemo(() => {
     if (!filteredOrders.length)
       return {
@@ -188,29 +193,16 @@ export default function Page() {
 
     const totalLeads = filteredOrders.length
 
-    // Count confirmation based on formula (Scheduled + Awaiting Dispatch + Delivered + In Transit + Returned)
-    const confirmation = filteredOrders.filter(
-      (order) =>
-        order["STATUS"] === "Scheduled" ||
-        order["STATUS"] === "Awaiting Dispatch" ||
-        order["STATUS"] === "Delivered" ||
-        order["STATUS"] === "In Transit" ||
-        order["STATUS"] === "Returned" ,
+    // Use the status configuration to determine counts
+    const confirmation = filteredOrders.filter((order) =>
+      matchesStatus(order["STATUS"], statusConfig.confirmation),
     ).length
 
-    // Count delivery (only Delivered status)
-    const delivery = filteredOrders.filter((order) => order["STATUS"] === "Delivered").length
+    const delivery = filteredOrders.filter((order) => matchesStatus(order["STATUS"], statusConfig.delivery)).length
 
-    // Count returned (only Returned)
-    const returned = filteredOrders.filter(
-      (order) => order["STATUS"] === "Returned" ,
-    ).length
+    const returned = filteredOrders.filter((order) => matchesStatus(order["STATUS"], statusConfig.returned)).length
 
-    // Count in process based on formula (Scheduled + Awaiting Dispatch + In Transit)
-    const inProcess = filteredOrders.filter(
-      (order) =>
-        order["STATUS"] === "Scheduled" || order["STATUS"] === "Awaiting Dispatch" || order["STATUS"] === "In Transit",
-    ).length
+    const inProcess = filteredOrders.filter((order) => matchesStatus(order["STATUS"], statusConfig.inProcess)).length
 
     // Calculate rates
     const confirmationRate = totalLeads > 0 ? (confirmation / totalLeads) * 100 : 0
@@ -229,7 +221,7 @@ export default function Page() {
       inProcess,
       inProcessRate: Number.parseFloat(inProcessRate.toFixed(2)),
     }
-  }, [filteredOrders])
+  }, [filteredOrders, statusConfig])
 
   const COLORS = ["#4CAF50", "#F44336", "#2196F3", "#FF9800", "#9C27B0", "#607D8B"]
 
@@ -598,16 +590,16 @@ export default function Page() {
         </p>
         <ul className="list-disc pl-5 mt-1 space-y-1">
           <li>
-            <strong>Confirmation:</strong> Orders with status Scheduled, Awaiting Dispatch, Delivered, In Transit, Returned
+            <strong>Confirmation:</strong> Orders with status {statusConfig.confirmation.join(", ")}
           </li>
           <li>
-            <strong>Delivery:</strong> Orders with status Delivered
+            <strong>Delivery:</strong> Orders with status {statusConfig.delivery.join(", ")}
           </li>
           <li>
-            <strong>Returned:</strong> Orders with status Returned
+            <strong>Returned:</strong> Orders with status {statusConfig.returned.join(", ")}
           </li>
           <li>
-            <strong>In Process:</strong> Orders with status Scheduled, Awaiting Dispatch, or In Transit
+            <strong>In Process:</strong> Orders with status {statusConfig.inProcess.join(", ")}
           </li>
         </ul>
         {filteredOrders.length !== orders.length && (

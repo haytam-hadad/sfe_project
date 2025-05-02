@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Menu, Moon, Sun } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useContext } from "react";
-import { ThemeContext } from "../app/ThemeProvider";
+import { ThemeContext } from "./theme-provider";
 import Image from "next/image";
 
 export default function AdminHeader({ onToggleMenu }) {
