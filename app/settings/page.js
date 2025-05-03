@@ -343,7 +343,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Add Custom Status */}
-      <Card className="col-span-1 md:col-span-2">
+      <Card className="col-span-1 md:col-span-2 mt-5">
         <CardHeader className="bg-gray-50 dark:bg-gray-900/30 border-b">
           <CardTitle className="text-gray-700 dark:text-gray-400">Add Custom Status</CardTitle>
         </CardHeader>

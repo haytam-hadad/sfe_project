@@ -169,26 +169,18 @@ export default function ProductStatsPage() {
         const returnedPercent = data.confirmation > 0 ? (data.returned / data.confirmation) * 100 : 0
         const inProcessPercent = data.totalLeads > 0 ? (data.inProcess / data.totalLeads) * 100 : 0
 
-        // Calculate average order quantity per user (by phone number)
-        const userOrderCounts = {}
-        const userPhoneNumbers = new Set()
-
-        // Group orders by phone number for this product
+        // Calculate average quantity per order for this product
+        const orderQuantities = []
         filteredOrders.forEach((order) => {
           if (order["sku number"] === product) {
-            const phoneNumber = order["Phone Number"] || "unknown"
-            if (!userOrderCounts[phoneNumber]) {
-              userOrderCounts[phoneNumber] = 0
-              userPhoneNumbers.add(phoneNumber)
-            }
-            userOrderCounts[phoneNumber] += Number(order["Quantity"] || 1)
+            orderQuantities.push(Number(order["Quantity"] || 1))
           }
         })
 
         // Calculate the average
-        const uniqueUsers = userPhoneNumbers.size || 1 // Avoid division by zero
-        const totalOrdersByUsers = Object.values(userOrderCounts).reduce((sum, count) => sum + count, 0)
-        const avgOrderPerUser = totalOrdersByUsers / uniqueUsers
+        const totalOrders = orderQuantities.length || 1 // Avoid division by zero
+        const totalQuantity = orderQuantities.reduce((sum, qty) => sum + qty, 0)
+        const avgQuantityPerOrder = totalQuantity / totalOrders
 
         return {
           product,
@@ -201,7 +193,7 @@ export default function ProductStatsPage() {
           returnedPercent: Number.parseFloat(returnedPercent.toFixed(2)),
           inProcess: data.inProcess,
           inProcessPercent: Number.parseFloat(inProcessPercent.toFixed(2)),
-          avgOrderPerUser: Number.parseFloat(avgOrderPerUser.toFixed(2)),
+          avgQuantityPerOrder: Number.parseFloat(avgQuantityPerOrder.toFixed(2)),
         }
       })
       .sort((a, b) => {
@@ -275,17 +267,17 @@ export default function ProductStatsPage() {
 
     // Add headers
     csvContent +=
-      "Product,Total Leads,Confirmation,Confirmation %,Delivery,Delivery %,Returned,Returned %,In Process,In Process %,Avg Qty/User\n"
+      "Product,Total Leads,Confirmation,Confirmation %,Delivery,Delivery %,Returned,Returned %,In Process,In Process %,Avg Qty/Order\n"
 
     // Add total row
-    const avgOrderPerUserTotal = productStats.length
-      ? (productStats.reduce((sum, item) => sum + item.avgOrderPerUser, 0) / productStats.length).toFixed(2)
+    const avgQuantityPerOrderTotal = productStats.length
+      ? (productStats.reduce((sum, item) => sum + item.avgQuantityPerOrder, 0) / productStats.length).toFixed(2)
       : "0"
-    csvContent += `TOTAL,${totals.totalLeads},${totals.confirmation},${totals.confirmationPercent}%,${totals.delivery},${totals.deliveryPercent}%,${totals.returned},${totals.returnedPercent}%,${totals.inProcess},${totals.inProcessPercent}%,${avgOrderPerUserTotal}\n`
+    csvContent += `TOTAL,${totals.totalLeads},${totals.confirmation},${totals.confirmationPercent}%,${totals.delivery},${totals.deliveryPercent}%,${totals.returned},${totals.returnedPercent}%,${totals.inProcess},${totals.inProcessPercent}%,${avgQuantityPerOrderTotal}\n`
 
     // Add product rows
     productStats.forEach((item) => {
-      csvContent += `"${item.product}",${item.totalLeads},${item.confirmation},${item.confirmationPercent}%,${item.delivery},${item.deliveryPercent}%,${item.returned},${item.returnedPercent}%,${item.inProcess},${item.inProcessPercent}%,${item.avgOrderPerUser}\n`
+      csvContent += `"${item.product}",${item.totalLeads},${item.confirmation},${item.confirmationPercent}%,${item.delivery},${item.deliveryPercent}%,${item.returned},${item.returnedPercent}%,${item.inProcess},${item.inProcessPercent}%,${item.avgQuantityPerOrder}\n`
     })
 
     // Create download link
@@ -514,7 +506,7 @@ export default function ProductStatsPage() {
                   className="bg-gradient-to-r from-teal-700 to-teal-600 text-white text-center p-3 border border-gray-300 font-bold"
                   colSpan={1}
                 >
-                  AVG QTY/USER
+                  AVG QTY/ORDER
                 </th>
               </tr>
               {!isMobile && (
@@ -571,7 +563,7 @@ export default function ProductStatsPage() {
                     <td className="p-2 border border-gray-300 text-center bg-teal-100 dark:bg-teal-950">
                       {productStats.length
                         ? (
-                            productStats.reduce((sum, item) => sum + item.avgOrderPerUser, 0) / productStats.length
+                            productStats.reduce((sum, item) => sum + item.avgQuantityPerOrder, 0) / productStats.length
                           ).toFixed(2)
                         : "—"}
                     </td>
@@ -593,7 +585,7 @@ export default function ProductStatsPage() {
                     <td className="p-2 border border-gray-300 text-center bg-teal-100 dark:bg-teal-950">
                       {productStats.length
                         ? (
-                            productStats.reduce((sum, item) => sum + item.avgOrderPerUser, 0) / productStats.length
+                            productStats.reduce((sum, item) => sum + item.avgQuantityPerOrder, 0) / productStats.length
                           ).toFixed(2)
                         : "—"}
                     </td>
@@ -643,7 +635,7 @@ export default function ProductStatsPage() {
                           {item.inProcessPercent}%
                         </td>
                         <td className="p-2 border border-gray-300 text-center bg-teal-50 dark:bg-teal-950/30">
-                          {item.avgOrderPerUser}
+                          {item.avgQuantityPerOrder}
                         </td>
                       </>
                     ) : (
@@ -661,7 +653,7 @@ export default function ProductStatsPage() {
                           {item.inProcess} ({item.inProcessPercent}%)
                         </td>
                         <td className="p-2 border border-gray-300 text-center bg-teal-50 dark:bg-teal-950/30">
-                          {item.avgOrderPerUser}
+                          {item.avgQuantityPerOrder}
                         </td>
                       </>
                     )}
