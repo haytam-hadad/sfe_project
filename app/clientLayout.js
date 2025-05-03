@@ -14,18 +14,6 @@ export default function ClientLayout({ children }) {
 
   return (
     <html lang="en">
-      <head>
-        {/* Metadata */}
-        <title>Ecomark Dashboard</title>
-        <meta name="description" content="This is a description of my app." />
-        <meta name="keywords" content="app, react, next.js, admin dashboard" />
-        <meta name="author" content="Author Name" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta charSet="UTF-8" />
-
-        {/* Favicon */}
-        <link rel="icon" href="/images/i1.svg" type="image/svg+xml" />
-      </head>
       <body className="bg-secondaryColor dark:bg-thirdColor">
         <ThemeProvider>
           <StatusConfigProvider>
