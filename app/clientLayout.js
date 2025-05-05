@@ -10,44 +10,42 @@ import { Toaster } from "@/components/ui/toaster"
 import { StatusConfigProvider } from "@/contexts/status-config-context"
 
 export default function ClientLayout({ children }) {
-  const [sideMenuVisible, setSideMenuVisible] = useState(false)
+  const [isSideMenuOpen, setIsSideMenuOpen] = useState(false)
 
   return (
-    <html lang="en">
+    <html lang="en" className="scroll-smooth">
       <head>
         <link rel="icon" href="/images/i1.svg" />
       </head>
-      <body className="bg-secondaryColor dark:bg-thirdColor">
+      <body className="bg-secondaryColor min-h-screen w-full dark:bg-thirdColor">
         <ThemeProvider>
           <StatusConfigProvider>
-            <div className="flex flex-col min-h-screen">
-              <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-thirdColor">
-                <AdminHeader onToggleMenu={() => setSideMenuVisible(!sideMenuVisible)} />
+            <div className="flex flex-col w-full min-h-screen">
+              <AdminHeader onToggleMenu={() => setIsSideMenuOpen((prev) => !prev)} />
 
-                <div className="flex flex-1">
-                  {/* Side Menu - Always visible on desktop */}
-                  <div className="hidden md:block md:w-[250px] md:min-w-[250px] md:shrink-0 md:h-[calc(100vh-64px)] md:sticky md:top-16">
-                    <AdminSideMenu setVisible={setSideMenuVisible} />
-                  </div>
-
-                  {/* Mobile Side Menu */}
-                  <AnimatePresence>
-                    {sideMenuVisible && (
-                      <div className="md:hidden fixed inset-0 z-50">
-                        <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setSideMenuVisible(false)}></div>
-                        <div className="relative z-50 h-full w-[260px]">
-                          <AdminSideMenu setVisible={setSideMenuVisible} />
-                        </div>
-                      </div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Main Content */}
-                  <main className="flex-1">
-                    <div className="max-w-full mt-16 md:mt-14">{children}</div>
-                    <Toaster />
-                  </main>
+              <div className="flex flex-1">
+                {/* Side Menu - Always visible on desktop */}
+                <div className="hidden md:block md:w-[250px] md:min-w-[250px] md:shrink-0 md:h-[calc(100vh-64px)] z-40 md:top-16">
+                  <AdminSideMenu isOpen={isSideMenuOpen} onClose={() => setIsSideMenuOpen(false)} />
                 </div>
+
+                {/* Mobile Side Menu */}
+                <AnimatePresence>
+                  {isSideMenuOpen && (
+                    <div className="fixed inset-0 z-50">
+                      <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setIsSideMenuOpen(false)}></div>
+                      <div className="relative z-50 h-full w-[260px]">
+                        <AdminSideMenu isOpen={isSideMenuOpen} onClose={() => setIsSideMenuOpen(false)} />
+                      </div>
+                    </div>
+                  )}
+                </AnimatePresence>
+
+                {/* Main Content */}
+                <main className="flex-1">
+                  <div className="w-full mt-16 md:mt-14">{children}</div>
+                  <Toaster />
+                </main>
               </div>
             </div>
           </StatusConfigProvider>
@@ -56,3 +54,4 @@ export default function ClientLayout({ children }) {
     </html>
   )
 }
+

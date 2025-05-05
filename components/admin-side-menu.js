@@ -1,8 +1,10 @@
+"use client";
+
 import { Home, Database, ChartBar, ChevronDown, ChevronUp, MapPin, Package, Settings } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState , useContext } from "react";
 
 const links = [
   {
@@ -30,9 +32,13 @@ const statisticsLinks = [
   },
 ];
 
-const AdminSideMenu = () => {
+const AdminSideMenu = ({ isOpen, onClose }) => {
   const activePath = usePathname();
   const [statisticsOpen, setStatisticsOpen] = useState(true); // State to toggle the accordion
+
+  const handleLinkClick = () => {
+    onClose();
+  };
 
   return (
     <motion.div
@@ -46,7 +52,7 @@ const AdminSideMenu = () => {
       <div className="flex flex-col p-3 space-y-3">
         {/* Navigation Links */}
         {links.map((link) => (
-          <Link key={link.href} href={link.href} className="block">
+          <Link key={link.href} href={link.href} onClick={handleLinkClick}>
             <button
               className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${
                 activePath === link.href
@@ -88,7 +94,7 @@ const AdminSideMenu = () => {
                 transition={{ duration: 0.3, ease: "easeInOut" }}
               >
                 {statisticsLinks.map((subLink) => (
-                  <Link key={subLink.href} href={subLink.href} className="block">
+                  <Link key={subLink.href} href={subLink.href} onClick={handleLinkClick}>
                     <button
                       className={`flex items-center w-full p-2.5 rounded-full transition-all duration-300 ${
                         activePath === subLink.href
@@ -107,7 +113,7 @@ const AdminSideMenu = () => {
         </div>
         {/* Settings Link */}
         <div className="border-t border-gray-700 mx-3 dark:border-gray-600" />
-        <Link href="/settings" className="block">
+        <Link href="/settings" onClick={handleLinkClick}>
           <button
             className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${
               activePath === "/settings"
