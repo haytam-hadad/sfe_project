@@ -43,9 +43,9 @@ export default function AdminHeader({ onToggleMenu }) {
               />
               <span className="hidden sm:block">
                 {theme ? (
-                  <Sun className="w-6 h-6 text-yellow-400 dark:text-yellow-500" />
+                  <Sun className="w-5 h-5 text-yellow-400 dark:text-yellow-500" />
                 ) : (
-                  <Moon className="w-6 h-6 text-blue-500 dark:text-blue-400" />
+                  <Moon className="w-5 h-5 text-blue-500 dark:text-blue-400" />
                 )}
               </span>
             </div>

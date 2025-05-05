@@ -44,7 +44,7 @@ export default function ClientLayout({ children }) {
 
                   {/* Main Content */}
                   <main className="flex-1">
-                    <div className="max-w-7xl mx-auto">{children}</div>
+                    <div className="max-w-full">{children}</div>
                     <Toaster />
                   </main>
                 </div>

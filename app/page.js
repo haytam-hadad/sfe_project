@@ -542,7 +542,7 @@ export default function Page() {
 
   return (
     <main className="p-3 md:p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">
@@ -778,23 +778,24 @@ export default function Page() {
       {/* Tabs for different dashboard views */}
       <Tabs defaultValue="overview" className="mb-6" onValueChange={setActiveTab}>
         <div className="overflow-x-auto py-3">
-          <TabsList className="w-full inline-flex border-t border-mainColor whitespace-nowrap">
-            <TabsTrigger value="overview" className="flex items-center px-4 sm:px-6">
-              <BarChart3Icon className="mr-1 sm:mr-2 h-3 sm:h-4 w-3 sm:w-4" />
-              <span className="text-xs sm:text-sm">Overview</span>
-            </TabsTrigger>
-            <TabsTrigger value="trends" className="flex items-center px-4 sm:px-6">
-              <LineChartIcon className="mr-1 sm:mr-2 h-3 sm:h-4 w-3 sm:w-4" />
-              <span className="text-xs sm:text-sm">Trends</span>
-            </TabsTrigger>
-            <TabsTrigger value="products" className="flex items-center px-4 sm:px-6">
-              <PackageIcon className="mr-1 sm:mr-2 h-3 sm:h-4 w-3 sm:w-4" />
-              <span className="text-xs sm:text-sm">Products</span>
-            </TabsTrigger>
-            <TabsTrigger value="geography" className="flex items-center px-4 sm:px-6">
-              <MapPinIcon className="mr-1 sm:mr-2 h-3 sm:h-4 w-3 sm:w-4" />
-              <span className="text-xs sm:text-sm">Geography</span>
-            </TabsTrigger>
+          <TabsList className="w-full inline-flex whitespace-nowrap">
+            {[
+              { value: "overview", icon: BarChart3Icon, label: "Overview" },
+              { value: "trends", icon: LineChartIcon, label: "Trends" },
+              { value: "products", icon: PackageIcon, label: "Products" },
+              { value: "geography", icon: MapPinIcon, label: "Geography" },
+            ].map(tab => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className={`flex items-center px-4 sm:px-7 ${
+                  activeTab === tab.value ? "border-b-2 border-b-mainColor" : ""
+                }`}
+              >
+                <tab.icon className="mr-1 sm:mr-2 h-3 sm:h-4 w-3 sm:w-4" />
+                <span className="text-xs sm:text-sm">{tab.label}</span>
+              </TabsTrigger>
+            ))}
           </TabsList>
         </div>
 
@@ -1381,7 +1382,7 @@ export default function Page() {
       </Tabs>
 
       {/* Metrics Calculation Info */}
-      <div className="mt-4 text-sm text-muted-foreground">
+      <div className="mt-4 text-sm border-t p-1 pt-2 text-muted-foreground">
         <p>
           <strong>Metrics Calculation:</strong>
         </p>
