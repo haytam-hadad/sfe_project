@@ -1,6 +1,6 @@
 import { Home, Database, ChartBar, ChevronDown, ChevronUp, MapPin, Package, Settings } from "lucide-react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
@@ -36,7 +36,7 @@ const AdminSideMenu = () => {
 
   return (
     <motion.div
-      className="bg-zinc-950 border-r h-full fixed top-0 md:pt-16 overflow-y-auto left-0 w-[250px]"
+      className="bg-zinc-950 border-r h-full fixed top-0 md:pt-14 overflow-y-auto left-0 w-[250px] dark:bg-white dark:border-gray-800"
       initial={{ x: -260 }}
       animate={{ x: 0 }}
       exit={{ x: -260 }}
@@ -50,24 +50,24 @@ const AdminSideMenu = () => {
             <button
               className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${
                 activePath === link.href
-                  ? "bg-white text-gray-900 font-medium"
-                  : "hover:bg-gray-100 hover:text-gray-900 text-white"
+                  ? "bg-mainColor text-white font-medium dark:bg-mainColor dark:text-white" // Active link background
+                  : "hover:bg-gray-100 hover:text-gray-900 text-white dark:hover:bg-gray-900 dark:hover:text-white dark:text-black"
               }`}
             >
-              <link.icon size={20} className={`mr-3 ${activePath === link.href ? "text-mainColor" : ""}`} />
+              <link.icon size={20} className={`mr-3 ${activePath === link.href ? "text-white" : ""}`} />
               <span className="text-base font-medium">{link.text}</span>
             </button>
           </Link>
         ))}
-        <div className="border-t border-gray-700 mx-3" />
+        <div className="border-t border-gray-700 mx-3 dark:border-gray-600" />
         {/* Statistics Accordion */}
         <div>
           <button
             onClick={() => setStatisticsOpen((prev) => !prev)}
             className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${
               activePath.startsWith("/statistics")
-                ? "bg-white text-gray-900 font-medium"
-                : "hover:bg-gray-100 hover:text-gray-900 text-white"
+                ? "bg-black text-white font-medium dark:bg-white dark:text-black"
+                : "hover:bg-gray-100 hover:text-gray-900 text-white dark:hover:bg-gray-900 dark:hover:text-white dark:text-black"
             }`}
           >
             <ChartBar size={20} className="mr-3" />
@@ -78,36 +78,44 @@ const AdminSideMenu = () => {
               <ChevronDown size={20} className="ml-auto" />
             )}
           </button>
-          {statisticsOpen && (
-            <div className="mt-2 space-y-2">
-              {statisticsLinks.map((subLink) => (
-                <Link key={subLink.href} href={subLink.href} className="block">
-                  <button
-                    className={`flex items-center w-full p-2.5 rounded-full transition-all duration-300 ${
-                      activePath === subLink.href
-                        ? "bg-gray-100 text-gray-900 font-medium"
-                        : "hover:bg-gray-200 hover:text-gray-900 text-white"
-                    }`}
-                  >
-                    <subLink.icon size={20} className={`mr-3 ${activePath === subLink.href ? "text-mainColor" : ""}`} />
-                    <span className="text-sm font-medium">{subLink.text}</span>
-                  </button>
-                </Link>
-              ))}
-            </div>
-          )}
+          <AnimatePresence>
+            {statisticsOpen && (
+              <motion.div
+                className="mt-2 space-y-2"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+              >
+                {statisticsLinks.map((subLink) => (
+                  <Link key={subLink.href} href={subLink.href} className="block">
+                    <button
+                      className={`flex items-center w-full p-2.5 rounded-full transition-all duration-300 ${
+                        activePath === subLink.href
+                          ? "bg-mainColor text-white font-medium dark:bg-mainColor dark:text-white" // Active sub-link background
+                          : "hover:bg-gray-100 hover:text-gray-900 text-white dark:hover:bg-gray-900 dark:hover:text-white dark:text-black"
+                      }`}
+                    >
+                      <subLink.icon size={20} className={`mr-3 ${activePath === subLink.href ? "text-white" : ""}`} />
+                      <span className="text-sm font-medium">{subLink.text}</span>
+                    </button>
+                  </Link>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         {/* Settings Link */}
-        <div className="border-t border-gray-700 mx-3" />
+        <div className="border-t border-gray-700 mx-3 dark:border-gray-600" />
         <Link href="/settings" className="block">
           <button
             className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${
               activePath === "/settings"
-                ? "bg-white text-gray-900 font-medium"
-                : "hover:bg-gray-100 hover:text-gray-900 text-white"
+                ? "bg-mainColor text-white font-medium dark:bg-mainColor dark:text-white"
+                : "hover:bg-gray-100 hover:text-gray-900 text-white dark:hover:bg-gray-900 dark:hover:text-white dark:text-black"
             }`}
           >
-            <Settings size={20} className={`mr-3 ${activePath === "/settings" ? "text-mainColor" : ""}`} />
+            <Settings size={20} className={`mr-3 ${activePath === "/settings" ? "text-white" : ""}`} />
             <span className="text-base font-medium">Settings</span>
           </button>
         </Link>
