@@ -212,7 +212,7 @@ export default function SettingsPage() {
         <Alert className="mb-6 bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800">
           <AlertTriangleIcon className="h-4 w-4" />
           <AlertTitle>Unsaved changes</AlertTitle>
-          <AlertDescription>You have unsaved changes. Click "Save Changes" to apply them.</AlertDescription>
+          <AlertDescription>You have unsaved changes. Click &quot;Save Changes&quot; to apply them.</AlertDescription>
         </Alert>
       )}
 
@@ -349,7 +349,7 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="pt-6">
           <p className="text-sm text-muted-foreground mb-4">
-            Add any missing status that doesn't appear in the lists above.
+            Add any missing status that doesn&quot;t appear in the lists above.
           </p>
           <div className="flex gap-2">
             <input

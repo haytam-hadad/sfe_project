@@ -23,7 +23,7 @@ export default function ClientLayout({ children }) {
 
                 <div className="flex flex-1">
                   {/* Side Menu - Always visible on desktop */}
-                  <div className="hidden md:block md:w-[260px] md:min-w-[260px] md:shrink-0 md:h-[calc(100vh-64px)] md:sticky md:top-16">
+                  <div className="hidden md:block md:w-[250px] md:min-w-[250px] md:shrink-0 md:h-[calc(100vh-64px)] md:sticky md:top-16">
                     <AdminSideMenu setVisible={setSideMenuVisible} />
                   </div>
 

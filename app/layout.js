@@ -1,18 +1,22 @@
-import "./globals.css"
-import ClientLayout from "./clientLayout"
+import "./globals.css";
+import ClientLayout from "./clientLayout";
 
 export const metadata = {
   manifest: "/manifest.json",
   title: "Ecomark Dashboard",
   description:
-    "Ecomark Dashboard is a modern, intuitive, and fully responsive admin pwa built with Next.js and Tailwind CSS. It's designed to be a starting point for your next web application.",
+    "Ecomark Dashboard is a modern, intuitive, and fully responsive admin PWA built with Next.js and Tailwind CSS. It's designed to be a starting point for your next web application.",
   keywords:
     "admin dashboard, next.js, tailwind css, react, modern, responsive, ecomark, pwa, web application",
   author: "haytam hadad",
-  favicon: "/images/i1.svg",
+  favicon: "/images/logo.svg", // Ensure this path is correct and the file exists
 };
 
-
 export default function RootLayout({ children }) {
-  return <ClientLayout>{children}</ClientLayout>
+  if (!children) {
+    console.error("RootLayout: No children provided.");
+    return null;
+  }
+
+  return <ClientLayout>{children}</ClientLayout>;
 }
