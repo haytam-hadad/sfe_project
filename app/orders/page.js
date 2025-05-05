@@ -483,12 +483,12 @@ export default function OrdersDashboard() {
   }
 
   return (
-    <div className="mx-auto p-2 sm:p-3 md:p-4 lg:p-5 w-full">
+    <main className="p-3 md:p-6">
       <div className="w-full mb-5">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-2">
           <div className="flex-1">
-            <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold tracking-tight">Orders Dashboard</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">Orders Dashboard</h1>
             <p className="text-sm text-muted-foreground">Manage and track all your orders in one place</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -1073,6 +1073,6 @@ export default function OrdersDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </main>
   )
 }

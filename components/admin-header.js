@@ -16,7 +16,7 @@ export default function AdminHeader({ onToggleMenu }) {
 
   return (
     <header className="sticky left-0 right-0 top-0 z-50 bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="max-w-full mx-auto px-2 sm:px-5">
         <div className="flex items-center justify-between py-3">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
@@ -27,14 +27,14 @@ export default function AdminHeader({ onToggleMenu }) {
           </Link>
 
           {/* Welcome Admin */}
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <p className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">
             Welcome, Admin!
           </p>
 
           {/* Control Group */}
           <div className="flex items-center gap-2">
             {/* Dark Mode Toggle */}
-            <div className="flex items-center">
+            <div className="flex items-center max-md:scale-90">
               <Switch
                 id="dark-mode"
                 checked={theme}
@@ -53,7 +53,7 @@ export default function AdminHeader({ onToggleMenu }) {
             {/* Sidebar Toggle Button (Mobile) */}
             <button
               onClick={onToggleMenu}
-              className="md:hidden flex items-center justify-center rounded-full border border-gray-300 dark:border-gray-600 p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+              className="md:hidden flex items-center justify-center rounded-full border border-gray-300 dark:border-gray-600 p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               aria-label="Toggle menu"
             >
               <Menu className="w-5 h-5" />

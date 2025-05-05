@@ -541,7 +541,7 @@ export default function Page() {
   }
 
   return (
-    <main className="p-4 md:p-6">
+    <main className="p-3 md:p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
@@ -580,7 +580,10 @@ export default function Page() {
       {showFilters && (
         <Card className="mb-6">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Filters</CardTitle>
+            <div className="flex items-center">
+              <FilterIcon className="mr-2 h-4 w-4" />
+              <CardTitle className="text-lg">Filters</CardTitle>
+            </div>
             <CardDescription>Refine your dashboard view</CardDescription>
           </CardHeader>
           <CardContent>
@@ -774,21 +777,21 @@ export default function Page() {
 
       {/* Tabs for different dashboard views */}
       <Tabs defaultValue="overview" className="mb-6" onValueChange={setActiveTab}>
-        <div className="overflow-x-auto pb-2">
-          <TabsList className="w-full sm:w-auto inline-flex whitespace-nowrap">
-            <TabsTrigger value="overview" className="flex items-center px-3 sm:px-4">
+        <div className="overflow-x-auto py-3">
+          <TabsList className="w-full inline-flex border-t border-mainColor whitespace-nowrap">
+            <TabsTrigger value="overview" className="flex items-center px-4 sm:px-6">
               <BarChart3Icon className="mr-1 sm:mr-2 h-3 sm:h-4 w-3 sm:w-4" />
               <span className="text-xs sm:text-sm">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="trends" className="flex items-center px-3 sm:px-4">
+            <TabsTrigger value="trends" className="flex items-center px-4 sm:px-6">
               <LineChartIcon className="mr-1 sm:mr-2 h-3 sm:h-4 w-3 sm:w-4" />
               <span className="text-xs sm:text-sm">Trends</span>
             </TabsTrigger>
-            <TabsTrigger value="products" className="flex items-center px-3 sm:px-4">
+            <TabsTrigger value="products" className="flex items-center px-4 sm:px-6">
               <PackageIcon className="mr-1 sm:mr-2 h-3 sm:h-4 w-3 sm:w-4" />
               <span className="text-xs sm:text-sm">Products</span>
             </TabsTrigger>
-            <TabsTrigger value="geography" className="flex items-center px-3 sm:px-4">
+            <TabsTrigger value="geography" className="flex items-center px-4 sm:px-6">
               <MapPinIcon className="mr-1 sm:mr-2 h-3 sm:h-4 w-3 sm:w-4" />
               <span className="text-xs sm:text-sm">Geography</span>
             </TabsTrigger>
@@ -796,8 +799,8 @@ export default function Page() {
         </div>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="overview" className="space-y-5">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Status Distribution */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -982,8 +985,8 @@ export default function Page() {
         </TabsContent>
 
         {/* Trends Tab */}
-        <TabsContent value="trends" className="space-y-6">
-          <div className="grid grid-cols-1 gap-6">
+        <TabsContent value="trends" className="space-y-5">
+          <div className="grid grid-cols-1 gap-4">
             {/* Revenue and Orders Over Time */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -1142,8 +1145,8 @@ export default function Page() {
         </TabsContent>
 
         {/* Products Tab */}
-        <TabsContent value="products" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="products" className="space-y-5">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Top Products */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -1249,8 +1252,8 @@ export default function Page() {
         </TabsContent>
 
         {/* Geography Tab */}
-        <TabsContent value="geography" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="geography" className="space-y-5">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Country Distribution */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">

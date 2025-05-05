@@ -16,7 +16,7 @@ export default function ProductStatsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const isMobile = useMobile()
-  const [showFilters, setShowFilters] = useState(false)
+  const [showFilters, setShowFilters] = useState(true)
 
   // Get status configuration from context
   const { statusConfig } = useStatusConfig()
@@ -332,13 +332,10 @@ export default function ProductStatsPage() {
   }
 
   return (
-    <div className="p-3 md:p-5">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+    <main className="p-3 md:p-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Product Statistics</h1>
-          <p className="text-muted-foreground mt-1">
-            Analyzing {totals.totalLeads} orders across {productStats.length} products
-          </p>
         </div>
         <div className="flex items-center gap-2 mt-2 md:mt-0">
           <Button variant="outline" size="sm" className="h-9" onClick={() => setShowFilters((prev) => !prev)}>
@@ -456,9 +453,6 @@ export default function ProductStatsPage() {
         <div className="p-2">
           <div className="text-md flex items-center justify-between">
             <h4>Product Performance Statistics</h4>
-            <span className="text-sm font-normal text-muted-foreground">
-              {filteredOrders.length} orders across {productStats.length} products
-            </span>
           </div>
         </div>
         <div className="w-full">
@@ -683,6 +677,6 @@ export default function ProductStatsPage() {
           </table>
         </div>
       </div>
-    </div>
+    </main>
   )
 }
