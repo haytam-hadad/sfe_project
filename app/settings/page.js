@@ -164,7 +164,7 @@ export default function SettingsPage() {
   // Render loading state
   if (loading) {
     return (
-      <div className="container mx-auto py-6 max-w-5xl">
+      <div className="container mx-auto p-4 max-w-5xl">
         <h1 className="text-3xl font-bold mb-6">Settings</h1>
         <Card>
           <CardHeader>
@@ -181,7 +181,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="container mx-auto p-2 md:p-5 py-6 max-w-5xl">
+    <main className="p-3 md:p-6">
       <div className="flex flex-col md:flex-row justify-between items-center mb-6">
         <div className="mb-4 md:mb-0">
           <h1 className="text-3xl font-bold">Settings</h1>
@@ -372,6 +372,6 @@ export default function SettingsPage() {
           Save Changes
         </Button>
       </div>
-    </div>
+    </main>
   )
 }

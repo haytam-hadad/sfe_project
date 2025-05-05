@@ -14,6 +14,9 @@ export default function ClientLayout({ children }) {
 
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/images/i1.svg" />
+      </head>
       <body className="bg-secondaryColor dark:bg-thirdColor">
         <ThemeProvider>
           <StatusConfigProvider>

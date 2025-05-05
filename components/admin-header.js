@@ -19,33 +19,33 @@ export default function AdminHeader({ onToggleMenu }) {
       <div className="max-w-full mx-auto px-2 sm:px-5">
         <div className="flex items-center justify-between py-3">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/images/logo.svg" alt="Logo" className="w-8 h-8" width={40} height={40} />
-            <span className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+          <Link href="/" className="flex items-center gap-1 sm:gap-2">
+            <Image src="/images/logo.svg" alt="Logo" className="w-7 h-7 sm:w-8 sm:h-8" width={40} height={40} />
+            <span className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100">
               Ecomark
             </span>
           </Link>
 
           {/* Welcome Admin */}
           <p className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Welcome, Admin!
+            Welcome, Admin !
           </p>
 
           {/* Control Group */}
           <div className="flex items-center gap-2">
             {/* Dark Mode Toggle */}
-            <div className="flex items-center max-md:scale-90">
+            <div title="Toggle Dark Mode" className="flex items-center max-md:scale-90 sm:gap-1">
               <Switch
                 id="dark-mode"
                 checked={theme}
                 onCheckedChange={toggleTheme}
                 className="data-[state=checked]:bg-mainColor"
               />
-              <span className="ml-1">
+              <span className="hidden sm:block">
                 {theme ? (
-                  <Sun className="w-5 h-5 text-yellow-400 dark:text-yellow-500" />
+                  <Sun className="w-6 h-6 text-yellow-400 dark:text-yellow-500" />
                 ) : (
-                  <Moon className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+                  <Moon className="w-6 h-6 text-blue-500 dark:text-blue-400" />
                 )}
               </span>
             </div>
