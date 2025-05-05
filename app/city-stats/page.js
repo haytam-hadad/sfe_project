@@ -306,7 +306,7 @@ export default function CityStatsPage() {
           <CardContent>
             <p className="mb-4">{error}</p>
             <Button onClick={() => window.location.reload()}>
-              <RefreshCwIcon className="mr-2 h-4 w-4" /> Refresh Page
+              <RefreshCwIcon className="mr-1 h-4 w-4" /> Refresh Page
             </Button>
           </CardContent>
         </Card>
@@ -322,15 +322,15 @@ export default function CityStatsPage() {
         </div>
         <div className="flex items-center gap-2 mt-2 md:mt-0">
           <Button variant="outline" size="sm" className="h-9" onClick={() => setShowFilters((prev) => !prev)}>
-            <FilterIcon className="mr-2 h-4 w-4" />
+            <FilterIcon className="mr-1 h-4 w-4" />
             {showFilters ? "Hide Filters" : "Show Filters"}
           </Button>
           <Button variant="outline" size="sm" className="h-9" onClick={handleExport} disabled={!cityStats.length}>
-            <DownloadIcon className="mr-2 h-4 w-4" />
+            <DownloadIcon className="mr-1 h-4 w-4" />
             Export CSV
           </Button>
           <Button variant="outline" size="sm" className="h-9" onClick={() => window.location.reload()}>
-            <RefreshCwIcon className="mr-2 h-4 w-4" />
+            <RefreshCwIcon className="mr-1 h-4 w-4" />
             Refresh
           </Button>
         </div>
@@ -341,7 +341,7 @@ export default function CityStatsPage() {
         <Card className="mb-6 shadow-sm dark:bg-zinc-900">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center">
-              <FilterIcon className="mr-2 h-4 w-4" />
+              <FilterIcon className="mr-1 h-4 w-4" />
               Filter Options
             </CardTitle>
           </CardHeader>
@@ -391,7 +391,7 @@ export default function CityStatsPage() {
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="justify-start dark:bg-black text-left font-normal w-full">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      <CalendarIcon className="mr-1 h-4 w-4" />
                       {startDate ? format(startDate, "PPP") : "Select date"}
                     </Button>
                   </PopoverTrigger>
@@ -412,7 +412,7 @@ export default function CityStatsPage() {
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="justify-start dark:bg-black text-left font-normal w-full">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      <CalendarIcon className="mr-1 h-4 w-4" />
                       {endDate ? format(endDate, "PPP") : "Select date"}
                     </Button>
                   </PopoverTrigger>
@@ -621,7 +621,7 @@ export default function CityStatsPage() {
                       </p>
                       {(cityFilter || productFilter || startDate || endDate) && (
                         <Button variant="outline" className="mt-4" onClick={resetFilters}>
-                          <XCircleIcon className="mr-2 h-4 w-4" />
+                          <XCircleIcon className="mr-1 h-4 w-4" />
                           Clear filters
                         </Button>
                       )}

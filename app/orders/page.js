@@ -475,7 +475,7 @@ export default function OrdersDashboard() {
           </div>
           <div className="mb-4 text-sm text-muted-foreground">{error}</div>
           <Button className="w-full" onClick={() => window.location.reload()}>
-            <RefreshCwIcon className="mr-2 h-4 w-4" /> Refresh Page
+            <RefreshCwIcon className="mr-1 h-4 w-4" /> Refresh Page
           </Button>
         </div>
       </div>
@@ -496,7 +496,7 @@ export default function OrdersDashboard() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="outline" size="sm" onClick={refreshData} disabled={loading} className="h-9">
-                    <RefreshCwIcon className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                    <RefreshCwIcon className={`mr-1 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
                     Refresh
                   </Button>
                 </TooltipTrigger>
@@ -514,7 +514,7 @@ export default function OrdersDashboard() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="h-9">
-                    <SlidersIcon className="mr-2 h-4 w-4" />
+                    <SlidersIcon className="mr-1 h-4 w-4" />
                     Stats
                   </Button>
                 </DropdownMenuTrigger>
@@ -556,7 +556,7 @@ export default function OrdersDashboard() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-9">
-                  <SlidersIcon className="mr-2 h-4 w-4" />
+                  <SlidersIcon className="mr-1 h-4 w-4" />
                   Columns
                 </Button>
               </DropdownMenuTrigger>
@@ -576,7 +576,7 @@ export default function OrdersDashboard() {
                               [column]: !prev[column],
                             }))
                           }
-                          className="mr-2"
+                          className="mr-1"
                         />
                         <label htmlFor={`column-${column}`} className="text-xs sm:text-sm">
                           {column}
@@ -593,7 +593,7 @@ export default function OrdersDashboard() {
         {/* Filters */}
         <div className="flex justify-between border-t items-center p-2 mb-1">
           <h2 className="text-lg flex items-center">
-            <FilterIcon className="mr-2 h-4 w-4" />
+            <FilterIcon className="mr-1 h-4 w-4" />
             Filters
           </h2>
           <div className="flex items-center gap-2">
@@ -714,7 +714,7 @@ export default function OrdersDashboard() {
                       className="justify-start dark:bg-black text-left font-normal flex-1"
                       aria-label="Select start date"
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      <CalendarIcon className="mr-1 h-4 w-4" />
                       {startDate ? format(startDate, "PPP") : "Start date"}
                     </Button>
                   </PopoverTrigger>
@@ -736,7 +736,7 @@ export default function OrdersDashboard() {
                       className="justify-start dark:bg-black text-left font-normal flex-1"
                       aria-label="Select end date"
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      <CalendarIcon className="mr-1 h-4 w-4" />
                       {endDate ? format(endDate, "PPP") : "End date"}
                     </Button>
                   </PopoverTrigger>
@@ -755,7 +755,7 @@ export default function OrdersDashboard() {
               {/* Reset filters button */}
               <div className="col-span-full">
                 <Button variant="outline" size="sm" onClick={resetFilters} className="w-full sm:w-auto">
-                  <XCircleIcon className="mr-2 h-4 w-4" />
+                  <XCircleIcon className="mr-1 h-4 w-4" />
                   Reset Filters
                 </Button>
               </div>
@@ -944,7 +944,7 @@ export default function OrdersDashboard() {
                     </p>
                     {(searchQuery || statusFilter || countryFilter || startDate || endDate) && (
                       <Button variant="outline" className="mt-3" onClick={resetFilters}>
-                        <XCircleIcon className="mr-2 h-4 w-4" />
+                        <XCircleIcon className="mr-1 h-4 w-4" />
                         Clear filters
                       </Button>
                     )}

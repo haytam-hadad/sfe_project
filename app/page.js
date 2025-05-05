@@ -533,7 +533,7 @@ export default function Page() {
           </div>
           <div className="mb-4 text-sm text-muted-foreground">{error}</div>
           <Button className="w-full" onClick={() => window.location.reload()}>
-            <RefreshCwIcon className="mr-2 h-4 w-4" /> Refresh Page
+            <RefreshCwIcon className="mr-1 h-4 w-4" /> Refresh Page
           </Button>
         </Card>
       </main>
@@ -542,7 +542,7 @@ export default function Page() {
 
   return (
     <main className="p-2 md:p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
+      <div className="flex flex-col md:flex-row justify-between items-start gap-5 md:items-center mb-10">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">
@@ -550,7 +550,7 @@ export default function Page() {
             {endDate ? format(endDate, "MMM d, yyyy") : "present"}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 mt-2 md:mt-0">
+        <div className="flex flex-wrap items-center gap-1">
           <Select value={timeRange} onValueChange={applyTimeRangeFilter}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select time range" />
@@ -565,12 +565,12 @@ export default function Page() {
           </Select>
 
           <Button variant="outline" size="sm" className="h-9" onClick={() => setShowFilters(!showFilters)}>
-            <FilterIcon className="mr-2 h-4 w-4" />
+            <FilterIcon className="mr-1 h-4 w-4" />
             {showFilters ? "Hide Filters" : "Show Filters"}
           </Button>
 
           <Button variant="outline" size="sm" className="h-9" onClick={() => window.location.reload()}>
-            <RefreshCwIcon className="mr-2 h-4 w-4" />
+            <RefreshCwIcon className="mr-1 h-4 w-4" />
             Refresh Data
           </Button>
         </div>
@@ -581,7 +581,7 @@ export default function Page() {
         <Card className="mb-6">
           <CardHeader className="pb-2">
             <div className="flex items-center">
-              <FilterIcon className="mr-2 h-4 w-4" />
+              <FilterIcon className="mr-1 h-4 w-4" />
               <CardTitle className="text-lg">Filters</CardTitle>
             </div>
             <CardDescription>Refine your dashboard view</CardDescription>
@@ -596,7 +596,7 @@ export default function Page() {
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full justify-start">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          <CalendarIcon className="mr-1 h-4 w-4" />
                           {startDate ? format(startDate, "PPP") : "Select date"}
                         </Button>
                       </PopoverTrigger>
@@ -617,7 +617,7 @@ export default function Page() {
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full justify-start">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          <CalendarIcon className="mr-1 h-4 w-4" />
                           {endDate ? format(endDate, "PPP") : "Select date"}
                         </Button>
                       </PopoverTrigger>
@@ -709,8 +709,8 @@ export default function Page() {
             </div>
 
             <div className="mt-4 flex justify-end">
-              <Button variant="outline" onClick={resetFilters} className="mr-2">
-                <XCircleIcon className="mr-2 h-4 w-4" />
+              <Button variant="outline" onClick={resetFilters} className="mr-1">
+                <XCircleIcon className="mr-1 h-4 w-4" />
                 Reset Filters
               </Button>
             </div>
@@ -792,7 +792,7 @@ export default function Page() {
                   activeTab === tab.value ? "border-b-2 border-b-mainColor" : ""
                 }`}
               >
-                <tab.icon className="mr-1 sm:mr-2 h-3 sm:h-4 w-3 sm:w-4" />
+                <tab.icon className="mr-1 sm:mr-1 h-3 sm:h-4 w-3 sm:w-4" />
                 <span className="text-xs sm:text-sm">{tab.label}</span>
               </TabsTrigger>
             ))}

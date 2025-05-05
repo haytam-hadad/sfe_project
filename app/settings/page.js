@@ -194,7 +194,7 @@ export default function SettingsPage() {
             onClick={resetToDefaults}
             disabled={loading}
           >
-            <RefreshCwIcon className="mr-2 h-4 w-4" />
+            <RefreshCwIcon className="mr-1 h-4 w-4" />
             Reset to Defaults
           </Button>
           <Button
@@ -202,7 +202,7 @@ export default function SettingsPage() {
             onClick={saveConfig}
             disabled={saveStatus === "saved" || loading}
           >
-            <SaveIcon className="mr-2 h-4 w-4" />
+            <SaveIcon className="mr-1 h-4 w-4" />
             Save Changes
           </Button>
         </div>
@@ -368,7 +368,7 @@ export default function SettingsPage() {
 
       <div className="mt-6 flex justify-end">
         <Button onClick={saveConfig} disabled={saveStatus === "saved" || loading} className="w-full sm:w-auto">
-          <SaveIcon className="mr-2 h-4 w-4" />
+          <SaveIcon className="mr-1 h-4 w-4" />
           Save Changes
         </Button>
       </div>
