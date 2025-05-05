@@ -315,7 +315,7 @@ export default function CityStatsPage() {
   }
 
   return (
-    <main className="p-3 md:p-6">
+    <main className="p-2 md:p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">City Statistics</h1>
@@ -339,14 +339,14 @@ export default function CityStatsPage() {
       {/* Filters Section */}
       {showFilters && (
         <Card className="mb-6 shadow-sm dark:bg-zinc-900">
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center">
               <FilterIcon className="mr-2 h-4 w-4" />
               Filter Options
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
               {/* Product Filter */}
               <div>
                 <label htmlFor="product-filter" className="block text-sm font-medium mb-1">

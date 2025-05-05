@@ -483,12 +483,12 @@ export default function OrdersDashboard() {
   }
 
   return (
-    <main className="p-3 md:p-6">
+    <main className="p-2 md:p-6">
       <div className="w-full mb-5">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-2">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-5">
           <div className="flex-1">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">Orders Dashboard</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Orders Dashboard</h1>
             <p className="text-sm text-muted-foreground">Manage and track all your orders in one place</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -553,13 +553,6 @@ export default function OrdersDashboard() {
               </DropdownMenu>
             )}
 
-            {isMobile && (
-              <Button variant="outline" size="sm" className="h-9" onClick={() => setShowFilters((prev) => !prev)}>
-                <FilterIcon className="mr-2 h-4 w-4" />
-                {showFilters ? "Hide Filters" : "Show Filters"}
-              </Button>
-            )}
-
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-9">
@@ -598,7 +591,7 @@ export default function OrdersDashboard() {
         </div>
 
         {/* Filters */}
-        <div className="flex justify-between items-center p-2 mb-1">
+        <div className="flex justify-between border-t items-center p-2 mb-1">
           <h2 className="text-lg flex items-center">
             <FilterIcon className="mr-2 h-4 w-4" />
             Filters
@@ -642,7 +635,7 @@ export default function OrdersDashboard() {
                 <Input
                   type="search"
                   placeholder="Search by ID, city, SKU or any field..."
-                  className="pl-8 w-full border-2 border-l-mainColor"
+                  className="pl-8 w-full border-2 border-mainColor"
                   value={searchQuery}
                   onChange={(e) => handleSearchQueryChange(e.target.value)}
                   aria-label="Search orders"
@@ -774,7 +767,7 @@ export default function OrdersDashboard() {
       {/* Orders Table */}
       <div
         id="orders-table"
-        className="bg-white border border-t-2  dark:bg-zinc-900 rounded-md max-w-full overflow-auto shadow-sm"
+        className="bg-white border  dark:bg-zinc-900 rounded-md max-w-full overflow-auto shadow-sm"
         style={{ maxHeight: "70vh", maxWidth: "100vw" }}
       >
         <Table>

@@ -541,7 +541,7 @@ export default function Page() {
   }
 
   return (
-    <main className="p-3 md:p-6">
+    <main className="p-2 md:p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
@@ -587,7 +587,7 @@ export default function Page() {
             <CardDescription>Refine your dashboard view</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
               {/* Date Range */}
               {timeRange === "custom" && (
                 <>
