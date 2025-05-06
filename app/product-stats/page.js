@@ -347,7 +347,7 @@ export default function ProductStatsPage() {
   }
 
   return (
-    <div className="p-3 md:p-5">
+    <div className="p-2 sm:p-3 md:p-5">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Product Statistics</h1>
@@ -483,7 +483,7 @@ export default function ProductStatsPage() {
         return (
           <Card className="max-w-[90vw] shadow-sm">
             <CardContent className="p-0">
-              <div className="p-4 border-b">
+              <div className="p-2 border-b">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                   <div className="text-md font-medium">Product Performance Statistics</div>
                   <div className="flex items-center space-x-2 mt-2 sm:mt-0">
@@ -512,49 +512,49 @@ export default function ProductStatsPage() {
                   <thead className="sticky top-0 z-20">
                     <tr>
                       <th
-                        className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-3 font-bold sticky left-0 z-20 cursor-pointer"
-                        style={{ minWidth: "150px" }}
+                        className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 sm:p-3 font-bold sticky left-0 z-20 cursor-pointer"
+                        style={{ minWidth: "100px" }}
                         onClick={() => handleSort("product")}
                       >
                         PRODUCT
                       </th>
                       <th
-                        className="bg-gradient-to-r from-orange-600 to-orange-500 text-white text-center p-3 font-bold cursor-pointer"
+                        className="bg-gradient-to-r from-orange-600 to-orange-500 text-white text-center p-2 sm:p-3 font-bold cursor-pointer"
                         colSpan={isMobile ? 1 : 1}
                         onClick={() => handleSort("totalLeads")}
                       >
                         TOTAL LEADS
                       </th>
                       <th
-                        className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-3 font-bold cursor-pointer"
+                        className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 sm:p-3 font-bold cursor-pointer"
                         colSpan={isMobile ? 1 : 2}
                         onClick={() => handleSort("confirmation")}
                       >
                         CONFIRMATION
                       </th>
                       <th
-                        className="bg-gradient-to-r from-green-600 to-green-500 text-white text-center p-3 font-bold cursor-pointer"
+                        className="bg-gradient-to-r from-green-600 to-green-500 text-white text-center p-2 sm:p-3 font-bold cursor-pointer"
                         colSpan={isMobile ? 1 : 2}
                         onClick={() => handleSort("delivery")}
                       >
                         DELIVERY
                       </th>
                       <th
-                        className="bg-gradient-to-r from-red-700 to-red-600 text-white text-center p-3 font-bold cursor-pointer"
+                        className="bg-gradient-to-r from-red-700 to-red-600 text-white text-center p-2 sm:p-3 font-bold cursor-pointer"
                         colSpan={isMobile ? 1 : 2}
                         onClick={() => handleSort("returned")}
                       >
                         RETURNED
                       </th>
                       <th
-                        className="bg-gradient-to-r from-purple-700 to-purple-600 text-white text-center p-3 font-bold cursor-pointer"
+                        className="bg-gradient-to-r from-purple-700 to-purple-600 text-white text-center p-2 sm:p-3 font-bold cursor-pointer"
                         colSpan={isMobile ? 1 : 2}
                         onClick={() => handleSort("inProcess")}
                       >
                         IN PROCESS
                       </th>
                       <th
-                        className="bg-gradient-to-r from-teal-700 to-teal-600 text-white text-center p-3 font-bold cursor-pointer"
+                        className="bg-gradient-to-r from-teal-700 to-teal-600 text-white text-center p-2 sm:p-3 font-bold cursor-pointer"
                         colSpan={1}
                         onClick={() => handleSort("avgQuantityPerOrder")}
                       >

@@ -571,7 +571,7 @@ export default function Page() {
 
           <Button variant="outline" size="sm" className="h-9" onClick={() => window.location.reload()}>
             <RefreshCwIcon className="mr-1 h-4 w-4" />
-            Refresh Data
+            Refresh
           </Button>
         </div>
       </div>
@@ -776,7 +776,7 @@ export default function Page() {
       </div>
 
       {/* Tabs for different dashboard views */}
-      <Tabs defaultValue="overview" className="mb-6" onValueChange={setActiveTab}>
+      <Tabs defaultValue="overview" className="mb-6 w-full" onValueChange={setActiveTab}>
         <div className="overflow-x-auto py-3">
           <TabsList className="w-full inline-flex whitespace-nowrap">
             {[

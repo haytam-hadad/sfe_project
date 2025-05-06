@@ -43,7 +43,7 @@ export default function ClientLayout({ children }) {
 
                 {/* Main Content */}
                 <main className="flex-1">
-                  <div className="w-full p-1 mt-16  max-w-[100vw] md:mt-14">{children}</div>
+                  <div className="w-full mt-16  max-w-[100vw] md:mt-14">{children}</div>
                   <Toaster />
                 </main>
               </div>
