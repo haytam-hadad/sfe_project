@@ -500,42 +500,42 @@ export default function CityStatsPage() {
               <thead className="sticky top-0 z-20">
                 <tr>
                   <th
-                    className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-3 border border-gray-300 font-bold sticky left-0 z-20 cursor-pointer"
+                    className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-3  font-bold sticky left-0 z-20 cursor-pointer"
                     style={{ minWidth: "150px" }}
                     onClick={() => handleSort("city")}
                   >
                     CITY
                   </th>
                   <th
-                    className="bg-gradient-to-r from-orange-600 to-orange-500 text-white text-center p-3 border border-gray-300 font-bold cursor-pointer"
+                    className="bg-gradient-to-r from-orange-600 to-orange-500 text-white text-center p-3  font-bold cursor-pointer"
                     colSpan={isMobile ? 1 : 1}
                     onClick={() => handleSort("totalLeads")}
                   >
                     TOTAL LEADS
                   </th>
                   <th
-                    className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-3 border border-gray-300 font-bold cursor-pointer"
+                    className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-3  font-bold cursor-pointer"
                     colSpan={isMobile ? 1 : 2}
                     onClick={() => handleSort("confirmation")}
                   >
                     CONFIRMATION
                   </th>
                   <th
-                    className="bg-gradient-to-r from-green-600 to-green-500 text-white text-center p-3 border border-gray-300 font-bold cursor-pointer"
+                    className="bg-gradient-to-r from-green-600 to-green-500 text-white text-center p-3  font-bold cursor-pointer"
                     colSpan={isMobile ? 1 : 2}
                     onClick={() => handleSort("delivery")}
                   >
                     DELIVERY
                   </th>
                   <th
-                    className="bg-gradient-to-r from-red-700 to-red-600 text-white text-center p-3 border border-gray-300 font-bold cursor-pointer"
+                    className="bg-gradient-to-r from-red-700 to-red-600 text-white text-center p-3  font-bold cursor-pointer"
                     colSpan={isMobile ? 1 : 2}
                     onClick={() => handleSort("returned")}
                   >
                     RETURNED
                   </th>
                   <th
-                    className="bg-gradient-to-r from-purple-700 to-purple-600 text-white text-center p-3 border border-gray-300 font-bold cursor-pointer"
+                    className="bg-gradient-to-r from-purple-700 to-purple-600 text-white text-center p-3  font-bold cursor-pointer"
                     colSpan={isMobile ? 1 : 2}
                     onClick={() => handleSort("inProcess")}
                   >
@@ -544,16 +544,16 @@ export default function CityStatsPage() {
                 </tr>
                 {!isMobile && (
                   <tr>
-                    <th className="bg-blue-600 text-white p-2 border border-gray-300 sticky left-0 z-20"></th>
-                    <th className="bg-orange-500 text-white p-2 border border-gray-300"></th>
-                    <th className="bg-blue-500 text-white p-2 border border-gray-300 w-20">COUNT</th>
-                    <th className="bg-blue-500 text-white p-2 border border-gray-300 w-20">%</th>
-                    <th className="bg-green-400 text-white p-2 border border-gray-300 w-20">COUNT</th>
-                    <th className="bg-green-400 text-white p-2 border border-gray-300 w-20">%</th>
-                    <th className="bg-red-500 text-white p-2 border border-gray-300 w-20">COUNT</th>
-                    <th className="bg-red-500 text-white p-2 border border-gray-300 w-20">%</th>
-                    <th className="bg-purple-500 text-white p-2 border border-gray-300 w-20">COUNT</th>
-                    <th className="bg-purple-500 text-white p-2 border border-gray-300 w-20">%</th>
+                    <th className="bg-blue-600 text-white p-2  sticky left-0 z-20"></th>
+                    <th className="bg-orange-500 text-white p-2"></th>
+                    <th className="bg-blue-500 text-white p-2  w-20">COUNT</th>
+                    <th className="bg-blue-500 text-white p-2  w-20">%</th>
+                    <th className="bg-green-400 text-white p-2  w-20">COUNT</th>
+                    <th className="bg-green-400 text-white p-2  w-20">%</th>
+                    <th className="bg-red-500 text-white p-2  w-20">COUNT</th>
+                    <th className="bg-red-500 text-white p-2  w-20">%</th>
+                    <th className="bg-purple-500 text-white p-2  w-20">COUNT</th>
+                    <th className="bg-purple-500 text-white p-2  w-20">%</th>
                   </tr>
                 )}
               </thead>
@@ -562,49 +562,49 @@ export default function CityStatsPage() {
               <tbody>
                 {/* Total Row */}
                 <tr className="font-bold hover:bg-gray-100 dark:hover:bg-gray-800">
-                  <td className="p-2 border border-gray-300 bg-gray-100 dark:bg-gray-800 sticky left-0 z-10">TOTAL</td>
-                  <td className="p-2 border border-gray-300 text-center bg-orange-100 dark:bg-orange-950">
+                  <td className="p-2  bg-gray-100 dark:bg-gray-800 sticky left-0 z-10">TOTAL</td>
+                  <td className="p-2  text-center bg-orange-100 dark:bg-orange-950">
                     {totals.totalLeads}
                   </td>
                   {!isMobile ? (
                     <>
-                      <td className="p-2 border border-gray-300 text-center bg-blue-100 dark:bg-blue-950">
+                      <td className="p-2  text-center bg-blue-100 dark:bg-blue-950">
                         {totals.confirmation}
                       </td>
-                      <td className="p-2 border border-gray-300 text-center bg-blue-100 dark:bg-blue-950">
+                      <td className="p-2  text-center bg-blue-100 dark:bg-blue-950">
                         {totals.confirmationPercent}%
                       </td>
-                      <td className="p-2 border border-gray-300 text-center bg-green-100 dark:bg-green-950">
+                      <td className="p-2  text-center bg-green-100 dark:bg-green-950">
                         {totals.delivery}
                       </td>
-                      <td className="p-2 border border-gray-300 text-center bg-green-100 dark:bg-green-950">
+                      <td className="p-2  text-center bg-green-100 dark:bg-green-950">
                         {totals.deliveryPercent}%
                       </td>
-                      <td className="p-2 border border-gray-300 text-center bg-red-100 dark:bg-red-950">
+                      <td className="p-2  text-center bg-red-100 dark:bg-red-950">
                         {totals.returned}
                       </td>
-                      <td className="p-2 border border-gray-300 text-center bg-red-100 dark:bg-red-950">
+                      <td className="p-2  text-center bg-red-100 dark:bg-red-950">
                         {totals.returnedPercent}%
                       </td>
-                      <td className="p-2 border border-gray-300 text-center bg-purple-100 dark:bg-purple-950">
+                      <td className="p-2  text-center bg-purple-100 dark:bg-purple-950">
                         {totals.inProcess}
                       </td>
-                      <td className="p-2 border border-gray-300 text-center bg-purple-100 dark:bg-purple-950">
+                      <td className="p-2  text-center bg-purple-100 dark:bg-purple-950">
                         {totals.inProcessPercent}%
                       </td>
                     </>
                   ) : (
                     <>
-                      <td className="p-2 border border-gray-300 text-center bg-blue-100 dark:bg-blue-950">
+                      <td className="p-2  text-center bg-blue-100 dark:bg-blue-950">
                         {totals.confirmation} ({totals.confirmationPercent}%)
                       </td>
-                      <td className="p-2 border border-gray-300 text-center bg-green-100 dark:bg-green-950">
+                      <td className="p-2  text-center bg-green-100 dark:bg-green-950">
                         {totals.delivery} ({totals.deliveryPercent}%)
                       </td>
-                      <td className="p-2 border border-gray-300 text-center bg-red-100 dark:bg-red-950">
+                      <td className="p-2  text-center bg-red-100 dark:bg-red-950">
                         {totals.returned} ({totals.returnedPercent}%)
                       </td>
-                      <td className="p-2 border border-gray-300 text-center bg-purple-100 dark:bg-purple-950">
+                      <td className="p-2  text-center bg-purple-100 dark:bg-purple-950">
                         {totals.inProcess} ({totals.inProcessPercent}%)
                       </td>
                     </>
@@ -619,52 +619,52 @@ export default function CityStatsPage() {
                       className={`${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""} hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
                     >
                       <td
-                        className={`p-2 border border-gray-300 font-medium sticky left-0 z-10 ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "bg-white dark:bg-gray-950"}`}
+                        className={`p-2  font-medium sticky left-0 z-10 ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "bg-white dark:bg-gray-950"}`}
                       >
                         {item.city}
                       </td>
-                      <td className="p-2 border border-gray-300 text-center bg-orange-50 dark:bg-orange-950/30">
+                      <td className="p-2  text-center bg-orange-50 dark:bg-orange-950/30">
                         {item.totalLeads}
                       </td>
                       {!isMobile ? (
                         <>
-                          <td className="p-2 border border-gray-300 text-center bg-blue-50 dark:bg-blue-950/30">
+                          <td className="p-2  text-center bg-blue-50 dark:bg-blue-950/30">
                             {item.confirmation}
                           </td>
-                          <td className="p-2 border border-gray-300 text-center bg-blue-50 dark:bg-blue-950/30">
+                          <td className="p-2  text-center bg-blue-50 dark:bg-blue-950/30">
                             {item.confirmationPercent}%
                           </td>
-                          <td className="p-2 border border-gray-300 text-center bg-green-50 dark:bg-green-950/30">
+                          <td className="p-2  text-center bg-green-50 dark:bg-green-950/30">
                             {item.delivery}
                           </td>
-                          <td className="p-2 border border-gray-300 text-center bg-green-50 dark:bg-green-950/30">
+                          <td className="p-2  text-center bg-green-50 dark:bg-green-950/30">
                             {item.deliveryPercent}%
                           </td>
-                          <td className="p-2 border border-gray-300 text-center bg-red-50 dark:bg-red-950/30">
+                          <td className="p-2  text-center bg-red-50 dark:bg-red-950/30">
                             {item.returned}
                           </td>
-                          <td className="p-2 border border-gray-300 text-center bg-red-50 dark:bg-red-950/30">
+                          <td className="p-2  text-center bg-red-50 dark:bg-red-950/30">
                             {item.returnedPercent}%
                           </td>
-                          <td className="p-2 border border-gray-300 text-center bg-purple-50 dark:bg-purple-950/30">
+                          <td className="p-2  text-center bg-purple-50 dark:bg-purple-950/30">
                             {item.inProcess}
                           </td>
-                          <td className="p-2 border border-gray-300 text-center bg-purple-50 dark:bg-purple-950/30">
+                          <td className="p-2  text-center bg-purple-50 dark:bg-purple-950/30">
                             {item.inProcessPercent}%
                           </td>
                         </>
                       ) : (
                         <>
-                          <td className="p-2 border border-gray-300 text-center bg-blue-50 dark:bg-blue-950/30">
+                          <td className="p-2  text-center bg-blue-50 dark:bg-blue-950/30">
                             {item.confirmation} ({item.confirmationPercent}%)
                           </td>
-                          <td className="p-2 border border-gray-300 text-center bg-green-50 dark:bg-green-950/30">
+                          <td className="p-2  text-center bg-green-50 dark:bg-green-950/30">
                             {item.delivery} ({item.deliveryPercent}%)
                           </td>
-                          <td className="p-2 border border-gray-300 text-center bg-red-50 dark:bg-red-950/30">
+                          <td className="p-2  text-center bg-red-50 dark:bg-red-950/30">
                             {item.returned} ({item.returnedPercent}%)
                           </td>
-                          <td className="p-2 border border-gray-300 text-center bg-purple-50 dark:bg-purple-950/30">
+                          <td className="p-2  text-center bg-purple-50 dark:bg-purple-950/30">
                             {item.inProcess} ({item.inProcessPercent}%)
                           </td>
                         </>

@@ -599,8 +599,7 @@ export default function OrdersDashboard() {
           <div className="flex items-center gap-1">
             {/* Reset filters button */}
             <div className="col-span-full">
-              <Button 
-                variant="outline" size="sm" onClick={resetFilters} className="w-full sm:w-auto">
+              <Button variant="outline" size="sm" onClick={resetFilters} className="w-full sm:w-auto">
                 <XCircleIcon className="mr-1 text-mainColor h-4 w-4" />
                 Reset Filters
               </Button>
@@ -631,8 +630,9 @@ export default function OrdersDashboard() {
           </div>
         </div>
         <div
-          className={`mb-3 md:mb-4 w-full transition-all duration-300 ${showFilters ? "opacity-100 max-h-[500px]" : "opacity-0 max-h-0 overflow-hidden"
-            }`}
+          className={`mb-3 md:mb-4 w-full transition-all duration-300 ${
+            showFilters ? "opacity-100 max-h-[500px]" : "opacity-0 max-h-0 overflow-hidden"
+          }`}
         >
           {showFilters && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 max-w-[100vw] lg:grid-cols-4 p-1 gap-2">

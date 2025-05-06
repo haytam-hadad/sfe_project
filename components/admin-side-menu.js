@@ -87,7 +87,7 @@ const AdminSideMenu = ({ isOpen, onClose }) => {
           <AnimatePresence>
             {statisticsOpen && (
               <motion.div
-                className="mt-2 space-y-2"
+                className="mt-1 space-y-2"
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
@@ -96,7 +96,7 @@ const AdminSideMenu = ({ isOpen, onClose }) => {
                 {statisticsLinks.map((subLink) => (
                   <Link key={subLink.href} href={subLink.href} onClick={handleLinkClick}>
                     <button
-                      className={`flex items-center w-full p-2.5 rounded-full transition-all duration-300 ${
+                      className={`flex items-center mt-1 w-full p-3 rounded-full transition-all duration-300 ${
                         activePath === subLink.href
                           ? "bg-mainColor text-white font-medium dark:bg-mainColor dark:text-white" // Active sub-link background
                           : "hover:bg-gray-100 hover:text-gray-900 text-white dark:hover:bg-gray-900 dark:hover:text-white dark:text-black"
