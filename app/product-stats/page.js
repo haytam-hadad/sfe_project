@@ -364,10 +364,6 @@ export default function ProductStatsPage() {
             <DownloadIcon className="mr-1 h-4 w-4" />
             Export CSV
           </Button>
-          <Button variant="outline" size="sm" className="h-9" onClick={() => window.location.reload()}>
-            <RefreshCwIcon className="mr-1 h-4 w-4" />
-            Refresh
-          </Button>
         </div>
       </div>
 

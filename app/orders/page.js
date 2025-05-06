@@ -495,7 +495,7 @@ export default function OrdersDashboard() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={refreshData} disabled={loading} className="h-9">
+                  <Button variant="outline" size="sm" onClick={refreshData} disabled={loading} className="hidden md:flex h-9">
                     <RefreshCwIcon className={`mr-1 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
                     Refresh
                   </Button>
@@ -592,7 +592,7 @@ export default function OrdersDashboard() {
 
         {/* Filters */}
         <div className="flex justify-between border-t items-center p-2 mb-1">
-          <h2 className="text-lg flex items-center">
+          <h2 className="text-sm font-medium flex items-center">
             <FilterIcon className="mr-1 h-4 w-4" />
             Filters
           </h2>

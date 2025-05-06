@@ -338,7 +338,7 @@ export default function CityStatsPage() {
   }
 
   return (
-    <div className="p-4 md:p-6">
+    <div className="max-w-[100vw] p-4 md:p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">City Statistics</h1>
@@ -354,10 +354,6 @@ export default function CityStatsPage() {
           <Button variant="outline" size="sm" className="h-9" onClick={handleExport} disabled={!cityStats.length}>
             <DownloadIcon className="mr-1 h-4 w-4" />
             Export CSV
-          </Button>
-          <Button variant="outline" size="sm" className="h-9" onClick={() => window.location.reload()}>
-            <RefreshCwIcon className="mr-1 h-4 w-4" />
-            Refresh
           </Button>
         </div>
       </div>

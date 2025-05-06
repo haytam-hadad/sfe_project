@@ -17,7 +17,7 @@ export default function ClientLayout({ children }) {
       <head>
         <link rel="icon" href="/images/i1.svg" />
       </head>
-      <body className="bg-secondaryColor min-h-screen w-full dark:bg-thirdColor">
+      <body className="bg-secondaryColor max-w-[100vw] min-h-screen w-full dark:bg-thirdColor">
         <ThemeProvider>
           <StatusConfigProvider>
             <div className="flex flex-col w-full min-h-screen">
@@ -43,7 +43,7 @@ export default function ClientLayout({ children }) {
 
                 {/* Main Content */}
                 <main className="flex-1">
-                  <div className="w-full p-1 mt-16 md:mt-14">{children}</div>
+                  <div className="w-full p-1 mt-16  max-w-[100vw] md:mt-14">{children}</div>
                   <Toaster />
                 </main>
               </div>
