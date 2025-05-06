@@ -491,7 +491,7 @@ export default function OrdersDashboard() {
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Orders Dashboard</h1>
             <p className="text-sm text-muted-foreground">Manage and track all your orders in one place</p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -635,7 +635,7 @@ export default function OrdersDashboard() {
           }`}
         >
           {showFilters && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 max-w-[100vw] lg:grid-cols-4 p-1 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 max-w-[100vw] lg:grid-cols-4 p-1 gap-3">
               {/* Filters */}
               <div className="relative col-span-full">
                 <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -766,8 +766,7 @@ export default function OrdersDashboard() {
       {/* Orders Table */}
       <div
         id="orders-table"
-        className="bg-white border re dark:bg-zinc-900 rounded-md max-w-full overflow-auto shadow-sm"
-        style={{ maxHeight: "70vh", maxWidth: "100vw" }}
+        className="flex bg-white border m-auto max-h-[500px] max-w-[94vw] dark:bg-zinc-900 rounded-md overflow-auto shadow-sm"
       >
         <Table>
           <TableHeader className="bg-zinc-100 w-full sticky top-0 z-20 dark:bg-zinc-950">

@@ -469,7 +469,7 @@ export default function CityStatsPage() {
       )}
 
       {/* Table Container */}
-      <Card className="w-full shadow-sm">
+      <Card className="max-w-[90vw] shadow-sm">
         <CardContent className="p-0">
           <div className="p-4 border-b">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
@@ -494,7 +494,7 @@ export default function CityStatsPage() {
             </div>
           </div>
 
-          <div className="overflow-auto" style={{ maxHeight: "600px" }}>
+          <div className="overflow-x-auto w-full max-h-[500px]">
             <table className="w-full border-collapse">
               {/* Table Header */}
               <thead className="sticky top-0 z-20">
