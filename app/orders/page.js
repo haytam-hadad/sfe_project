@@ -596,7 +596,15 @@ export default function OrdersDashboard() {
             <FilterIcon className="mr-1 h-4 w-4" />
             Filters
           </h2>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            {/* Reset filters button */}
+            <div className="col-span-full">
+              <Button 
+                variant="outline" size="sm" onClick={resetFilters} className="w-full sm:w-auto">
+                <XCircleIcon className="mr-1 text-mainColor h-4 w-4" />
+                Reset Filters
+              </Button>
+            </div>
             <Button variant="outline" size="sm" className="h-9" onClick={() => setShowFilters((prev) => !prev)}>
               {showFilters ? "Hide Filters" : "Show Filters"}
             </Button>
@@ -623,9 +631,8 @@ export default function OrdersDashboard() {
           </div>
         </div>
         <div
-          className={`mb-3 md:mb-4 w-full transition-all duration-300 ${
-            showFilters ? "opacity-100 max-h-[500px]" : "opacity-0 max-h-0 overflow-hidden"
-          }`}
+          className={`mb-3 md:mb-4 w-full transition-all duration-300 ${showFilters ? "opacity-100 max-h-[500px]" : "opacity-0 max-h-0 overflow-hidden"
+            }`}
         >
           {showFilters && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 max-w-[100vw] lg:grid-cols-4 p-1 gap-2">
@@ -751,14 +758,6 @@ export default function OrdersDashboard() {
                   </PopoverContent>
                 </Popover>
               </div>
-
-              {/* Reset filters button */}
-              <div className="col-span-full">
-                <Button variant="outline" size="sm" onClick={resetFilters} className="w-full sm:w-auto">
-                  <XCircleIcon className="mr-1 h-4 w-4" />
-                  Reset Filters
-                </Button>
-              </div>
             </div>
           )}
         </div>
@@ -767,11 +766,11 @@ export default function OrdersDashboard() {
       {/* Orders Table */}
       <div
         id="orders-table"
-        className="bg-white border  dark:bg-zinc-900 rounded-md max-w-full overflow-auto shadow-sm"
+        className="bg-white border re dark:bg-zinc-900 rounded-md max-w-full overflow-auto shadow-sm"
         style={{ maxHeight: "70vh", maxWidth: "100vw" }}
       >
         <Table>
-          <TableHeader className="bg-zinc-100 dark:bg-zinc-950 sticky top-0 z-10">
+          <TableHeader className="bg-zinc-100 w-full sticky top-0 z-20 dark:bg-zinc-950">
             <TableRow>
               {visibleColumns["Order date"] && (
                 <TableHead

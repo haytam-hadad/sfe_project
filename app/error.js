@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { CircleX } from "lucide-react" // Import error icon from lucide
+import { CircleX } from "lucide-react"
 
 const ErrorPage = ({ message }) => {
   const [isVisible, setIsVisible] = useState(true)
@@ -10,15 +10,15 @@ const ErrorPage = ({ message }) => {
   if (!isVisible) return null
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white dark:bg-thirdColor">
-      <div className="flex items-center justify-center flex-col">
-        <div className="flex items-center gap-2 justify-center">
-          <h2 className="text-5xl font-bold text-primary">Error</h2>
-          <CircleX className="h-10 w-10" /> {/* Add error icon from lucide */}
+    <div className="flex tras flex-col items-center justify-center min-h-screen bg-white dark:bg-thirdColor p-4">
+      <div className="flex items-center justify-center flex-col max-w-lg w-full">
+        <div className="flex items-center gap-3 justify-center mb-4">
+          <h2 className="text-5xl font-bold">Error</h2>
+          <CircleX className="h-8 w-8 sm:h-10 sm:w-10" />
         </div>
 
-        <p className="text-lg text-primary">{message}</p>
-        <div className="mt-8">
+        <p className="text-base sm:text-lg text-center">{message}</p>
+        <div className="mt-4">
           <Link href="/">
             <span className="text-mainColor font-bold border-2 p-2 px-4 rounded-full border-mainColor text-center hover:text-blue-700">
               Go back home
