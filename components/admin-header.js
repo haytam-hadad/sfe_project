@@ -19,8 +19,8 @@ export default function AdminHeader({ onToggleMenu }) {
       <div className="max-w-full mx-auto px-3 sm:px-5">
         <div className="flex items-center justify-between py-3">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-1 sm:gap-2">
-            <Image src="/images/logo.svg" alt="Logo" className="w-7 h-7 sm:w-8 sm:h-8" width={40} height={40} />
+          <Link href="/" className="flex items-center gap-1">
+            <Image src="/images/logo.svg" alt="Logo" className="w-8 h-8 sm:w-9 sm:h-9" width={40} height={40} />
             <span className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100">
               Ecomark
             </span>

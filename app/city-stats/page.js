@@ -338,7 +338,7 @@ export default function CityStatsPage() {
   }
 
   return (
-    <div className="max-w-[100vw] p-4 md:p-6">
+    <div className="p-2 md:p-5">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">City Statistics</h1>
@@ -465,7 +465,7 @@ export default function CityStatsPage() {
       )}
 
       {/* Table Container */}
-      <Card className="max-w-[90vw] shadow-sm">
+      <Card className="max-w-[90vw] m-auto shadow-sm">
         <CardContent className="p-0">
           <div className="p-2 border-b">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
@@ -496,42 +496,42 @@ export default function CityStatsPage() {
               <thead className="sticky top-0 z-20">
                 <tr>
                   <th
-                    className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 sm:p-3  font-bold sticky left-0 z-20 cursor-pointer"
+                    className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
                     style={{ minWidth: "100px" }}
                     onClick={() => handleSort("city")}
                   >
                     CITY
                   </th>
                   <th
-                    className="bg-gradient-to-r from-orange-600 to-orange-500 text-white text-center p-2 sm:p-3  font-bold cursor-pointer"
+                    className="bg-gradient-to-r from-orange-600 to-orange-500 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
                     colSpan={isMobile ? 1 : 1}
                     onClick={() => handleSort("totalLeads")}
                   >
                     TOTAL LEADS
                   </th>
                   <th
-                    className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 sm:p-3  font-bold cursor-pointer"
+                    className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
                     colSpan={isMobile ? 1 : 2}
                     onClick={() => handleSort("confirmation")}
                   >
                     CONFIRMATION
                   </th>
                   <th
-                    className="bg-gradient-to-r from-green-600 to-green-500 text-white text-center p-2 sm:p-3  font-bold cursor-pointer"
+                    className="bg-gradient-to-r from-green-600 to-green-500 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
                     colSpan={isMobile ? 1 : 2}
                     onClick={() => handleSort("delivery")}
                   >
                     DELIVERY
                   </th>
                   <th
-                    className="bg-gradient-to-r from-red-700 to-red-600 text-white text-center p-2 sm:p-3  font-bold cursor-pointer"
+                    className="bg-gradient-to-r from-red-700 to-red-600 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
                     colSpan={isMobile ? 1 : 2}
                     onClick={() => handleSort("returned")}
                   >
                     RETURNED
                   </th>
                   <th
-                    className="bg-gradient-to-r from-purple-700 to-purple-600 text-white text-center p-2 sm:p-3  font-bold cursor-pointer"
+                    className="bg-gradient-to-r from-purple-700 to-purple-600 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
                     colSpan={isMobile ? 1 : 2}
                     onClick={() => handleSort("inProcess")}
                   >
@@ -540,7 +540,7 @@ export default function CityStatsPage() {
                 </tr>
                 {!isMobile && (
                   <tr>
-                    <th className="bg-blue-600 text-white p-2  sticky left-0 z-20"></th>
+                    <th className="bg-blue-600 text-white p-2 left-0 z-20"></th>
                     <th className="bg-orange-500 text-white p-2"></th>
                     <th className="bg-blue-500 text-white p-2  w-20">COUNT</th>
                     <th className="bg-blue-500 text-white p-2  w-20">%</th>
@@ -558,7 +558,7 @@ export default function CityStatsPage() {
               <tbody>
                 {/* Total Row */}
                 <tr className="font-bold hover:bg-gray-100 dark:hover:bg-gray-800">
-                  <td className="p-2  bg-gray-100 dark:bg-gray-800 sticky left-0 z-10">TOTAL</td>
+                  <td className="p-2  bg-gray-100 dark:bg-gray-800">TOTAL</td>
                   <td className="p-2  text-center bg-orange-100 dark:bg-orange-950">
                     {totals.totalLeads}
                   </td>
@@ -615,7 +615,7 @@ export default function CityStatsPage() {
                       className={`${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""} hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
                     >
                       <td
-                        className={`p-2  font-medium sticky left-0 z-10 ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "bg-white dark:bg-gray-950"}`}
+                        className={`p-2  font-medium ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "bg-white dark:bg-gray-950"}`}
                       >
                         {item.city}
                       </td>
@@ -693,8 +693,8 @@ export default function CityStatsPage() {
 
           {/* Pagination Controls */}
           {cityStats.length > 0 && (
-            <div className="p-4 border-t flex flex-col sm:flex-row justify-between items-center">
-              <div className="text-sm text-muted-foreground mb-2 sm:mb-0">
+            <div className="p-2 border-t flex flex-col sm:flex-row justify-between items-center">
+              <div className="text-sm text-muted-foreground mb-1 sm:mb-0">
                 Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, cityStats.length)} of {cityStats.length}{" "}
                 entries
               </div>

@@ -347,7 +347,7 @@ export default function ProductStatsPage() {
   }
 
   return (
-    <div className="p-2 sm:p-3 md:p-5">
+    <div className="p-2 md:p-5">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Product Statistics</h1>
@@ -481,7 +481,7 @@ export default function ProductStatsPage() {
         }
 
         return (
-          <Card className="max-w-[90vw] shadow-sm">
+          <Card className="max-w-[90vw] m-auto shadow-sm">
             <CardContent className="p-0">
               <div className="p-2 border-b">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
@@ -512,49 +512,49 @@ export default function ProductStatsPage() {
                   <thead className="sticky top-0 z-20">
                     <tr>
                       <th
-                        className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 sm:p-3 font-bold sticky left-0 z-20 cursor-pointer"
+                        className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
                         style={{ minWidth: "100px" }}
                         onClick={() => handleSort("product")}
                       >
                         PRODUCT
                       </th>
                       <th
-                        className="bg-gradient-to-r from-orange-600 to-orange-500 text-white text-center p-2 sm:p-3 font-bold cursor-pointer"
+                        className="bg-gradient-to-r from-orange-600 to-orange-500 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
                         colSpan={isMobile ? 1 : 1}
                         onClick={() => handleSort("totalLeads")}
                       >
                         TOTAL LEADS
                       </th>
                       <th
-                        className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 sm:p-3 font-bold cursor-pointer"
+                        className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
                         colSpan={isMobile ? 1 : 2}
                         onClick={() => handleSort("confirmation")}
                       >
                         CONFIRMATION
                       </th>
                       <th
-                        className="bg-gradient-to-r from-green-600 to-green-500 text-white text-center p-2 sm:p-3 font-bold cursor-pointer"
+                        className="bg-gradient-to-r from-green-600 to-green-500 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
                         colSpan={isMobile ? 1 : 2}
                         onClick={() => handleSort("delivery")}
                       >
                         DELIVERY
                       </th>
                       <th
-                        className="bg-gradient-to-r from-red-700 to-red-600 text-white text-center p-2 sm:p-3 font-bold cursor-pointer"
+                        className="bg-gradient-to-r from-red-700 to-red-600 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
                         colSpan={isMobile ? 1 : 2}
                         onClick={() => handleSort("returned")}
                       >
                         RETURNED
                       </th>
                       <th
-                        className="bg-gradient-to-r from-purple-700 to-purple-600 text-white text-center p-2 sm:p-3 font-bold cursor-pointer"
+                        className="bg-gradient-to-r from-purple-700 to-purple-600 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
                         colSpan={isMobile ? 1 : 2}
                         onClick={() => handleSort("inProcess")}
                       >
                         IN PROCESS
                       </th>
                       <th
-                        className="bg-gradient-to-r from-teal-700 to-teal-600 text-white text-center p-2 sm:p-3 font-bold cursor-pointer"
+                        className="bg-gradient-to-r from-teal-700 to-teal-600 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
                         colSpan={1}
                         onClick={() => handleSort("avgQuantityPerOrder")}
                       >
@@ -563,7 +563,7 @@ export default function ProductStatsPage() {
                     </tr>
                     {!isMobile && (
                       <tr>
-                        <th className="bg-blue-600 text-white p-2 sticky left-0 z-20"></th>
+                        <th className="bg-blue-600 text-white p-2 left-0 z-20"></th>
                         <th className="bg-orange-500 text-white p-2"></th>
                         <th className="bg-blue-500 text-white p-2 w-20">COUNT</th>
                         <th className="bg-blue-500 text-white p-2 w-20">%</th>
@@ -582,7 +582,7 @@ export default function ProductStatsPage() {
                   <tbody>
                     {/* Total Row */}
                     <tr className="font-bold hover:bg-gray-100 dark:hover:bg-gray-800">
-                      <td className="p-2 bg-gray-100 dark:bg-gray-800 sticky left-0 z-10">
+                      <td className="p-2 bg-gray-100 dark:bg-gray-800">
                         TOTAL
                       </td>
                       <td className="p-2 text-center bg-orange-100 dark:bg-orange-950">
@@ -657,7 +657,7 @@ export default function ProductStatsPage() {
                           className={`${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""} hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
                         >
                           <td
-                            className={`p-2 font-medium sticky left-0 z-10 ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "bg-white dark:bg-gray-950"}`}
+                            className={`p-2 font-medium ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "bg-white dark:bg-gray-950"}`}
                           >
                             {item.product}
                           </td>
@@ -741,12 +741,12 @@ export default function ProductStatsPage() {
 
               {/* Pagination Controls */}
               {productStats.length > 0 && (
-                <div className="p-4 border-t flex flex-col sm:flex-row justify-between items-center">
+                <div className="p-2 border-t flex flex-col sm:flex-row justify-between items-center">
                   <div className="text-sm text-muted-foreground mb-2 sm:mb-0">
                     Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, productStats.length)} of{" "}
                     {productStats.length} entries
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1">
                     <Button
                       variant="outline"
                       size="sm"
