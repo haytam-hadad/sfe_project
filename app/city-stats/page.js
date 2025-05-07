@@ -465,7 +465,7 @@ export default function CityStatsPage() {
       )}
 
       {/* Table Container */}
-      <Card className="max-w-[90vw] m-auto shadow-sm">
+      <Card className="max-w-[90vw] md:max-w-[80vw] m-auto shadow-sm">
         <CardContent className="p-0">
           <div className="p-2 border-b">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
