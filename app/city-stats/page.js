@@ -1,11 +1,15 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react"
-import { format } from "date-fns"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { format } from "date-fns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   RefreshCwIcon,
   DownloadIcon,
@@ -14,123 +18,132 @@ import {
   XCircleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-} from "lucide-react"
-import { useMobile } from "@/hooks/use-mobile"
-import { useStatusConfig } from "@/contexts/status-config-context"
-import { matchesStatus } from "@/lib/status-config"
+} from "lucide-react";
+import { useMobile } from "@/hooks/use-mobile";
+import { useStatusConfig } from "@/contexts/status-config-context";
+import { matchesStatus } from "@/lib/status-config";
 
 export default function CityStatsPage() {
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const isMobile = useMobile()
-  const [showFilters, setShowFilters] = useState(false)
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const isMobile = useMobile();
+  const [showFilters, setShowFilters] = useState(false);
 
   // Get status configuration from context
-  const { statusConfig } = useStatusConfig()
+  const { statusConfig } = useStatusConfig();
 
   // Filter states
-  const [startDate, setStartDate] = useState(null)
-  const [endDate, setEndDate] = useState(null)
-  const [cityFilter, setCityFilter] = useState("")
-  const [productFilter, setProductFilter] = useState("")
-  const [sortField, setSortField] = useState("totalLeads")
-  const [sortDirection, setSortDirection] = useState("desc")
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [cityFilter, setCityFilter] = useState("");
+  const [productFilter, setProductFilter] = useState("");
+  const [sortField, setSortField] = useState("totalLeads");
+  const [sortDirection, setSortDirection] = useState("desc");
 
   // Pagination states
-  const [currentPage, setCurrentPage] = useState(1)
-  const [rowsPerPage, setRowsPerPage] = useState(20)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(20);
 
   // Fetch data from the API with retry logic
   useEffect(() => {
     const fetchData = async (retryCount = 0) => {
-      setLoading(true)
+      setLoading(true);
       try {
-        const response = await fetch("/api/sheet")
+        const response = await fetch("/api/sheet");
         if (!response.ok) {
-          throw new Error(`Failed to fetch data: ${response.statusText}`)
+          throw new Error(`Failed to fetch data: ${response.statusText}`);
         }
-        const result = await response.json()
-        setOrders(result)
-        setLoading(false)
+        const result = await response.json();
+        setOrders(result);
+        setLoading(false);
       } catch (err) {
-        console.error("Error fetching data:", err)
+        console.error("Error fetching data:", err);
         if (retryCount < 3) {
-          const delay = Math.pow(2, retryCount) * 1000
-          console.log(`Retrying in ${delay}ms...`)
-          setTimeout(() => fetchData(retryCount + 1), delay)
+          const delay = Math.pow(2, retryCount) * 1000;
+          console.log(`Retrying in ${delay}ms...`);
+          setTimeout(() => fetchData(retryCount + 1), delay);
         } else {
-          setError(err instanceof Error ? err.message : "Unknown error occurred")
-          setLoading(false)
+          setError(
+            err instanceof Error ? err.message : "Unknown error occurred"
+          );
+          setLoading(false);
         }
       }
-    }
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   // Extract unique products (SKU numbers)
   const products = useMemo(() => {
-    if (!orders.length) return []
-    const uniqueProducts = [...new Set(orders.map((order) => order["sku number"]).filter(Boolean))]
-    return uniqueProducts.sort()
-  }, [orders])
+    if (!orders.length) return [];
+    const uniqueProducts = [
+      ...new Set(orders.map((order) => order["sku number"]).filter(Boolean)),
+    ];
+    return uniqueProducts.sort();
+  }, [orders]);
 
   // Apply filters to the data
   const filteredOrders = useMemo(() => {
-    if (!orders.length) return []
+    if (!orders.length) return [];
 
     return orders.filter((order) => {
       // City filter
-      if (cityFilter && order["City"]?.toLowerCase() !== cityFilter.toLowerCase()) {
-        return false
+      if (
+        cityFilter &&
+        order["City"]?.toLowerCase() !== cityFilter.toLowerCase()
+      ) {
+        return false;
       }
 
       // Product filter
       if (productFilter && order["sku number"] !== productFilter) {
-        return false
+        return false;
       }
 
       // Date range filter
       if (startDate || endDate) {
-        const orderDate = new Date(order["Order date"])
+        const orderDate = new Date(order["Order date"]);
         if (startDate && orderDate < startDate) {
-          return false
+          return false;
         }
         if (endDate) {
-          const endDatePlusOne = new Date(endDate)
-          endDatePlusOne.setDate(endDatePlusOne.getDate() + 1)
+          const endDatePlusOne = new Date(endDate);
+          endDatePlusOne.setDate(endDatePlusOne.getDate() + 1);
           if (orderDate >= endDatePlusOne) {
-            return false
+            return false;
           }
         }
       }
 
-      return true
-    })
-  }, [orders, cityFilter, productFilter, startDate, endDate])
+      return true;
+    });
+  }, [orders, cityFilter, productFilter, startDate, endDate]);
 
   // Reset filters
   const resetFilters = useCallback(() => {
-    setCityFilter("")
-    setProductFilter("")
-    setStartDate(null)
-    setEndDate(null)
-  }, [])
+    setCityFilter("");
+    setProductFilter("");
+    setStartDate(null);
+    setEndDate(null);
+  }, []);
 
   // Extract unique cities from orders
   const cities = useMemo(() => {
-    if (!filteredOrders.length) return []
+    if (!filteredOrders.length) return [];
 
-    const uniqueCities = [...new Set(filteredOrders.map((order) => order["City"]).filter(Boolean))]
-    return uniqueCities.sort()
-  }, [filteredOrders])
+    const uniqueCities = [
+      ...new Set(filteredOrders.map((order) => order["City"]).filter(Boolean)),
+    ];
+    return uniqueCities.sort();
+  }, [filteredOrders]);
 
   // Calculate statistics for each city using the configurable status definitions
   const cityStats = useMemo(() => {
-    if (!filteredOrders.length) return []
+    if (!filteredOrders.length) return [];
 
-    const stats = {}
+    const stats = {};
 
     // Initialize stats for each city
     cities.forEach((city) => {
@@ -140,72 +153,78 @@ export default function CityStatsPage() {
         delivery: 0,
         returned: 0,
         inProcess: 0,
-      }
-    })
+      };
+    });
 
     // Process each order
     filteredOrders.forEach((order) => {
-      const city = order["City"]
-      if (!city || !stats[city]) return
+      const city = order["City"];
+      if (!city || !stats[city]) return;
 
       // Count total leads for this city
-      stats[city].totalLeads++
+      stats[city].totalLeads++;
 
       // Count by status using the configurable status definitions
-      const status = order["STATUS"]
-      if (!status) return
+      const status = order["STATUS"];
+      if (!status) return;
 
       // Use the status configuration to determine counts
       if (matchesStatus(status, statusConfig.confirmation)) {
-        stats[city].confirmation++
+        stats[city].confirmation++;
       }
 
       if (matchesStatus(status, statusConfig.delivery)) {
-        stats[city].delivery++
+        stats[city].delivery++;
       }
 
       if (matchesStatus(status, statusConfig.returned)) {
-        stats[city].returned++
+        stats[city].returned++;
       }
 
       if (matchesStatus(status, statusConfig.inProcess)) {
-        stats[city].inProcess++
+        stats[city].inProcess++;
       }
-    })
+    });
 
     // Convert to array and calculate percentages
     return Object.entries(stats)
       .map(([city, data]) => {
-        const confirmationPercent = data.totalLeads > 0 ? (data.confirmation / data.totalLeads) * 100 : 0
-        const deliveryPercent = data.confirmation > 0 ? (data.delivery / data.confirmation) * 100 : 0
-        const returnedPercent = data.confirmation > 0 ? (data.returned / data.confirmation) * 100 : 0
-        const inProcessPercent = data.totalLeads > 0 ? (data.inProcess / data.totalLeads) * 100 : 0
+        const confirmationPercent =
+          data.totalLeads > 0 ? (data.confirmation / data.totalLeads) * 100 : 0;
+        const deliveryPercent =
+          data.confirmation > 0 ? (data.delivery / data.confirmation) * 100 : 0;
+        const returnedPercent =
+          data.confirmation > 0 ? (data.returned / data.confirmation) * 100 : 0;
+        const inProcessPercent =
+          data.totalLeads > 0 ? (data.inProcess / data.totalLeads) * 100 : 0;
 
         return {
           city,
           totalLeads: data.totalLeads,
           confirmation: data.confirmation,
-          confirmationPercent: Number.parseFloat(confirmationPercent.toFixed(2)),
+          confirmationPercent: Number.parseFloat(
+            confirmationPercent.toFixed(2)
+          ),
           delivery: data.delivery,
           deliveryPercent: Number.parseFloat(deliveryPercent.toFixed(2)),
           returned: data.returned,
           returnedPercent: Number.parseFloat(returnedPercent.toFixed(2)),
           inProcess: data.inProcess,
           inProcessPercent: Number.parseFloat(inProcessPercent.toFixed(2)),
-        }
+        };
       })
       .sort((a, b) => {
         // Sort based on the selected field and direction
-        const fieldA = a[sortField]
-        const fieldB = b[sortField]
+        const fieldA = a[sortField];
+        const fieldB = b[sortField];
 
         if (sortDirection === "asc") {
-          return fieldA - fieldB
+          return fieldA - fieldB;
         } else {
-          return fieldB - fieldA
+          return fieldB - fieldA;
         }
-      })
-  }, [filteredOrders, cities, sortField, sortDirection, statusConfig])
+      });
+  }, [filteredOrders, cities, sortField, sortDirection, statusConfig]);
 
   // Calculate totals
   const totals = useMemo(() => {
@@ -220,18 +239,28 @@ export default function CityStatsPage() {
         returnedPercent: 0,
         inProcess: 0,
         inProcessPercent: 0,
-      }
+      };
 
-    const totalLeads = cityStats.reduce((sum, item) => sum + item.totalLeads, 0)
-    const confirmation = cityStats.reduce((sum, item) => sum + item.confirmation, 0)
-    const delivery = cityStats.reduce((sum, item) => sum + item.delivery, 0)
-    const returned = cityStats.reduce((sum, item) => sum + item.returned, 0)
-    const inProcess = cityStats.reduce((sum, item) => sum + item.inProcess, 0)
+    const totalLeads = cityStats.reduce(
+      (sum, item) => sum + item.totalLeads,
+      0
+    );
+    const confirmation = cityStats.reduce(
+      (sum, item) => sum + item.confirmation,
+      0
+    );
+    const delivery = cityStats.reduce((sum, item) => sum + item.delivery, 0);
+    const returned = cityStats.reduce((sum, item) => sum + item.returned, 0);
+    const inProcess = cityStats.reduce((sum, item) => sum + item.inProcess, 0);
 
-    const confirmationPercent = totalLeads > 0 ? (confirmation / totalLeads) * 100 : 0
-    const deliveryPercent = confirmation > 0 ? (delivery / confirmation) * 100 : 0
-    const returnedPercent = confirmation > 0 ? (returned / confirmation) * 100 : 0
-    const inProcessPercent = totalLeads > 0 ? (inProcess / totalLeads) * 100 : 0
+    const confirmationPercent =
+      totalLeads > 0 ? (confirmation / totalLeads) * 100 : 0;
+    const deliveryPercent =
+      confirmation > 0 ? (delivery / confirmation) * 100 : 0;
+    const returnedPercent =
+      confirmation > 0 ? (returned / confirmation) * 100 : 0;
+    const inProcessPercent =
+      totalLeads > 0 ? (inProcess / totalLeads) * 100 : 0;
 
     return {
       totalLeads,
@@ -243,60 +272,63 @@ export default function CityStatsPage() {
       returnedPercent: Number.parseFloat(returnedPercent.toFixed(2)),
       inProcess,
       inProcessPercent: Number.parseFloat(inProcessPercent.toFixed(2)),
-    }
-  }, [cityStats])
+    };
+  }, [cityStats]);
 
   // Handle sorting
   const handleSort = (field) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      setSortField(field)
-      setSortDirection("desc")
+      setSortField(field);
+      setSortDirection("desc");
     }
-  }
+  };
 
   // Handle export
   const handleExport = () => {
-    if (!cityStats.length) return
+    if (!cityStats.length) return;
 
     // Create CSV content
-    let csvContent = "data:text/csv;charset=utf-8,"
+    let csvContent = "data:text/csv;charset=utf-8,";
 
     // Add headers
     csvContent +=
-      "City,Total Leads,Confirmation,Confirmation %,Delivery,Delivery %,Returned,Returned %,In Process,In Process %\n"
+      "City,Total Leads,Confirmation,Confirmation %,Delivery,Delivery %,Returned,Returned %,In Process,In Process %\n";
 
     // Add total row
-    csvContent += `TOTAL,${totals.totalLeads},${totals.confirmation},${totals.confirmationPercent}%,${totals.delivery},${totals.deliveryPercent}%,${totals.returned},${totals.returnedPercent}%,${totals.inProcess},${totals.inProcessPercent}%\n`
+    csvContent += `TOTAL,${totals.totalLeads},${totals.confirmation},${totals.confirmationPercent}%,${totals.delivery},${totals.deliveryPercent}%,${totals.returned},${totals.returnedPercent}%,${totals.inProcess},${totals.inProcessPercent}%\n`;
 
     // Add city rows
     cityStats.forEach((item) => {
-      csvContent += `${item.city},${item.totalLeads},${item.confirmation},${item.confirmationPercent}%,${item.delivery},${item.deliveryPercent}%,${item.returned},${item.returnedPercent}%,${item.inProcess},${item.inProcessPercent}%\n`
-    })
+      csvContent += `${item.city},${item.totalLeads},${item.confirmation},${item.confirmationPercent}%,${item.delivery},${item.deliveryPercent}%,${item.returned},${item.returnedPercent}%,${item.inProcess},${item.inProcessPercent}%\n`;
+    });
 
     // Create download link
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement("a")
-    link.setAttribute("href", encodedUri)
-    link.setAttribute("download", `city-stats-${new Date().toISOString().split("T")[0]}.csv`)
-    document.body.appendChild(link)
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute(
+      "download",
+      `city-stats-${new Date().toISOString().split("T")[0]}.csv`
+    );
+    document.body.appendChild(link);
 
     // Trigger download
-    link.click()
-    document.body.removeChild(link)
-  }
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Calculate pagination
-  const indexOfLastItem = currentPage * rowsPerPage
-  const indexOfFirstItem = indexOfLastItem - rowsPerPage
-  const currentItems = cityStats.slice(indexOfFirstItem, indexOfLastItem)
-  const totalPages = Math.ceil(cityStats.length / rowsPerPage)
+  const indexOfLastItem = currentPage * rowsPerPage;
+  const indexOfFirstItem = indexOfLastItem - rowsPerPage;
+  const currentItems = cityStats.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(cityStats.length / rowsPerPage);
 
   // Handle page changes
   const handlePageChange = (pageNumber) => {
-    setCurrentPage(Math.max(1, Math.min(pageNumber, totalPages)))
-  }
+    setCurrentPage(Math.max(1, Math.min(pageNumber, totalPages)));
+  };
 
   // Render loading state
   if (loading) {
@@ -314,7 +346,7 @@ export default function CityStatsPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   // Render error state
@@ -334,24 +366,36 @@ export default function CityStatsPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="p-2 md:p-5">
+    <div className="p-2 md:p-4 w-full max-w-[100vw]">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">City Statistics</h1>
           <p className="text-muted-foreground mt-1">
-            Analyzing {totals.totalLeads} orders across {cityStats.length} cities
+            Analyzing {totals.totalLeads} orders across {cityStats.length}{" "}
+            cities
           </p>
         </div>
         <div className="flex items-center gap-2 mt-2 md:mt-0">
-          <Button variant="outline" size="sm" className="h-9" onClick={() => setShowFilters((prev) => !prev)}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9"
+            onClick={() => setShowFilters((prev) => !prev)}
+          >
             <FilterIcon className="mr-1 h-4 w-4" />
             {showFilters ? "Hide Filters" : "Show Filters"}
           </Button>
-          <Button variant="outline" size="sm" className="h-9" onClick={handleExport} disabled={!cityStats.length}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9"
+            onClick={handleExport}
+            disabled={!cityStats.length}
+          >
             <DownloadIcon className="mr-1 h-4 w-4" />
             Export CSV
           </Button>
@@ -370,7 +414,9 @@ export default function CityStatsPage() {
                 size="sm"
                 className="ml-auto"
                 onClick={resetFilters}
-                disabled={!cityFilter && !productFilter && !startDate && !endDate}
+                disabled={
+                  !cityFilter && !productFilter && !startDate && !endDate
+                }
               >
                 <XCircleIcon className="mr-1 text-mainColor h-4 w-4" />
                 Clear Filters
@@ -381,7 +427,10 @@ export default function CityStatsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {/* Product Filter */}
               <div>
-                <label htmlFor="product-filter" className="block text-sm font-medium mb-1">
+                <label
+                  htmlFor="product-filter"
+                  className="block text-sm font-medium mb-1"
+                >
                   Product
                 </label>
                 <select
@@ -400,7 +449,10 @@ export default function CityStatsPage() {
               </div>
 
               <div>
-                <label htmlFor="city-filter" className="block text-sm font-medium mb-1">
+                <label
+                  htmlFor="city-filter"
+                  className="block text-sm font-medium mb-1"
+                >
                   Filter by City
                 </label>
                 <select
@@ -419,10 +471,15 @@ export default function CityStatsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Start Date</label>
+                <label className="block text-sm font-medium mb-1">
+                  Start Date
+                </label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="justify-start dark:bg-black text-left font-normal w-full">
+                    <Button
+                      variant="outline"
+                      className="justify-start dark:bg-black text-left font-normal w-full"
+                    >
                       <CalendarIcon className="mr-1 h-4 w-4" />
                       {startDate ? format(startDate, "PPP") : "Select date"}
                     </Button>
@@ -440,10 +497,15 @@ export default function CityStatsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">End Date</label>
+                <label className="block text-sm font-medium mb-1">
+                  End Date
+                </label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="justify-start dark:bg-black text-left font-normal w-full">
+                    <Button
+                      variant="outline"
+                      className="justify-start dark:bg-black text-left font-normal w-full"
+                    >
                       <CalendarIcon className="mr-1 h-4 w-4" />
                       {endDate ? format(endDate, "PPP") : "Select date"}
                     </Button>
@@ -454,7 +516,9 @@ export default function CityStatsPage() {
                       selected={endDate}
                       onSelect={(date) => setEndDate(date)}
                       initialFocus
-                      disabled={(date) => (startDate ? date < startDate : false)}
+                      disabled={(date) =>
+                        startDate ? date < startDate : false
+                      }
                     />
                   </PopoverContent>
                 </Popover>
@@ -465,275 +529,299 @@ export default function CityStatsPage() {
       )}
 
       {/* Table Container */}
-      <Card className="max-w-[90vw] md:max-w-[80vw] m-auto shadow-sm">
-        <CardContent className="p-0">
-          <div className="p-2 border-b">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-              <div className="text-md font-medium">City Performance Statistics</div>
-              <div className="flex items-center space-x-2 mt-2 sm:mt-0">
-                <span className="text-sm text-muted-foreground">Rows per page:</span>
-                <select
-                  className="border rounded px-2 py-1 text-sm dark:bg-black"
-                  value={rowsPerPage}
-                  onChange={(e) => {
-                    setRowsPerPage(Number(e.target.value))
-                    setCurrentPage(1)
-                  }}
-                >
-                  {[5, 10, 20, 50, 100].map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              </div>
+      <div className="max-w-full md:max-w-[65vw] lg:max-w-[70vw] m-auto shadow-sm border rounded-sm">
+        <div className="p-2">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <div className="text-md font-medium">
+              City Performance Statistics
+            </div>
+            <div className="flex items-center space-x-2 mt-2 sm:mt-0">
+              <span className="text-sm text-muted-foreground">
+                Rows per page:
+              </span>
+              <select
+                className="border rounded px-2 py-1 text-sm dark:bg-black"
+                value={rowsPerPage}
+                onChange={(e) => {
+                  setRowsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+              >
+                {[5, 10, 20, 50, 100].map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
+        </div>
 
-          <div className="overflow-x-auto w-full max-h-[500px]">
-            <table className="w-full border-collapse">
-              {/* Table Header */}
-              <thead className="sticky top-0 z-20">
+        <div className="overflow-auto max-w-full max-h-[500px]">
+          <table className="w-full border-collapse">
+            {/* Table Header */}
+            <thead className="sticky top-0 z-20">
+              <tr>
+                <th
+                  className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
+                  style={{ minWidth: "100px" }}
+                  onClick={() => handleSort("city")}
+                >
+                  CITY
+                </th>
+                <th
+                  className="bg-gradient-to-r from-orange-600 to-orange-500 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
+                  colSpan={isMobile ? 1 : 1}
+                  onClick={() => handleSort("totalLeads")}
+                >
+                  TOTAL LEADS
+                </th>
+                <th
+                  className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
+                  colSpan={isMobile ? 1 : 2}
+                  onClick={() => handleSort("confirmation")}
+                >
+                  CONFIRMATION
+                </th>
+                <th
+                  className="bg-gradient-to-r from-green-600 to-green-500 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
+                  colSpan={isMobile ? 1 : 2}
+                  onClick={() => handleSort("delivery")}
+                >
+                  DELIVERY
+                </th>
+                <th
+                  className="bg-gradient-to-r from-red-700 to-red-600 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
+                  colSpan={isMobile ? 1 : 2}
+                  onClick={() => handleSort("returned")}
+                >
+                  RETURNED
+                </th>
+                <th
+                  className="bg-gradient-to-r from-purple-700 to-purple-600 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
+                  colSpan={isMobile ? 1 : 2}
+                  onClick={() => handleSort("inProcess")}
+                >
+                  IN PROCESS
+                </th>
+              </tr>
+              {!isMobile && (
                 <tr>
-                  <th
-                    className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
-                    style={{ minWidth: "100px" }}
-                    onClick={() => handleSort("city")}
-                  >
-                    CITY
-                  </th>
-                  <th
-                    className="bg-gradient-to-r from-orange-600 to-orange-500 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
-                    colSpan={isMobile ? 1 : 1}
-                    onClick={() => handleSort("totalLeads")}
-                  >
-                    TOTAL LEADS
-                  </th>
-                  <th
-                    className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
-                    colSpan={isMobile ? 1 : 2}
-                    onClick={() => handleSort("confirmation")}
-                  >
-                    CONFIRMATION
-                  </th>
-                  <th
-                    className="bg-gradient-to-r from-green-600 to-green-500 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
-                    colSpan={isMobile ? 1 : 2}
-                    onClick={() => handleSort("delivery")}
-                  >
-                    DELIVERY
-                  </th>
-                  <th
-                    className="bg-gradient-to-r from-red-700 to-red-600 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
-                    colSpan={isMobile ? 1 : 2}
-                    onClick={() => handleSort("returned")}
-                  >
-                    RETURNED
-                  </th>
-                  <th
-                    className="bg-gradient-to-r from-purple-700 to-purple-600 text-white text-center p-2 md:p-3  font-bold cursor-pointer"
-                    colSpan={isMobile ? 1 : 2}
-                    onClick={() => handleSort("inProcess")}
-                  >
-                    IN PROCESS
-                  </th>
+                  <th className="bg-blue-600 text-white p-2 left-0 z-20"></th>
+                  <th className="bg-orange-500 text-white p-2"></th>
+                  <th className="bg-blue-500 text-white p-2  w-20">COUNT</th>
+                  <th className="bg-blue-500 text-white p-2  w-20">%</th>
+                  <th className="bg-green-400 text-white p-2  w-20">COUNT</th>
+                  <th className="bg-green-400 text-white p-2  w-20">%</th>
+                  <th className="bg-red-500 text-white p-2  w-20">COUNT</th>
+                  <th className="bg-red-500 text-white p-2  w-20">%</th>
+                  <th className="bg-purple-500 text-white p-2  w-20">COUNT</th>
+                  <th className="bg-purple-500 text-white p-2  w-20">%</th>
                 </tr>
-                {!isMobile && (
-                  <tr>
-                    <th className="bg-blue-600 text-white p-2 left-0 z-20"></th>
-                    <th className="bg-orange-500 text-white p-2"></th>
-                    <th className="bg-blue-500 text-white p-2  w-20">COUNT</th>
-                    <th className="bg-blue-500 text-white p-2  w-20">%</th>
-                    <th className="bg-green-400 text-white p-2  w-20">COUNT</th>
-                    <th className="bg-green-400 text-white p-2  w-20">%</th>
-                    <th className="bg-red-500 text-white p-2  w-20">COUNT</th>
-                    <th className="bg-red-500 text-white p-2  w-20">%</th>
-                    <th className="bg-purple-500 text-white p-2  w-20">COUNT</th>
-                    <th className="bg-purple-500 text-white p-2  w-20">%</th>
-                  </tr>
-                )}
-              </thead>
+              )}
+            </thead>
 
-              {/* Table Body */}
-              <tbody>
-                {/* Total Row */}
-                <tr className="font-bold hover:bg-gray-100 dark:hover:bg-gray-800">
-                  <td className="p-2  bg-gray-100 dark:bg-gray-800">TOTAL</td>
-                  <td className="p-2  text-center bg-orange-100 dark:bg-orange-950">
-                    {totals.totalLeads}
-                  </td>
-                  {!isMobile ? (
-                    <>
-                      <td className="p-2  text-center bg-blue-100 dark:bg-blue-950">
-                        {totals.confirmation}
-                      </td>
-                      <td className="p-2  text-center bg-blue-100 dark:bg-blue-950">
-                        {totals.confirmationPercent}%
-                      </td>
-                      <td className="p-2  text-center bg-green-100 dark:bg-green-950">
-                        {totals.delivery}
-                      </td>
-                      <td className="p-2  text-center bg-green-100 dark:bg-green-950">
-                        {totals.deliveryPercent}%
-                      </td>
-                      <td className="p-2  text-center bg-red-100 dark:bg-red-950">
-                        {totals.returned}
-                      </td>
-                      <td className="p-2  text-center bg-red-100 dark:bg-red-950">
-                        {totals.returnedPercent}%
-                      </td>
-                      <td className="p-2  text-center bg-purple-100 dark:bg-purple-950">
-                        {totals.inProcess}
-                      </td>
-                      <td className="p-2  text-center bg-purple-100 dark:bg-purple-950">
-                        {totals.inProcessPercent}%
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td className="p-2  text-center bg-blue-100 dark:bg-blue-950">
-                        {totals.confirmation} ({totals.confirmationPercent}%)
-                      </td>
-                      <td className="p-2  text-center bg-green-100 dark:bg-green-950">
-                        {totals.delivery} ({totals.deliveryPercent}%)
-                      </td>
-                      <td className="p-2  text-center bg-red-100 dark:bg-red-950">
-                        {totals.returned} ({totals.returnedPercent}%)
-                      </td>
-                      <td className="p-2  text-center bg-purple-100 dark:bg-purple-950">
-                        {totals.inProcess} ({totals.inProcessPercent}%)
-                      </td>
-                    </>
-                  )}
-                </tr>
-
-                {/* City Rows */}
-                {currentItems.length > 0 ? (
-                  currentItems.map((item, index) => (
-                    <tr
-                      key={index}
-                      className={`${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""} hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
-                    >
-                      <td
-                        className={`p-2  font-medium ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "bg-white dark:bg-gray-950"}`}
-                      >
-                        {item.city}
-                      </td>
-                      <td className="p-2  text-center bg-orange-50 dark:bg-orange-950/30">
-                        {item.totalLeads}
-                      </td>
-                      {!isMobile ? (
-                        <>
-                          <td className="p-2  text-center bg-blue-50 dark:bg-blue-950/30">
-                            {item.confirmation}
-                          </td>
-                          <td className="p-2  text-center bg-blue-50 dark:bg-blue-950/30">
-                            {item.confirmationPercent}%
-                          </td>
-                          <td className="p-2  text-center bg-green-50 dark:bg-green-950/30">
-                            {item.delivery}
-                          </td>
-                          <td className="p-2  text-center bg-green-50 dark:bg-green-950/30">
-                            {item.deliveryPercent}%
-                          </td>
-                          <td className="p-2  text-center bg-red-50 dark:bg-red-950/30">
-                            {item.returned}
-                          </td>
-                          <td className="p-2  text-center bg-red-50 dark:bg-red-950/30">
-                            {item.returnedPercent}%
-                          </td>
-                          <td className="p-2  text-center bg-purple-50 dark:bg-purple-950/30">
-                            {item.inProcess}
-                          </td>
-                          <td className="p-2  text-center bg-purple-50 dark:bg-purple-950/30">
-                            {item.inProcessPercent}%
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td className="p-2  text-center bg-blue-50 dark:bg-blue-950/30">
-                            {item.confirmation} ({item.confirmationPercent}%)
-                          </td>
-                          <td className="p-2  text-center bg-green-50 dark:bg-green-950/30">
-                            {item.delivery} ({item.deliveryPercent}%)
-                          </td>
-                          <td className="p-2  text-center bg-red-50 dark:bg-red-950/30">
-                            {item.returned} ({item.returnedPercent}%)
-                          </td>
-                          <td className="p-2  text-center bg-purple-50 dark:bg-purple-950/30">
-                            {item.inProcess} ({item.inProcessPercent}%)
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  ))
+            {/* Table Body */}
+            <tbody>
+              {/* Total Row */}
+              <tr className="font-bold hover:bg-gray-100 dark:hover:bg-gray-800">
+                <td className="p-2  bg-gray-100 dark:bg-gray-800">TOTAL</td>
+                <td className="p-2  text-center bg-orange-100 dark:bg-orange-950">
+                  {totals.totalLeads}
+                </td>
+                {!isMobile ? (
+                  <>
+                    <td className="p-2  text-center bg-blue-100 dark:bg-blue-950">
+                      {totals.confirmation}
+                    </td>
+                    <td className="p-2  text-center bg-blue-100 dark:bg-blue-950">
+                      {totals.confirmationPercent}%
+                    </td>
+                    <td className="p-2  text-center bg-green-100 dark:bg-green-950">
+                      {totals.delivery}
+                    </td>
+                    <td className="p-2  text-center bg-green-100 dark:bg-green-950">
+                      {totals.deliveryPercent}%
+                    </td>
+                    <td className="p-2  text-center bg-red-100 dark:bg-red-950">
+                      {totals.returned}
+                    </td>
+                    <td className="p-2  text-center bg-red-100 dark:bg-red-950">
+                      {totals.returnedPercent}%
+                    </td>
+                    <td className="p-2  text-center bg-purple-100 dark:bg-purple-950">
+                      {totals.inProcess}
+                    </td>
+                    <td className="p-2  text-center bg-purple-100 dark:bg-purple-950">
+                      {totals.inProcessPercent}%
+                    </td>
+                  </>
                 ) : (
-                  <tr>
-                    <td colSpan={isMobile ? 6 : 10} className="p-8 text-center text-muted-foreground">
-                      <div className="flex flex-col items-center justify-center">
-                        <p className="text-lg font-medium mb-2">No data available</p>
-                        <p className="text-sm max-w-md">
-                          {cityFilter || productFilter || startDate || endDate
-                            ? "Try adjusting your filters to see more results."
-                            : "There are no city statistics to display. Try refreshing or check back later."}
-                        </p>
-                        {(cityFilter || productFilter || startDate || endDate) && (
-                          <Button variant="outline" className="mt-4" onClick={resetFilters}>
+                  <>
+                    <td className="p-2  text-center bg-blue-100 dark:bg-blue-950">
+                      {totals.confirmation} ({totals.confirmationPercent}%)
+                    </td>
+                    <td className="p-2  text-center bg-green-100 dark:bg-green-950">
+                      {totals.delivery} ({totals.deliveryPercent}%)
+                    </td>
+                    <td className="p-2  text-center bg-red-100 dark:bg-red-950">
+                      {totals.returned} ({totals.returnedPercent}%)
+                    </td>
+                    <td className="p-2  text-center bg-purple-100 dark:bg-purple-950">
+                      {totals.inProcess} ({totals.inProcessPercent}%)
+                    </td>
+                  </>
+                )}
+              </tr>
+
+              {/* City Rows */}
+              {currentItems.length > 0 ? (
+                currentItems.map((item, index) => (
+                  <tr
+                    key={index}
+                    className={`${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""
+                      } hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
+                  >
+                    <td
+                      className={`p-2  font-medium ${index % 2 === 0
+                          ? "bg-gray-50 dark:bg-gray-900"
+                          : "bg-white dark:bg-gray-950"
+                        }`}
+                    >
+                      {item.city}
+                    </td>
+                    <td className="p-2  text-center bg-orange-50 dark:bg-orange-950/30">
+                      {item.totalLeads}
+                    </td>
+                    {!isMobile ? (
+                      <>
+                        <td className="p-2  text-center bg-blue-50 dark:bg-blue-950/30">
+                          {item.confirmation}
+                        </td>
+                        <td className="p-2  text-center bg-blue-50 dark:bg-blue-950/30">
+                          {item.confirmationPercent}%
+                        </td>
+                        <td className="p-2  text-center bg-green-50 dark:bg-green-950/30">
+                          {item.delivery}
+                        </td>
+                        <td className="p-2  text-center bg-green-50 dark:bg-green-950/30">
+                          {item.deliveryPercent}%
+                        </td>
+                        <td className="p-2  text-center bg-red-50 dark:bg-red-950/30">
+                          {item.returned}
+                        </td>
+                        <td className="p-2  text-center bg-red-50 dark:bg-red-950/30">
+                          {item.returnedPercent}%
+                        </td>
+                        <td className="p-2  text-center bg-purple-50 dark:bg-purple-950/30">
+                          {item.inProcess}
+                        </td>
+                        <td className="p-2  text-center bg-purple-50 dark:bg-purple-950/30">
+                          {item.inProcessPercent}%
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="p-2  text-center bg-blue-50 dark:bg-blue-950/30">
+                          {item.confirmation} ({item.confirmationPercent}%)
+                        </td>
+                        <td className="p-2  text-center bg-green-50 dark:bg-green-950/30">
+                          {item.delivery} ({item.deliveryPercent}%)
+                        </td>
+                        <td className="p-2  text-center bg-red-50 dark:bg-red-950/30">
+                          {item.returned} ({item.returnedPercent}%)
+                        </td>
+                        <td className="p-2  text-center bg-purple-50 dark:bg-purple-950/30">
+                          {item.inProcess} ({item.inProcessPercent}%)
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={isMobile ? 6 : 10}
+                    className="p-8 text-center text-muted-foreground"
+                  >
+                    <div className="flex flex-col items-center justify-center">
+                      <p className="text-lg font-medium mb-2">
+                        No data available
+                      </p>
+                      <p className="text-sm max-w-md">
+                        {cityFilter || productFilter || startDate || endDate
+                          ? "Try adjusting your filters to see more results."
+                          : "There are no city statistics to display. Try refreshing or check back later."}
+                      </p>
+                      {(cityFilter ||
+                        productFilter ||
+                        startDate ||
+                        endDate) && (
+                          <Button
+                            variant="outline"
+                            className="mt-4"
+                            onClick={resetFilters}
+                          >
                             <XCircleIcon className="mr-1 h-4 w-4" />
                             Clear filters
                           </Button>
                         )}
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
 
-          {/* Pagination Controls */}
-          {cityStats.length > 0 && (
-            <div className="p-2 border-t flex flex-col sm:flex-row justify-between items-center">
-              <div className="text-sm text-muted-foreground mb-1 sm:mb-0">
-                Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, cityStats.length)} of {cityStats.length}{" "}
-                entries
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm" onClick={() => handlePageChange(1)} disabled={currentPage === 1}>
-                  First
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeftIcon className="h-4 w-4" />
-                </Button>
-                <span className="text-sm px-3 py-1 border rounded">
-                  {currentPage} of {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  <ChevronRightIcon className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(totalPages)}
-                  disabled={currentPage === totalPages}
-                >
-                  Last
-                </Button>
-              </div>
+        {/* Pagination Controls */}
+        {cityStats.length > 0 && (
+          <div className="p-2 border-t flex flex-col sm:flex-row justify-between items-center">
+            <div className="text-sm text-muted-foreground mb-1 sm:mb-0">
+              Showing {indexOfFirstItem + 1} to{" "}
+              {Math.min(indexOfLastItem, cityStats.length)} of{" "}
+              {cityStats.length} entries
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(1)}
+                disabled={currentPage === 1}
+              >
+                First
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeftIcon className="h-4 w-4" />
+              </Button>
+              <span className="text-sm px-3 py-1 border rounded">
+                {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRightIcon className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(totalPages)}
+                disabled={currentPage === totalPages}
+              >
+                Last
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-  )
+  );
 }

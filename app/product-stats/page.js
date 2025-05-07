@@ -347,7 +347,7 @@ export default function ProductStatsPage() {
   }
 
   return (
-    <div className="p-2 md:p-5">
+    <div className="p-2 md:p-4 w-full max-w-[100vw]">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Product Statistics</h1>
@@ -481,312 +481,310 @@ export default function ProductStatsPage() {
         }
 
         return (
-          <Card className="max-w-[90vw] md:max-w-[80vw] m-auto shadow-sm">
-            <CardContent className="p-0">
-              <div className="p-2 border-b">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                  <div className="text-md font-medium">Product Performance Statistics</div>
-                  <div className="flex items-center space-x-2 mt-2 sm:mt-0">
-                    <span className="text-sm text-muted-foreground">Rows per page:</span>
-                    <select
-                      className="border rounded px-2 py-1 text-sm dark:bg-black"
-                      value={rowsPerPage}
-                      onChange={(e) => {
-                        setRowsPerPage(Number(e.target.value))
-                        setCurrentPage(1)
-                      }}
-                    >
-                      {[5, 10, 20, 50, 100].map((value) => (
-                        <option key={value} value={value}>
-                          {value}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+          <div className="max-w-full md:max-w-[65vw] lg:max-w-[70vw] m-auto shadow-sm border rounded-sm">
+            <div className="p-2">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                <div className="text-md font-medium">Product Performance Statistics</div>
+                <div className="flex items-center space-x-2 mt-2 sm:mt-0">
+                  <span className="text-sm text-muted-foreground">Rows per page:</span>
+                  <select
+                    className="border rounded px-2 py-1 text-sm dark:bg-black"
+                    value={rowsPerPage}
+                    onChange={(e) => {
+                      setRowsPerPage(Number(e.target.value))
+                      setCurrentPage(1)
+                    }}
+                  >
+                    {[5, 10, 20, 50, 100].map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
+            </div>
 
-              <div className="overflow-x-auto w-full max-h-[500px]">
-                <table className="w-full border-collapse">
-                  {/* Table Header */}
-                  <thead className="sticky top-0 z-20">
+            <div className="overflow-auto max-w-full max-h-[500px]">
+              <table className="w-full border-collapse">
+                {/* Table Header */}
+                <thead className="sticky top-0 z-20">
+                  <tr>
+                    <th
+                      className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
+                      style={{ minWidth: "100px" }}
+                      onClick={() => handleSort("product")}
+                    >
+                      PRODUCT
+                    </th>
+                    <th
+                      className="bg-gradient-to-r from-orange-600 to-orange-500 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
+                      colSpan={isMobile ? 1 : 1}
+                      onClick={() => handleSort("totalLeads")}
+                    >
+                      TOTAL LEADS
+                    </th>
+                    <th
+                      className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
+                      colSpan={isMobile ? 1 : 2}
+                      onClick={() => handleSort("confirmation")}
+                    >
+                      CONFIRMATION
+                    </th>
+                    <th
+                      className="bg-gradient-to-r from-green-600 to-green-500 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
+                      colSpan={isMobile ? 1 : 2}
+                      onClick={() => handleSort("delivery")}
+                    >
+                      DELIVERY
+                    </th>
+                    <th
+                      className="bg-gradient-to-r from-red-700 to-red-600 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
+                      colSpan={isMobile ? 1 : 2}
+                      onClick={() => handleSort("returned")}
+                    >
+                      RETURNED
+                    </th>
+                    <th
+                      className="bg-gradient-to-r from-purple-700 to-purple-600 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
+                      colSpan={isMobile ? 1 : 2}
+                      onClick={() => handleSort("inProcess")}
+                    >
+                      IN PROCESS
+                    </th>
+                    <th
+                      className="bg-gradient-to-r from-teal-700 to-teal-600 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
+                      colSpan={1}
+                      onClick={() => handleSort("avgQuantityPerOrder")}
+                    >
+                      AVG QTY/ORDER
+                    </th>
+                  </tr>
+                  {!isMobile && (
                     <tr>
-                      <th
-                        className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
-                        style={{ minWidth: "100px" }}
-                        onClick={() => handleSort("product")}
-                      >
-                        PRODUCT
-                      </th>
-                      <th
-                        className="bg-gradient-to-r from-orange-600 to-orange-500 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
-                        colSpan={isMobile ? 1 : 1}
-                        onClick={() => handleSort("totalLeads")}
-                      >
-                        TOTAL LEADS
-                      </th>
-                      <th
-                        className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
-                        colSpan={isMobile ? 1 : 2}
-                        onClick={() => handleSort("confirmation")}
-                      >
-                        CONFIRMATION
-                      </th>
-                      <th
-                        className="bg-gradient-to-r from-green-600 to-green-500 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
-                        colSpan={isMobile ? 1 : 2}
-                        onClick={() => handleSort("delivery")}
-                      >
-                        DELIVERY
-                      </th>
-                      <th
-                        className="bg-gradient-to-r from-red-700 to-red-600 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
-                        colSpan={isMobile ? 1 : 2}
-                        onClick={() => handleSort("returned")}
-                      >
-                        RETURNED
-                      </th>
-                      <th
-                        className="bg-gradient-to-r from-purple-700 to-purple-600 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
-                        colSpan={isMobile ? 1 : 2}
-                        onClick={() => handleSort("inProcess")}
-                      >
-                        IN PROCESS
-                      </th>
-                      <th
-                        className="bg-gradient-to-r from-teal-700 to-teal-600 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
-                        colSpan={1}
-                        onClick={() => handleSort("avgQuantityPerOrder")}
-                      >
-                        AVG QTY/ORDER
-                      </th>
+                      <th className="bg-blue-600 text-white p-2 left-0 z-20"></th>
+                      <th className="bg-orange-500 text-white p-2"></th>
+                      <th className="bg-blue-500 text-white p-2 w-20">COUNT</th>
+                      <th className="bg-blue-500 text-white p-2 w-20">%</th>
+                      <th className="bg-green-400 text-white p-2 w-20">COUNT</th>
+                      <th className="bg-green-400 text-white p-2 w-20">%</th>
+                      <th className="bg-red-500 text-white p-2 w-20">COUNT</th>
+                      <th className="bg-red-500 text-white p-2 w-20">%</th>
+                      <th className="bg-purple-500 text-white p-2 w-20">COUNT</th>
+                      <th className="bg-purple-500 text-white p-2 w-20">%</th>
+                      <th className="bg-teal-500 text-white p-2 w-20">QTY</th>
                     </tr>
-                    {!isMobile && (
-                      <tr>
-                        <th className="bg-blue-600 text-white p-2 left-0 z-20"></th>
-                        <th className="bg-orange-500 text-white p-2"></th>
-                        <th className="bg-blue-500 text-white p-2 w-20">COUNT</th>
-                        <th className="bg-blue-500 text-white p-2 w-20">%</th>
-                        <th className="bg-green-400 text-white p-2 w-20">COUNT</th>
-                        <th className="bg-green-400 text-white p-2 w-20">%</th>
-                        <th className="bg-red-500 text-white p-2 w-20">COUNT</th>
-                        <th className="bg-red-500 text-white p-2 w-20">%</th>
-                        <th className="bg-purple-500 text-white p-2 w-20">COUNT</th>
-                        <th className="bg-purple-500 text-white p-2 w-20">%</th>
-                        <th className="bg-teal-500 text-white p-2 w-20">QTY</th>
-                      </tr>
-                    )}
-                  </thead>
+                  )}
+                </thead>
 
-                  {/* Table Body */}
-                  <tbody>
-                    {/* Total Row */}
-                    <tr className="font-bold hover:bg-gray-100 dark:hover:bg-gray-800">
-                      <td className="p-2 bg-gray-100 dark:bg-gray-800">
-                        TOTAL
-                      </td>
-                      <td className="p-2 text-center bg-orange-100 dark:bg-orange-950">
-                        {totals.totalLeads}
-                      </td>
-                      {!isMobile ? (
-                        <>
-                          <td className="p-2 text-center bg-blue-100 dark:bg-blue-950">
-                            {totals.confirmation}
-                          </td>
-                          <td className="p-2 text-center bg-blue-100 dark:bg-blue-950">
-                            {totals.confirmationPercent}%
-                          </td>
-                          <td className="p-2 text-center bg-green-100 dark:bg-green-950">
-                            {totals.delivery}
-                          </td>
-                          <td className="p-2 text-center bg-green-100 dark:bg-green-950">
-                            {totals.deliveryPercent}%
-                          </td>
-                          <td className="p-2 text-center bg-red-100 dark:bg-red-950">
-                            {totals.returned}
-                          </td>
-                          <td className="p-2 text-center bg-red-100 dark:bg-red-950">
-                            {totals.returnedPercent}%
-                          </td>
-                          <td className="p-2 text-center bg-purple-100 dark:bg-purple-950">
-                            {totals.inProcess}
-                          </td>
-                          <td className="p-2 text-center bg-purple-100 dark:bg-purple-950">
-                            {totals.inProcessPercent}%
-                          </td>
-                          <td className="p-2 text-center bg-teal-100 dark:bg-teal-950">
-                            {productStats.length
-                              ? (
-                                  productStats.reduce((sum, item) => sum + item.avgQuantityPerOrder, 0) /
-                                  productStats.length
-                                ).toFixed(2)
-                              : "—"}
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td className="p-2 text-center bg-blue-100 dark:bg-blue-950">
-                            {totals.confirmation} ({totals.confirmationPercent}%)
-                          </td>
-                          <td className="p-2 text-center bg-green-100 dark:bg-green-950">
-                            {totals.delivery} ({totals.deliveryPercent}%)
-                          </td>
-                          <td className="p-2 text-center bg-red-100 dark:bg-red-950">
-                            {totals.returned} ({totals.returnedPercent}%)
-                          </td>
-                          <td className="p-2 text-center bg-purple-100 dark:bg-purple-950">
-                            {totals.inProcess} ({totals.inProcessPercent}%)
-                          </td>
-                          <td className="p-2 text-center bg-teal-100 dark:bg-teal-950">
-                            {productStats.length
-                              ? (
-                                  productStats.reduce((sum, item) => sum + item.avgQuantityPerOrder, 0) /
-                                  productStats.length
-                                ).toFixed(2)
-                              : "—"}
-                          </td>
-                        </>
-                      )}
-                    </tr>
-
-                    {/* Product Rows */}
-                    {currentItems.length > 0 ? (
-                      currentItems.map((item, index) => (
-                        <tr
-                          key={index}
-                          className={`${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""} hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
-                        >
-                          <td
-                            className={`p-2 font-medium ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "bg-white dark:bg-gray-950"}`}
-                          >
-                            {item.product}
-                          </td>
-                          <td className="p-2 text-center bg-orange-50 dark:bg-orange-950/30">
-                            {item.totalLeads}
-                          </td>
-                          {!isMobile ? (
-                            <>
-                              <td className="p-2 text-center bg-blue-50 dark:bg-blue-950/30">
-                                {item.confirmation}
-                              </td>
-                              <td className="p-2 text-center bg-blue-50 dark:bg-blue-950/30">
-                                {item.confirmationPercent}%
-                              </td>
-                              <td className="p-2 text-center bg-green-50 dark:bg-green-950/30">
-                                {item.delivery}
-                              </td>
-                              <td className="p-2 text-center bg-green-50 dark:bg-green-950/30">
-                                {item.deliveryPercent}%
-                              </td>
-                              <td className="p-2 text-center bg-red-50 dark:bg-red-950/30">
-                                {item.returned}
-                              </td>
-                              <td className="p-2 text-center bg-red-50 dark:bg-red-950/30">
-                                {item.returnedPercent}%
-                              </td>
-                              <td className="p-2 text-center bg-purple-50 dark:bg-purple-950/30">
-                                {item.inProcess}
-                              </td>
-                              <td className="p-2 text-center bg-purple-50 dark:bg-purple-950/30">
-                                {item.inProcessPercent}%
-                              </td>
-                              <td className="p-2 text-center bg-teal-50 dark:bg-teal-950/30">
-                                {item.avgQuantityPerOrder}
-                              </td>
-                            </>
-                          ) : (
-                            <>
-                              <td className="p-2 text-center bg-blue-50 dark:bg-blue-950/30">
-                                {item.confirmation} ({item.confirmationPercent}%)
-                              </td>
-                              <td className="p-2 text-center bg-green-50 dark:bg-green-950/30">
-                                {item.delivery} ({item.deliveryPercent}%)
-                              </td>
-                              <td className="p-2 text-center bg-red-50 dark:bg-red-950/30">
-                                {item.returned} ({item.returnedPercent}%)
-                              </td>
-                              <td className="p-2 text-center bg-purple-50 dark:bg-purple-950/30">
-                                {item.inProcess} ({item.inProcessPercent}%)
-                              </td>
-                              <td className="p-2 text-center bg-teal-50 dark:bg-teal-950/30">
-                                {item.avgQuantityPerOrder}
-                              </td>
-                            </>
-                          )}
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={isMobile ? 6 : 11} className="p-8 text-center text-muted-foreground">
-                          <div className="flex flex-col items-center justify-center">
-                            <p className="text-lg font-medium mb-2">No data available</p>
-                            <p className="text-sm max-w-md">
-                              {cityFilter || productFilter || startDate || endDate
-                                ? "Try adjusting your filters to see more results."
-                                : "There are no product statistics to display. Try refreshing or check back later."}
-                            </p>
-                            {(cityFilter || productFilter || startDate || endDate) && (
-                              <Button variant="outline" className="mt-4" onClick={resetFilters}>
-                                <XCircleIcon className="mr-1 h-4 w-4" />
-                                Clear filters
-                              </Button>
-                            )}
-                          </div>
+                {/* Table Body */}
+                <tbody>
+                  {/* Total Row */}
+                  <tr className="font-bold hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <td className="p-2 bg-gray-100 dark:bg-gray-800">
+                      TOTAL
+                    </td>
+                    <td className="p-2 text-center bg-orange-100 dark:bg-orange-950">
+                      {totals.totalLeads}
+                    </td>
+                    {!isMobile ? (
+                      <>
+                        <td className="p-2 text-center bg-blue-100 dark:bg-blue-950">
+                          {totals.confirmation}
                         </td>
-                      </tr>
+                        <td className="p-2 text-center bg-blue-100 dark:bg-blue-950">
+                          {totals.confirmationPercent}%
+                        </td>
+                        <td className="p-2 text-center bg-green-100 dark:bg-green-950">
+                          {totals.delivery}
+                        </td>
+                        <td className="p-2 text-center bg-green-100 dark:bg-green-950">
+                          {totals.deliveryPercent}%
+                        </td>
+                        <td className="p-2 text-center bg-red-100 dark:bg-red-950">
+                          {totals.returned}
+                        </td>
+                        <td className="p-2 text-center bg-red-100 dark:bg-red-950">
+                          {totals.returnedPercent}%
+                        </td>
+                        <td className="p-2 text-center bg-purple-100 dark:bg-purple-950">
+                          {totals.inProcess}
+                        </td>
+                        <td className="p-2 text-center bg-purple-100 dark:bg-purple-950">
+                          {totals.inProcessPercent}%
+                        </td>
+                        <td className="p-2 text-center bg-teal-100 dark:bg-teal-950">
+                          {productStats.length
+                            ? (
+                              productStats.reduce((sum, item) => sum + item.avgQuantityPerOrder, 0) /
+                              productStats.length
+                            ).toFixed(2)
+                            : "—"}
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="p-2 text-center bg-blue-100 dark:bg-blue-950">
+                          {totals.confirmation} ({totals.confirmationPercent}%)
+                        </td>
+                        <td className="p-2 text-center bg-green-100 dark:bg-green-950">
+                          {totals.delivery} ({totals.deliveryPercent}%)
+                        </td>
+                        <td className="p-2 text-center bg-red-100 dark:bg-red-950">
+                          {totals.returned} ({totals.returnedPercent}%)
+                        </td>
+                        <td className="p-2 text-center bg-purple-100 dark:bg-purple-950">
+                          {totals.inProcess} ({totals.inProcessPercent}%)
+                        </td>
+                        <td className="p-2 text-center bg-teal-100 dark:bg-teal-950">
+                          {productStats.length
+                            ? (
+                              productStats.reduce((sum, item) => sum + item.avgQuantityPerOrder, 0) /
+                              productStats.length
+                            ).toFixed(2)
+                            : "—"}
+                        </td>
+                      </>
                     )}
-                  </tbody>
-                </table>
-              </div>
+                  </tr>
 
-              {/* Pagination Controls */}
-              {productStats.length > 0 && (
-                <div className="p-2 border-t flex flex-col sm:flex-row justify-between items-center">
-                  <div className="text-sm text-muted-foreground mb-2 sm:mb-0">
-                    Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, productStats.length)} of{" "}
-                    {productStats.length} entries
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(1)}
-                      disabled={currentPage === 1}
-                    >
-                      First
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </Button>
-                    <span className="text-sm px-3 py-1 border rounded">
-                      {currentPage} of {totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                    >
-                      Next
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(totalPages)}
-                      disabled={currentPage === totalPages}
-                    >
-                      Last
-                    </Button>
-                  </div>
+                  {/* Product Rows */}
+                  {currentItems.length > 0 ? (
+                    currentItems.map((item, index) => (
+                      <tr
+                        key={index}
+                        className={`${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""} hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
+                      >
+                        <td
+                          className={`p-2 font-medium ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "bg-white dark:bg-gray-950"}`}
+                        >
+                          {item.product}
+                        </td>
+                        <td className="p-2 text-center bg-orange-50 dark:bg-orange-950/30">
+                          {item.totalLeads}
+                        </td>
+                        {!isMobile ? (
+                          <>
+                            <td className="p-2 text-center bg-blue-50 dark:bg-blue-950/30">
+                              {item.confirmation}
+                            </td>
+                            <td className="p-2 text-center bg-blue-50 dark:bg-blue-950/30">
+                              {item.confirmationPercent}%
+                            </td>
+                            <td className="p-2 text-center bg-green-50 dark:bg-green-950/30">
+                              {item.delivery}
+                            </td>
+                            <td className="p-2 text-center bg-green-50 dark:bg-green-950/30">
+                              {item.deliveryPercent}%
+                            </td>
+                            <td className="p-2 text-center bg-red-50 dark:bg-red-950/30">
+                              {item.returned}
+                            </td>
+                            <td className="p-2 text-center bg-red-50 dark:bg-red-950/30">
+                              {item.returnedPercent}%
+                            </td>
+                            <td className="p-2 text-center bg-purple-50 dark:bg-purple-950/30">
+                              {item.inProcess}
+                            </td>
+                            <td className="p-2 text-center bg-purple-50 dark:bg-purple-950/30">
+                              {item.inProcessPercent}%
+                            </td>
+                            <td className="p-2 text-center bg-teal-50 dark:bg-teal-950/30">
+                              {item.avgQuantityPerOrder}
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="p-2 text-center bg-blue-50 dark:bg-blue-950/30">
+                              {item.confirmation} ({item.confirmationPercent}%)
+                            </td>
+                            <td className="p-2 text-center bg-green-50 dark:bg-green-950/30">
+                              {item.delivery} ({item.deliveryPercent}%)
+                            </td>
+                            <td className="p-2 text-center bg-red-50 dark:bg-red-950/30">
+                              {item.returned} ({item.returnedPercent}%)
+                            </td>
+                            <td className="p-2 text-center bg-purple-50 dark:bg-purple-950/30">
+                              {item.inProcess} ({item.inProcessPercent}%)
+                            </td>
+                            <td className="p-2 text-center bg-teal-50 dark:bg-teal-950/30">
+                              {item.avgQuantityPerOrder}
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={isMobile ? 6 : 11} className="p-8 text-center text-muted-foreground">
+                        <div className="flex flex-col items-center justify-center">
+                          <p className="text-lg font-medium mb-2">No data available</p>
+                          <p className="text-sm max-w-md">
+                            {cityFilter || productFilter || startDate || endDate
+                              ? "Try adjusting your filters to see more results."
+                              : "There are no product statistics to display. Try refreshing or check back later."}
+                          </p>
+                          {(cityFilter || productFilter || startDate || endDate) && (
+                            <Button variant="outline" className="mt-4" onClick={resetFilters}>
+                              <XCircleIcon className="mr-1 h-4 w-4" />
+                              Clear filters
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            {productStats.length > 0 && (
+              <div className="p-2 border-t flex flex-col sm:flex-row justify-between items-center">
+                <div className="text-sm text-muted-foreground mb-2 sm:mb-0">
+                  Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, productStats.length)} of{" "}
+                  {productStats.length} entries
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <div className="flex items-center space-x-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(1)}
+                    disabled={currentPage === 1}
+                  >
+                    First
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm px-3 py-1 border rounded">
+                    {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(totalPages)}
+                    disabled={currentPage === totalPages}
+                  >
+                    Last
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
         )
       })()}
     </div>
