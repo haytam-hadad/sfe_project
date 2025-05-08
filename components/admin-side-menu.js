@@ -42,7 +42,7 @@ const AdminSideMenu = ({ isOpen, onClose }) => {
 
   return (
     <motion.div
-      className="bg-zinc-950 border-r h-full fixed top-0 md:pt-14 overflow-y-auto left-0 w-[250px] dark:bg-white dark:border-gray-800"
+      className="bg-zinc-950 border-r h-full fixed top-0 md:pt-16 overflow-y-auto left-0 w-[250px] dark:bg-white dark:border-gray-800"
       initial={{ x: -260 }}
       animate={{ x: 0 }}
       exit={{ x: -260 }}
