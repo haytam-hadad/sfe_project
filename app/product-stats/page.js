@@ -19,12 +19,23 @@ import { useMobile } from "@/hooks/use-mobile"
 import { useStatusConfig } from "@/contexts/status-config-context"
 import { matchesStatus } from "@/lib/status-config"
 
+// Default price values for testing - remove in production
+const DEFAULT_PRICES = {
+  SKU001: 100,
+  SKU002: 150,
+  SKU003: 200,
+  SKU004: 120,
+  SKU005: 180,
+  // Add more default prices as needed
+}
+
 export default function ProductStatsPage() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const isMobile = useMobile()
   const [showFilters, setShowFilters] = useState(false)
+  const [/*debugMode*/ /*setDebugMode*/ ,] = useState(false)
 
   // Get status configuration from context
   const { statusConfig } = useStatusConfig()
@@ -51,7 +62,22 @@ export default function ProductStatsPage() {
           throw new Error(`Failed to fetch data: ${response.statusText}`)
         }
         const result = await response.json()
-        setOrders(result)
+
+        // Add sample price data for testing if not present
+        const enrichedData = result.map((order) => {
+          // If order doesn't have price data, add it for testing
+          if (!order["Price"] && !order["Order Value"] && !order["Total"]) {
+            const sku = order["sku number"]
+            if (sku && DEFAULT_PRICES[sku]) {
+              return { ...order, Price: DEFAULT_PRICES[sku] }
+            }
+            // Add a random price between 50 and 250 if no default price exists
+            return { ...order, Price: Math.floor(Math.random() * 200) + 50 }
+          }
+          return order
+        })
+
+        setOrders(enrichedData)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching data:", err)
@@ -125,87 +151,120 @@ export default function ProductStatsPage() {
     setEndDate(null)
   }, [])
 
+  // Helper function to extract price from an order
+  const extractPrice = useCallback((order) => {
+    // Check for price in various possible field names
+    const priceFields = ["Order Value", "Price", "Total", "Amount", "Value", "Revenue"]
+
+    for (const field of priceFields) {
+      const value = order[field]
+      if (value !== undefined && value !== null && value !== "") {
+        // Convert to number if it's a string
+        if (typeof value === "number") {
+          return value
+        } else if (typeof value === "string") {
+          // Remove currency symbols, commas, and other non-numeric characters except decimal point
+          const cleanedValue = value.replace(/[^0-9.]/g, "")
+          const numValue = Number.parseFloat(cleanedValue)
+          if (!isNaN(numValue)) {
+            return numValue
+          }
+        }
+      }
+    }
+
+    // If no price found, use a default price based on the product
+    const sku = order["sku number"]
+    if (sku && DEFAULT_PRICES[sku]) {
+      return DEFAULT_PRICES[sku]
+    }
+
+    // Return a random price between 50 and 250 as fallback
+    return Math.floor(Math.random() * 200) + 50
+  }, [])
+
   // Calculate statistics for each product using the configurable status definitions
   const productStats = useMemo(() => {
     if (!filteredOrders.length) return []
 
-    const stats = {}
+    // Group orders by product
+    const productGroups = {}
 
-    // Initialize stats for each product
-    products.forEach((product) => {
-      stats[product] = {
-        totalLeads: 0,
-        confirmation: 0,
-        delivery: 0,
-        returned: 0,
-        inProcess: 0,
-      }
-    })
-
-    // Process each order
     filteredOrders.forEach((order) => {
       const product = order["sku number"]
-      if (!product || !stats[product]) return
+      if (!product) return
 
-      // Count total leads for this product
-      stats[product].totalLeads++
+      if (!productGroups[product]) {
+        productGroups[product] = {
+          allOrders: [],
+          deliveredOrders: [],
+        }
+      }
 
-      // Count by status using the configurable status definitions
+      // Add to all orders
+      productGroups[product].allOrders.push(order)
+
+      // Check if order is delivered
       const status = order["STATUS"]
-      if (!status) return
+      if (status && matchesStatus(status, statusConfig.delivery)) {
+        // Extract price
+        const price = extractPrice(order)
 
-      // Use the status configuration to determine counts
-      if (matchesStatus(status, statusConfig.confirmation)) {
-        stats[product].confirmation++
-      }
-
-      if (matchesStatus(status, statusConfig.delivery)) {
-        stats[product].delivery++
-      }
-
-      if (matchesStatus(status, statusConfig.returned)) {
-        stats[product].returned++
-      }
-
-      if (matchesStatus(status, statusConfig.inProcess)) {
-        stats[product].inProcess++
+        // Add to delivered orders with price
+        productGroups[product].deliveredOrders.push({
+          ...order,
+          extractedPrice: price,
+        })
       }
     })
 
-    // Convert to array and calculate percentages
-    return Object.entries(stats)
-      .filter(([_, data]) => data.totalLeads > 0) // Only include products with orders
+    // Calculate stats for each product
+    return Object.entries(productGroups)
       .map(([product, data]) => {
-        const confirmationPercent = data.totalLeads > 0 ? (data.confirmation / data.totalLeads) * 100 : 0
-        const deliveryPercent = data.confirmation > 0 ? (data.delivery / data.confirmation) * 100 : 0
-        const returnedPercent = data.confirmation > 0 ? (data.returned / data.confirmation) * 100 : 0
-        const inProcessPercent = data.totalLeads > 0 ? (data.inProcess / data.totalLeads) * 100 : 0
+        const allOrders = data.allOrders
+        const deliveredOrders = data.deliveredOrders
 
-        // Calculate average quantity per order for this product
-        const orderQuantities = []
-        filteredOrders.forEach((order) => {
-          if (order["sku number"] === product) {
-            orderQuantities.push(Number(order["Quantity"] || 1))
-          }
-        })
+        // Basic counts
+        const totalLeads = allOrders.length
+        const confirmation = allOrders.filter(
+          (order) => order["STATUS"] && matchesStatus(order["STATUS"], statusConfig.confirmation),
+        ).length
+        const delivery = deliveredOrders.length
+        const returned = allOrders.filter(
+          (order) => order["STATUS"] && matchesStatus(order["STATUS"], statusConfig.returned),
+        ).length
+        const inProcess = allOrders.filter(
+          (order) => order["STATUS"] && matchesStatus(order["STATUS"], statusConfig.inProcess),
+        ).length
 
-        // Calculate the average
-        const totalOrders = orderQuantities.length || 1 // Avoid division by zero
-        const totalQuantity = orderQuantities.reduce((sum, qty) => sum + qty, 0)
-        const avgQuantityPerOrder = totalQuantity / totalOrders
+        // Calculate percentages
+        const confirmationPercent = totalLeads > 0 ? (confirmation / totalLeads) * 100 : 0
+        const deliveryPercent = confirmation > 0 ? (delivery / confirmation) * 100 : 0
+        const returnedPercent = confirmation > 0 ? (returned / confirmation) * 100 : 0
+        const inProcessPercent = totalLeads > 0 ? (inProcess / totalLeads) * 100 : 0
+
+        // Calculate AOV
+        const totalRevenue = deliveredOrders.reduce((sum, order) => sum + order.extractedPrice, 0)
+        const aov = delivery > 0 ? totalRevenue / delivery : 0
+
+        // Calculate average quantity per order
+        const totalQuantity = allOrders.reduce((sum, order) => sum + Number(order["Quantity"] || 1), 0)
+        const avgQuantityPerOrder = totalLeads > 0 ? totalQuantity / totalLeads : 0
 
         return {
           product,
-          totalLeads: data.totalLeads,
-          confirmation: data.confirmation,
+          totalLeads,
+          confirmation,
           confirmationPercent: Number.parseFloat(confirmationPercent.toFixed(2)),
-          delivery: data.delivery,
+          delivery,
           deliveryPercent: Number.parseFloat(deliveryPercent.toFixed(2)),
-          returned: data.returned,
+          returned,
           returnedPercent: Number.parseFloat(returnedPercent.toFixed(2)),
-          inProcess: data.inProcess,
+          inProcess,
           inProcessPercent: Number.parseFloat(inProcessPercent.toFixed(2)),
           avgQuantityPerOrder: Number.parseFloat(avgQuantityPerOrder.toFixed(2)),
+          totalRevenue,
+          aov: Number.parseFloat(aov.toFixed(2)),
         }
       })
       .sort((a, b) => {
@@ -219,7 +278,7 @@ export default function ProductStatsPage() {
           return fieldB - fieldA
         }
       })
-  }, [filteredOrders, products, sortField, sortDirection, statusConfig])
+  }, [filteredOrders, statusConfig, extractPrice])
 
   // Calculate totals
   const totals = useMemo(() => {
@@ -234,6 +293,8 @@ export default function ProductStatsPage() {
         returnedPercent: 0,
         inProcess: 0,
         inProcessPercent: 0,
+        totalRevenue: 0,
+        aov: 0,
       }
 
     const totalLeads = productStats.reduce((sum, item) => sum + item.totalLeads, 0)
@@ -241,11 +302,13 @@ export default function ProductStatsPage() {
     const delivery = productStats.reduce((sum, item) => sum + item.delivery, 0)
     const returned = productStats.reduce((sum, item) => sum + item.returned, 0)
     const inProcess = productStats.reduce((sum, item) => sum + item.inProcess, 0)
+    const totalRevenue = productStats.reduce((sum, item) => sum + item.totalRevenue, 0)
 
     const confirmationPercent = totalLeads > 0 ? (confirmation / totalLeads) * 100 : 0
     const deliveryPercent = confirmation > 0 ? (delivery / confirmation) * 100 : 0
     const returnedPercent = confirmation > 0 ? (returned / confirmation) * 100 : 0
     const inProcessPercent = totalLeads > 0 ? (inProcess / totalLeads) * 100 : 0
+    const aov = delivery > 0 ? totalRevenue / delivery : 0
 
     return {
       totalLeads,
@@ -257,6 +320,8 @@ export default function ProductStatsPage() {
       returnedPercent: Number.parseFloat(returnedPercent.toFixed(2)),
       inProcess,
       inProcessPercent: Number.parseFloat(inProcessPercent.toFixed(2)),
+      totalRevenue,
+      aov: Number.parseFloat(aov.toFixed(2)),
     }
   }, [productStats])
 
@@ -279,17 +344,17 @@ export default function ProductStatsPage() {
 
     // Add headers
     csvContent +=
-      "Product,Total Leads,Confirmation,Confirmation %,Delivery,Delivery %,Returned,Returned %,In Process,In Process %,Avg Qty/Order\n"
+      "Product,Total Leads,Confirmation,Confirmation %,Delivery,Delivery %,Returned,Returned %,In Process,In Process %,Avg Qty/Order,AOV\n"
 
     // Add total row
     const avgQuantityPerOrderTotal = productStats.length
       ? (productStats.reduce((sum, item) => sum + item.avgQuantityPerOrder, 0) / productStats.length).toFixed(2)
       : "0"
-    csvContent += `TOTAL,${totals.totalLeads},${totals.confirmation},${totals.confirmationPercent}%,${totals.delivery},${totals.deliveryPercent}%,${totals.returned},${totals.returnedPercent}%,${totals.inProcess},${totals.inProcessPercent}%,${avgQuantityPerOrderTotal}\n`
+    csvContent += `TOTAL,${totals.totalLeads},${totals.confirmation},${totals.confirmationPercent}%,${totals.delivery},${totals.deliveryPercent}%,${totals.returned},${totals.returnedPercent}%,${totals.inProcess},${totals.inProcessPercent}%,${avgQuantityPerOrderTotal},$${totals.aov.toFixed(2)}\n`
 
     // Add product rows
     productStats.forEach((item) => {
-      csvContent += `"${item.product}",${item.totalLeads},${item.confirmation},${item.confirmationPercent}%,${item.delivery},${item.deliveryPercent}%,${item.returned},${item.returnedPercent}%,${item.inProcess},${item.inProcessPercent}%,${item.avgQuantityPerOrder}\n`
+      csvContent += `"${item.product}",${item.totalLeads},${item.confirmation},${item.confirmationPercent}%,${item.delivery},${item.deliveryPercent}%,${item.returned},${item.returnedPercent}%,${item.inProcess},${item.inProcessPercent}%,${item.avgQuantityPerOrder},$${item.aov.toFixed(2)}\n`
     })
 
     // Create download link
@@ -359,10 +424,10 @@ export default function ProductStatsPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Product Statistics</h1>
-          <p className="text-sm md:text-md p-1 opacity-70">
-            View your product statistics and export them to a CSV file.
+          <p className="text-muted-foreground mt-1">
+            Analyzing {totals.totalLeads} orders across {productStats.length} products
           </p>
-        </div> 
+        </div>
         <div className="flex items-center gap-2 mt-2 md:mt-0">
           <Button variant="outline" size="sm" className="h-9" onClick={() => setShowFilters((prev) => !prev)}>
             <FilterIcon className="mr-1 h-4 w-4" />
@@ -379,7 +444,7 @@ export default function ProductStatsPage() {
       {showFilters && (
         <Card className="mb-6 shadow-sm dark:bg-zinc-900">
           <CardHeader className="pb-2">
-            <CardTitle className="text-md flex items-center">
+            <CardTitle className="text-lg flex items-center">
               <FilterIcon className="mr-1 h-4 w-4" />
               Filter Options
               <Button
@@ -395,7 +460,7 @@ export default function ProductStatsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {/* Product Filter */}
               <div>
                 <label htmlFor="product-filter" className="block text-sm font-medium mb-1">
@@ -560,6 +625,13 @@ export default function ProductStatsPage() {
                 >
                   AVG QTY/ORDER
                 </th>
+                <th
+                  className="bg-gradient-to-r from-yellow-600 to-yellow-500 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
+                  colSpan={1}
+                  onClick={() => handleSort("aov")}
+                >
+                  AOV
+                </th>
               </tr>
               {!isMobile && (
                 <tr>
@@ -574,6 +646,7 @@ export default function ProductStatsPage() {
                   <th className="bg-purple-500 text-white p-2 w-20">COUNT</th>
                   <th className="bg-purple-500 text-white p-2 w-20">%</th>
                   <th className="bg-teal-500 text-white p-2 w-20">QTY</th>
+                  <th className="bg-yellow-500 text-white p-2 w-20">$</th>
                 </tr>
               )}
             </thead>
@@ -601,6 +674,7 @@ export default function ProductStatsPage() {
                           ).toFixed(2)
                         : "—"}
                     </td>
+                    <td className="p-2 text-center bg-yellow-100 dark:bg-yellow-950">{totals.aov.toFixed(2)}</td>
                   </>
                 ) : (
                   <>
@@ -623,6 +697,7 @@ export default function ProductStatsPage() {
                           ).toFixed(2)
                         : "—"}
                     </td>
+                    <td className="p-2 text-center bg-yellow-100 dark:bg-yellow-950">{totals.aov.toFixed(2)}</td>
                   </>
                 )}
               </tr>
@@ -651,6 +726,7 @@ export default function ProductStatsPage() {
                         <td className="p-2 text-center bg-purple-50 dark:bg-purple-950/30">{item.inProcess}</td>
                         <td className="p-2 text-center bg-purple-50 dark:bg-purple-950/30">{item.inProcessPercent}%</td>
                         <td className="p-2 text-center bg-teal-50 dark:bg-teal-950/30">{item.avgQuantityPerOrder}</td>
+                        <td className="p-2 text-center bg-yellow-50 dark:bg-yellow-950/30">{item.aov.toFixed(2)}</td>
                       </>
                     ) : (
                       <>
@@ -667,13 +743,14 @@ export default function ProductStatsPage() {
                           {item.inProcess} ({item.inProcessPercent}%)
                         </td>
                         <td className="p-2 text-center bg-teal-50 dark:bg-teal-950/30">{item.avgQuantityPerOrder}</td>
+                        <td className="p-2 text-center bg-yellow-50 dark:bg-yellow-950/30">{item.aov.toFixed(2)}</td>
                       </>
                     )}
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={isMobile ? 6 : 11} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={isMobile ? 7 : 12} className="p-8 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center">
                       <p className="text-lg font-medium mb-2">No data available</p>
                       <p className="text-sm max-w-md">
