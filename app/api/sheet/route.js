@@ -1,7 +1,7 @@
 // app/api/sheet/route.ts
 
 export async function GET() {
-  const sheetUrl = process.env.NEXT_PUBLIC_GOOGLE_SHEET_URL;
+  const sheetUrl = process.env.GOOGLE_SHEET_URL;
 
   try {
     const res = await fetch(sheetUrl);

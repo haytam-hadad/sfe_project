@@ -359,10 +359,10 @@ export default function ProductStatsPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Product Statistics</h1>
-          <p className="text-muted-foreground mt-1">
-            Analyzing {totals.totalLeads} orders across {productStats.length} products
+          <p className="text-sm md:text-md p-1 opacity-70">
+            View your product statistics and export them to a CSV file.
           </p>
-        </div>
+        </div> 
         <div className="flex items-center gap-2 mt-2 md:mt-0">
           <Button variant="outline" size="sm" className="h-9" onClick={() => setShowFilters((prev) => !prev)}>
             <FilterIcon className="mr-1 h-4 w-4" />
@@ -379,7 +379,7 @@ export default function ProductStatsPage() {
       {showFilters && (
         <Card className="mb-6 shadow-sm dark:bg-zinc-900">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center">
+            <CardTitle className="text-md flex items-center">
               <FilterIcon className="mr-1 h-4 w-4" />
               Filter Options
               <Button
@@ -395,7 +395,7 @@ export default function ProductStatsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
               {/* Product Filter */}
               <div>
                 <label htmlFor="product-filter" className="block text-sm font-medium mb-1">

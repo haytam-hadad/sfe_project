@@ -828,7 +828,7 @@ export default function Page() {
               </CardHeader>
               <CardContent>
                 {chartData.statusData && chartData.statusData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ResponsiveContainer width="100%" height={400}>
                     <PieChart>
                       <Pie
                         data={chartData.statusData}
@@ -888,7 +888,7 @@ export default function Page() {
               </CardHeader>
               <CardContent>
                 {chartData.timeSeriesData && chartData.timeSeriesData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ResponsiveContainer width="100%" height={350}>
                     <AreaChart data={chartData.timeSeriesData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis
@@ -957,7 +957,7 @@ export default function Page() {
               </CardHeader>
               <CardContent>
                 {chartData.statusData && chartData.statusData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={400}>
+                  <ResponsiveContainer width="100%" height={500}>
                     <BarChart data={chartData.statusData} margin={{ top: 10, right: 30, left: 20, bottom: 70 }}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} interval={0} />
@@ -1384,7 +1384,7 @@ export default function Page() {
       {/* Metrics Calculation Info */}
       <div className="mt-4 text-sm border-t p-1 pt-2 text-muted-foreground">
         <p>
-          <strong>Metrics Calculation:</strong>
+          <strong>Calculation parameters</strong>
         </p>
         <ul className="list-disc pl-5 mt-1 space-y-1">
           <li>
