@@ -19,16 +19,6 @@ import { useMobile } from "@/hooks/use-mobile"
 import { useStatusConfig } from "@/contexts/status-config-context"
 import { matchesStatus } from "@/lib/status-config"
 
-// Default price values for testing - remove in production
-const DEFAULT_PRICES = {
-  SKU001: 100,
-  SKU002: 150,
-  SKU003: 200,
-  SKU004: 120,
-  SKU005: 180,
-  // Add more default prices as needed
-}
-
 export default function ProductStatsPage() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
@@ -63,21 +53,7 @@ export default function ProductStatsPage() {
         }
         const result = await response.json()
 
-        // Add sample price data for testing if not present
-        const enrichedData = result.map((order) => {
-          // If order doesn't have price data, add it for testing
-          if (!order["Price"] && !order["Order Value"] && !order["Total"]) {
-            const sku = order["sku number"]
-            if (sku && DEFAULT_PRICES[sku]) {
-              return { ...order, Price: DEFAULT_PRICES[sku] }
-            }
-            // Add a random price between 50 and 250 if no default price exists
-            return { ...order, Price: Math.floor(Math.random() * 200) + 50 }
-          }
-          return order
-        })
-
-        setOrders(enrichedData)
+        setOrders(result)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching data:", err)
@@ -154,7 +130,7 @@ export default function ProductStatsPage() {
   // Helper function to extract price from an order
   const extractPrice = useCallback((order) => {
     // Check for price in various possible field names
-    const priceFields = ["Order Value", "Price", "Total", "Amount", "Value", "Revenue"]
+    const priceFields = ["Cod Amount", "Order Value", "Price", "Total", "Amount", "Value", "Revenue"]
 
     for (const field of priceFields) {
       const value = order[field]
@@ -173,14 +149,8 @@ export default function ProductStatsPage() {
       }
     }
 
-    // If no price found, use a default price based on the product
-    const sku = order["sku number"]
-    if (sku && DEFAULT_PRICES[sku]) {
-      return DEFAULT_PRICES[sku]
-    }
-
-    // Return a random price between 50 and 250 as fallback
-    return Math.floor(Math.random() * 200) + 50
+    // Return 0 if no price found
+    return 0
   }, [])
 
   // Calculate statistics for each product using the configurable status definitions
@@ -350,11 +320,11 @@ export default function ProductStatsPage() {
     const avgQuantityPerOrderTotal = productStats.length
       ? (productStats.reduce((sum, item) => sum + item.avgQuantityPerOrder, 0) / productStats.length).toFixed(2)
       : "0"
-    csvContent += `TOTAL,${totals.totalLeads},${totals.confirmation},${totals.confirmationPercent}%,${totals.delivery},${totals.deliveryPercent}%,${totals.returned},${totals.returnedPercent}%,${totals.inProcess},${totals.inProcessPercent}%,${avgQuantityPerOrderTotal},$${totals.aov.toFixed(2)}\n`
+    csvContent += `TOTAL,${totals.totalLeads},${totals.confirmation},${totals.confirmationPercent}%,${totals.delivery},${totals.deliveryPercent}%,${totals.returned},${totals.returnedPercent}%,${totals.inProcess},${totals.inProcessPercent}%,${avgQuantityPerOrderTotal},${totals.aov.toFixed(2)}\n`
 
     // Add product rows
     productStats.forEach((item) => {
-      csvContent += `"${item.product}",${item.totalLeads},${item.confirmation},${item.confirmationPercent}%,${item.delivery},${item.deliveryPercent}%,${item.returned},${item.returnedPercent}%,${item.inProcess},${item.inProcessPercent}%,${item.avgQuantityPerOrder},$${item.aov.toFixed(2)}\n`
+      csvContent += `"${item.product}",${item.totalLeads},${item.confirmation},${item.confirmationPercent}%,${item.delivery},${item.deliveryPercent}%,${item.returned},${item.returnedPercent}%,${item.inProcess},${item.inProcessPercent}%,${item.avgQuantityPerOrder},${item.aov.toFixed(2)}\n`
     })
 
     // Create download link
