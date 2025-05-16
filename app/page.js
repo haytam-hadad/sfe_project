@@ -32,21 +32,14 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {
-  CalendarIcon,
-  FilterIcon,
-  RefreshCwIcon,
-  XCircleIcon,
-  BarChart3Icon,
-  LineChartIcon,
-  MapPinIcon,
-  PackageIcon,
-  DownloadIcon,
-} from "lucide-react"
+import { CalendarIcon, FilterIcon, RefreshCwIcon, XCircleIcon, BarChart3Icon, LineChartIcon, MapPinIcon, PackageIcon, DownloadIcon, AlertCircle } from 'lucide-react'
 import { useMobile } from "@/hooks/use-mobile"
 import { useStatusConfig } from "@/contexts/app-context"
+import { useAuth } from "@/contexts/auth-context"
 import { matchesStatus } from "@/lib/status-config"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { fetchMySheetData } from "@/lib/api-client"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function Page() {
   const [orders, setOrders] = useState([])
@@ -56,6 +49,7 @@ export default function Page() {
   const [timeRange, setTimeRange] = useState("all")
   const [showFilters, setShowFilters] = useState(false)
   const isMobile = useMobile()
+  const { token, user } = useAuth()
 
   // Get status configuration from context
   const { statusConfig } = useStatusConfig()
@@ -73,12 +67,17 @@ export default function Page() {
     const fetchData = async (retryCount = 0) => {
       setLoading(true)
       try {
-        const response = await fetch("/api/sheet")
-        if (!response.ok) {
-          throw new Error(`Failed to fetch data: ${response.statusText}`)
+        if (!token) {
+          throw new Error("Authentication required")
         }
-        const result = await response.json()
-        setOrders(result)
+
+        const data = await fetchMySheetData(token)
+        if (data && Array.isArray(data)) {
+          setOrders(data)
+        } else {
+          console.error("Invalid data format received:", data)
+          setError("Invalid data format received from server")
+        }
         setLoading(false)
       } catch (err) {
         console.error("Error fetching data:", err)
@@ -93,8 +92,10 @@ export default function Page() {
       }
     }
 
-    fetchData()
-  }, [])
+    if (token) {
+      fetchData()
+    }
+  }, [token])
 
   // Effect for responsive design
   useEffect(() => {
@@ -493,6 +494,23 @@ export default function Page() {
     document.body.removeChild(link)
   }
 
+  // Refresh data
+  const refreshData = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await fetchMySheetData(token)
+      setOrders(data)
+    } catch (err) {
+      setError(err.message || "Failed to refresh data")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Check if sheet URL is configured
+  const isSheetConfigured = !!user?.sheetUrl
+
   // Render loading skeletons
   if (loading) {
     return (
@@ -532,9 +550,36 @@ export default function Page() {
             </p>
           </div>
           <div className="mb-4 text-sm text-muted-foreground">{error}</div>
-          <Button className="w-full" onClick={() => window.location.reload()}>
-            <RefreshCwIcon className="mr-1 h-4 w-4" /> Refresh Page
+          <Button className="w-full" onClick={refreshData}>
+            <RefreshCwIcon className="mr-1 h-4 w-4" /> Refresh Data
           </Button>
+        </Card>
+      </main>
+    )
+  }
+
+  // Render sheet configuration message if no sheet URL is configured
+  if (!isSheetConfigured) {
+    return (
+      <main className="p-4 flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md bg-white dark:bg-zinc-900 p-6">
+          <CardHeader>
+            <CardTitle>Sheet Configuration Required</CardTitle>
+            <CardDescription>
+              You need to configure your Google Sheet URL before you can view your dashboard.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Alert className="mb-4">
+              <AlertCircle className="h-4 w-4 mr-2" />
+              <AlertDescription>
+                Please go to the Sheet Settings page to configure your Google Sheet URL.
+              </AlertDescription>
+            </Alert>
+            <Button className="w-full" onClick={() => (window.location.href = "/settings-sheet")}>
+              Go to Sheet Settings
+            </Button>
+          </CardContent>
         </Card>
       </main>
     )
@@ -569,13 +614,15 @@ export default function Page() {
             {showFilters ? "Hide Filters" : "Show Filters"}
           </Button>
 
-          <Button variant="outline" size="sm" className="h-9" onClick={() => window.location.reload()}>
+          <Button variant="outline" size="sm" className="h-9" onClick={refreshData}>
             <RefreshCwIcon className="mr-1 h-4 w-4" />
             Refresh
           </Button>
         </div>
       </div>
 
+      {/* Rest of the component remains the same */}
+      {/* ... */}
       {/* Filters Section */}
       {showFilters && (
         <Card className="mb-6">

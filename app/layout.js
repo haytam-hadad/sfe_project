@@ -1,5 +1,5 @@
-import "./globals.css";
-import ClientLayout from "./clientLayout";
+import "./globals.css"
+import ClientLayout from "./clientLayout"
 
 export const metadata = {
   manifest: "/manifest.json",
@@ -13,10 +13,11 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  if (!children) {
-    console.error("RootLayout: No children provided.");
-    return null;
-  }
-
-  return <ClientLayout>{children}</ClientLayout>;
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        <ClientLayout>{children}</ClientLayout>
+      </body>
+    </html>
+  )
 }

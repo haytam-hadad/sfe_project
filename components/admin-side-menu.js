@@ -64,7 +64,7 @@ const settingsLinks = [
   },
 ]
 
-const AdminSideMenu = ({ isOpen, onClose }) => {
+const AdminSideMenu = ({ onClose }) => {
   const activePath = usePathname()
   const [statisticsOpen, setStatisticsOpen] = useState(true)
   const [settingsOpen, setSettingsOpen] = useState(true)

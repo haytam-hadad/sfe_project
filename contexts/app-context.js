@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect } from "react"
 import { defaultStatusConfig } from "@/lib/status-config"
 
 // Create Theme Context
-const ThemeContext = createContext({
+const AppContext = createContext({
   theme: false,
   setTheme: () => {},
 })
@@ -74,15 +74,15 @@ export function AppProvider({ children }) {
   }, [statusConfig])
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <AppContext.Provider value={{ theme, setTheme }}>
       <StatusConfigContext.Provider value={{ statusConfig, setStatusConfig }}>{children}</StatusConfigContext.Provider>
-    </ThemeContext.Provider>
+    </AppContext.Provider>
   )
 }
 
 // Custom hooks to use the contexts
 export const useTheme = () => {
-  const context = useContext(ThemeContext)
+  const context = useContext(AppContext)
   if (!context) {
     throw new Error("useTheme must be used within an AppProvider")
   }

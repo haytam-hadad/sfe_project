@@ -17,7 +17,9 @@ import {
 } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
 import { useStatusConfig } from "@/contexts/app-context"
+import { useAuth } from "@/contexts/auth-context"
 import { matchesStatus } from "@/lib/status-config"
+import { fetchMySheetData } from "@/lib/api-client"
 
 export default function CityStatsPage() {
   const [orders, setOrders] = useState([])
@@ -25,6 +27,7 @@ export default function CityStatsPage() {
   const [error, setError] = useState(null)
   const isMobile = useMobile()
   const [showFilters, setShowFilters] = useState(false)
+  const { token } = useAuth()
 
   // Get status configuration from context
   const { statusConfig } = useStatusConfig()
@@ -46,12 +49,17 @@ export default function CityStatsPage() {
     const fetchData = async (retryCount = 0) => {
       setLoading(true)
       try {
-        const response = await fetch("/api/sheet")
-        if (!response.ok) {
-          throw new Error(`Failed to fetch data: ${response.statusText}`)
+        if (!token) {
+          throw new Error("Authentication required")
         }
-        const result = await response.json()
-        setOrders(result)
+
+        const data = await fetchMySheetData(token)
+        if (data && Array.isArray(data)) {
+          setOrders(data)
+        } else {
+          console.error("Invalid data format received:", data)
+          setError("Invalid data format received from server")
+        }
         setLoading(false)
       } catch (err) {
         console.error("Error fetching data:", err)
@@ -66,8 +74,10 @@ export default function CityStatsPage() {
       }
     }
 
-    fetchData()
-  }, [])
+    if (token) {
+      fetchData()
+    }
+  }, [token])
 
   // Extract unique products (SKU numbers)
   const products = useMemo(() => {

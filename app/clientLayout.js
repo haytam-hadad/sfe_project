@@ -10,72 +10,49 @@ import { Toaster } from "@/components/ui/toaster"
 import { AnimatePresence } from "framer-motion"
 
 export default function ClientLayout({ children }) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isSideMenuOpen, setIsSideMenuOpen] = useState(false)
   const pathname = usePathname()
-
-  // Close menu when route changes
-  useEffect(() => {
-    setIsMenuOpen(false)
-  }, [pathname])
-
-  // Close menu when clicking outside on mobile
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (isMenuOpen && window.innerWidth < 768) {
-        setIsMenuOpen(false)
-      }
-    }
-
-    document.addEventListener("click", handleClickOutside)
-    return () => {
-      document.removeEventListener("click", handleClickOutside)
-    }
-  }, [isMenuOpen])
-
-  // Prevent scrolling when menu is open on mobile
-  useEffect(() => {
-    if (isMenuOpen && window.innerWidth < 768) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = "auto"
-    }
-
-    return () => {
-      document.body.style.overflow = "auto"
-    }
-  }, [isMenuOpen])
 
   // Don't render header and sidebar on login and signup pages
   const isAuthPage = pathname === "/login" || pathname === "/signup"
 
   return (
-    <html lang="en">
-      <body>
-        <AuthProvider>
-          <AppProvider>
-            {!isAuthPage && <AdminHeader onToggleMenu={() => setIsMenuOpen(!isMenuOpen)} />}
+    <AuthProvider>
+      <AppProvider>
+        <div className="flex flex-col w-full min-h-screen">
+          {!isAuthPage && <AdminHeader onToggleMenu={() => setIsSideMenuOpen((prev) => !prev)} />}
 
-            <div className="flex min-h-screen">
-              {!isAuthPage && (
-                <AnimatePresence>
-                  {(isMenuOpen || window.innerWidth >= 768) && (
-                    <AdminSideMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
-                  )}
-                </AnimatePresence>
-              )}
+          <div className="flex flex-1">
+            {/* Side Menu - Always visible on desktop */}
+            {!isAuthPage && (
+              <div className="hidden md:block md:w-[250px] md:min-w-[250px] md:shrink-0 md:h-[calc(100vh-64px)] z-40 md:top-16">
+                <AdminSideMenu isOpen={isSideMenuOpen} onClose={() => setIsSideMenuOpen(false)} />
+              </div>
+            )}
 
-              <main
-                className={`flex-1 ${!isAuthPage ? "pt-16 md:pl-[250px]" : ""} transition-all duration-300 ease-in-out`}
-              >
-                {children}
-              </main>
-            </div>
+            {/* Mobile Side Menu */}
+            {!isAuthPage && (
+              <AnimatePresence>
+                {isSideMenuOpen && (
+                  <div className="fixed inset-0 z-50">
+                    <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setIsSideMenuOpen(false)}></div>
+                    <div className="relative z-50 h-full w-[260px]">
+                      <AdminSideMenu isOpen={isSideMenuOpen} onClose={() => setIsSideMenuOpen(false)} />
+                    </div>
+                  </div>
+                )}
+              </AnimatePresence>
+            )}
 
-            <Toaster />
-          </AppProvider>
-        </AuthProvider>
-      </body>
-    </html>
+            {/* Main Content */}
+            <main className="flex-1">
+              <div className="w-full p-1 mt-16 max-w-[100vw] md:mt-14">{children}</div>
+              <Toaster />
+            </main>
+          </div>
+        </div>
+      </AppProvider>
+    </AuthProvider>
   )
 }
 

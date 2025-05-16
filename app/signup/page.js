@@ -5,139 +5,129 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2, ArrowLeft } from "lucide-react"
-import Link from "next/link"
+import { Loader2, AlertCircle, CheckCircle } from "lucide-react"
 
 export default function SignupPage() {
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    role: "sub-admin",
-    sheetUrl: "",
-  })
+  const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [role, setRole] = useState("sub-admin")
+  const [sheetUrl, setSheetUrl] = useState("")
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const { user, isAuthenticated, isLoading, adminSignup } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
+  const { adminSignup, user, isAuthenticated } = useAuth()
   const router = useRouter()
 
-  // Check if user is admin
+  // Check if user is admin, redirect if not
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      if (user?.role !== "admin") {
-        router.push("/")
-      }
-    } else if (!isLoading && !isAuthenticated) {
-      router.push("/login")
+    if (isAuthenticated && user && user.role !== "admin") {
+      router.push("/")
     }
-  }, [isLoading, isAuthenticated, user, router])
-
-  // Handle input changes
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  // Handle select changes
-  const handleSelectChange = (name, value) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  }, [isAuthenticated, user, router])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
     setSuccess("")
-    setIsSubmitting(true)
+    setIsLoading(true)
 
     try {
       // Validate form
-      if (formData.password !== formData.confirmPassword) {
+      if (!username || !email || !password) {
+        throw new Error("Username, email, and password are required")
+      }
+
+      if (password !== confirmPassword) {
         throw new Error("Passwords do not match")
       }
 
-      if (formData.password.length < 6) {
+      if (password.length < 6) {
         throw new Error("Password must be at least 6 characters long")
       }
 
-      // Prepare data for API
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(email)) {
+        throw new Error("Please enter a valid email address")
+      }
+
+      // Create user data object
       const userData = {
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-        role: formData.role,
+        username,
+        email,
+        password,
+        role,
       }
 
       // Add sheet URL if provided
-      if (formData.sheetUrl) {
-        userData.sheetUrl = formData.sheetUrl
+      if (sheetUrl) {
+        userData.sheetUrl = sheetUrl
       }
 
       // Attempt signup
       const result = await adminSignup(userData)
 
       if (result.success) {
-        setSuccess(`User ${formData.username} created successfully!`)
+        setSuccess(`User ${username} created successfully!`)
         // Reset form
-        setFormData({
-          username: "",
-          email: "",
-          password: "",
-          confirmPassword: "",
-          role: "sub-admin",
-          sheetUrl: "",
-        })
+        setUsername("")
+        setEmail("")
+        setPassword("")
+        setConfirmPassword("")
+        setRole("sub-admin")
+        setSheetUrl("")
       } else {
         setError(result.error || "Failed to create user")
       }
     } catch (err) {
       setError(err.message || "An unexpected error occurred")
     } finally {
-      setIsSubmitting(false)
+      setIsLoading(false)
     }
   }
 
-  // Show loading state while checking authentication
-  if (isLoading) {
+  // If not authenticated or not admin, show access denied
+  if (isAuthenticated && user && user.role !== "admin") {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-red-600">Access Denied</CardTitle>
+            <CardDescription>You do not have permission to access this page</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => router.push("/")} className="w-full">
+              Return to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
-  // Only render if user is admin
-  if (!isAuthenticated || user?.role !== "admin") {
-    return null
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <div className="flex items-center">
-            <Link href="/" className="mr-2">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-            <CardTitle className="text-2xl font-bold">Create New User</CardTitle>
-          </div>
+          <CardTitle className="text-2xl font-bold">Create New User</CardTitle>
           <CardDescription>Add a new user to the system</CardDescription>
         </CardHeader>
         <CardContent>
           {error && (
             <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4 mr-2" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
           {success && (
             <Alert className="mb-4 bg-green-50 text-green-800 border-green-300 dark:bg-green-950 dark:text-green-300 dark:border-green-800">
+              <CheckCircle className="h-4 w-4 mr-2" />
               <AlertDescription>{success}</AlertDescription>
             </Alert>
           )}
@@ -146,11 +136,10 @@ export default function SignupPage() {
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
-                name="username"
                 placeholder="johndoe"
-                value={formData.username}
-                onChange={handleChange}
-                disabled={isSubmitting}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                disabled={isLoading}
                 required
               />
             </div>
@@ -158,12 +147,11 @@ export default function SignupPage() {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
-                name="email"
                 type="email"
                 placeholder="john.doe@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                disabled={isSubmitting}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
                 required
               />
             </div>
@@ -171,59 +159,55 @@ export default function SignupPage() {
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
-                name="password"
                 type="password"
                 placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                disabled={isSubmitting}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
                 required
               />
+              <p className="text-xs text-muted-foreground">Password must be at least 6 characters long</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <Input
                 id="confirmPassword"
-                name="confirmPassword"
                 type="password"
                 placeholder="••••••••"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                disabled={isSubmitting}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={isLoading}
                 required
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Role</Label>
-              <Select
-                value={formData.role}
-                onValueChange={(value) => handleSelectChange("role", value)}
-                disabled={isSubmitting}
-              >
+              <Select value={role} onValueChange={setRole} disabled={isLoading}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="sub-admin">Sub Admin</SelectItem>
-                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="sub-admin">Sub-Admin</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                Admin: Full access | Sub-Admin: Limited management | User: View only
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="sheetUrl">Google Sheet URL (Optional)</Label>
               <Input
                 id="sheetUrl"
-                name="sheetUrl"
                 placeholder="https://docs.google.com/spreadsheets/d/..."
-                value={formData.sheetUrl}
-                onChange={handleChange}
-                disabled={isSubmitting}
+                value={sheetUrl}
+                onChange={(e) => setSheetUrl(e.target.value)}
+                disabled={isLoading}
               />
-              <p className="text-xs text-muted-foreground">The full URL to the Google Sheet containing your data</p>
+              <p className="text-xs text-muted-foreground">The user can update this later in their settings</p>
             </div>
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? (
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Creating User...
@@ -234,6 +218,11 @@ export default function SignupPage() {
             </Button>
           </form>
         </CardContent>
+        <CardFooter className="flex justify-center">
+          <Button variant="outline" onClick={() => router.push("/")} disabled={isLoading}>
+            Return to Dashboard
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   )

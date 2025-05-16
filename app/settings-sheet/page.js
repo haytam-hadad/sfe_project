@@ -1,112 +1,208 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "react-hot-toast"
 import { useAuth } from "@/contexts/auth-context"
+import { validateSheetUrl, updateSheetUrl } from "@/lib/api-client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, SaveIcon } from "lucide-react"
+import { Loader2, CheckCircle, AlertCircle } from "lucide-react"
 
-export default function SheetSettingsPage() {
-  const { user, updateSheetUrl } = useAuth()
+export default function SheetSettings() {
+  const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
   const [sheetUrl, setSheetUrl] = useState("")
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
+  const [isValidating, setIsValidating] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [validationResult, setValidationResult] = useState(null)
+  const [initialLoad, setInitialLoad] = useState(true)
 
-  // Initialize form with user's current sheet URL
   useEffect(() => {
-    if (user?.sheetUrl) {
-      setSheetUrl(user.sheetUrl)
+    if (!authLoading) {
+      if (!user) {
+        router.push("/login")
+      } else if (user.sheetUrl && initialLoad) {
+        setSheetUrl(user.sheetUrl)
+        setInitialLoad(false)
+      }
     }
-  }, [user])
+  }, [user, authLoading, router, initialLoad])
+
+  const handleValidate = async () => {
+    if (!sheetUrl.trim()) {
+      toast.error("Please enter a Google Sheet URL")
+      return
+    }
+
+    setIsValidating(true)
+    setValidationResult(null)
+
+    try {
+      const result = await validateSheetUrl(sheetUrl)
+
+      if (result.error) {
+        setValidationResult({ valid: false, message: result.error })
+        toast.error(result.error)
+      } else {
+        setValidationResult(result)
+        if (result.valid) {
+          toast.success("Sheet URL is valid!")
+        } else {
+          toast.error(result.message || "Invalid sheet URL")
+        }
+      }
+    } catch (error) {
+      console.error("Validation error:", error)
+      setValidationResult({ valid: false, message: error.message || "Error validating sheet URL" })
+      toast.error(error.message || "Error validating sheet URL")
+    } finally {
+      setIsValidating(false)
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError("")
-    setSuccess("")
+
+    if (!sheetUrl.trim()) {
+      toast.error("Please enter a Google Sheet URL")
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      // Validate form
-      if (!sheetUrl) {
-        throw new Error("Google Sheet URL is required")
+      // Validate first if not already validated
+      if (!validationResult || validationResult.sheetUrl !== sheetUrl) {
+        const validationResult = await validateSheetUrl(sheetUrl)
+        if (validationResult.error || !validationResult.valid) {
+          toast.error(validationResult.error || validationResult.message || "Invalid sheet URL")
+          setIsSubmitting(false)
+          return
+        }
       }
 
-      // Validate URL format
-      try {
-        new URL(sheetUrl)
-      } catch (e) {
-        throw new Error("Please enter a valid URL")
-      }
-
-      // Update sheet URL
+      // Update the sheet URL
       const result = await updateSheetUrl(sheetUrl)
 
-      if (result.success) {
-        setSuccess("Sheet URL updated successfully!")
+      if (result.error) {
+        toast.error(result.error)
       } else {
-        setError(result.error || "Failed to update sheet URL")
+        toast.success("Sheet URL updated successfully!")
+        // Force refresh user data
+        setTimeout(() => {
+          window.location.reload()
+        }, 1000)
       }
-    } catch (err) {
-      setError(err.message || "An unexpected error occurred")
+    } catch (error) {
+      console.error("Update error:", error)
+      toast.error(error.message || "Error updating sheet URL")
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
   return (
-    <div className="p-4 md:p-6">
-      <h1 className="text-3xl font-bold mb-6">Sheet Settings</h1>
+    <div className="container mx-auto py-8 px-4">
+      <h1 className="text-2xl font-bold mb-6">Sheet Settings</h1>
 
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>Google Sheet Configuration</CardTitle>
-          <CardDescription>Configure the Google Sheet that will be used to fetch your data</CardDescription>
+          <CardDescription>
+            Enter the URL of your Google Sheet. Make sure the sheet is publicly accessible or shared with the
+            appropriate permissions.
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          {success && (
-            <Alert className="mb-4 bg-green-50 text-green-800 border-green-300 dark:bg-green-950 dark:text-green-300 dark:border-green-800">
-              <AlertDescription>{success}</AlertDescription>
-            </Alert>
-          )}
-          <form onSubmit={handleSubmit} className="space-y-4">
+
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="sheetUrl">Google Sheet URL</Label>
-              <Input
-                id="sheetUrl"
-                placeholder="https://docs.google.com/spreadsheets/d/..."
-                value={sheetUrl}
-                onChange={(e) => setSheetUrl(e.target.value)}
-                disabled={isSubmitting}
-                required
-              />
-              <p className="text-sm text-muted-foreground">
-                The full URL to your Google Sheet that contains the data for your dashboard
-              </p>
+              <div className="flex gap-2">
+                <Input
+                  id="sheetUrl"
+                  type="url"
+                  placeholder="https://docs.google.com/spreadsheets/d/..."
+                  value={sheetUrl}
+                  onChange={(e) => setSheetUrl(e.target.value)}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleValidate}
+                  disabled={isValidating || !sheetUrl.trim()}
+                >
+                  {isValidating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Validating
+                    </>
+                  ) : (
+                    "Validate"
+                  )}
+                </Button>
+              </div>
+
+              {validationResult && (
+                <div
+                  className={`flex items-center mt-2 text-sm ${validationResult.valid ? "text-green-600" : "text-red-600"}`}
+                >
+                  {validationResult.valid ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      <span>Valid sheet URL</span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="h-4 w-4 mr-2" />
+                      <span>{validationResult.message || "Invalid sheet URL"}</span>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
+
+            <div className="bg-muted/50 p-4 rounded-md">
+              <h3 className="font-medium mb-2">Instructions:</h3>
+              <ol className="list-decimal list-inside space-y-1 text-sm">
+                <li>Create or open a Google Sheet</li>
+                <li>Make sure the sheet is publicly accessible (File &gt; Share &gt; Anyone with the link)</li>
+                <li>Copy the URL from your browser&apos;s address bar</li>
+                <li>Paste the URL in the field above</li>
+                <li>Click Validate to check if the sheet is accessible</li>
+                <li>Click Save to update your sheet configuration</li>
+              </ol>
+            </div>
+          </CardContent>
+
+          <CardFooter className="flex justify-between">
+            <Button type="button" variant="outline" onClick={() => router.back()}>
+              Cancel
+            </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  Saving
                 </>
               ) : (
-                <>
-                  <SaveIcon className="mr-2 h-4 w-4" />
-                  Save Changes
-                </>
+                "Save Changes"
               )}
             </Button>
-          </form>
-        </CardContent>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   )

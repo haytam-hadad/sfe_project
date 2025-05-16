@@ -20,12 +20,10 @@ export default function AdminHeader({ onToggleMenu }) {
   const { theme, setTheme } = useTheme()
   const { user, logout } = useAuth()
 
-  // Handle theme toggle
   const toggleTheme = () => {
     setTheme(!theme)
   }
 
-  // Get user initials for avatar
   const getUserInitials = () => {
     if (!user || !user.username) return "U"
     return user.username.charAt(0).toUpperCase()
@@ -35,20 +33,18 @@ export default function AdminHeader({ onToggleMenu }) {
     <header className="fixed left-0 right-0 top-0 z-50 bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
       <div className="max-w-full mx-auto px-3 sm:px-5">
         <div className="flex items-center justify-between py-3">
-          {/* Logo */}
           <Link href="/" className="flex items-center gap-1">
             <Image src="/images/logo.svg" alt="Logo" className="w-8 h-8 sm:w-9 sm:h-9" width={40} height={40} />
             <span className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100">Ecomark</span>
           </Link>
 
-          {/* Welcome Message */}
-          <p className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Welcome, {user?.username || "User"}!
+          <p className="hidden md:flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+            <span className="mr-1">Welcome,</span> 
+            <span className="font-bold">{user?.username || "User"}</span>
+            <span className="ml-1">!</span>
           </p>
 
-          {/* Control Group */}
           <div className="flex items-center gap-2">
-            {/* Dark Mode Toggle */}
             <div title="Toggle Dark Mode" className="flex items-center max-md:scale-90 sm:gap-1">
               <Switch
                 id="dark-mode"
@@ -65,7 +61,6 @@ export default function AdminHeader({ onToggleMenu }) {
               </span>
             </div>
 
-            {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -77,8 +72,8 @@ export default function AdminHeader({ onToggleMenu }) {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user?.username}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                    <p className="text-sm font-medium leading-none">{user?.username || "User"}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{user?.email || "No email provided"}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -93,7 +88,6 @@ export default function AdminHeader({ onToggleMenu }) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Sidebar Toggle Button (Mobile) */}
             <button
               onClick={onToggleMenu}
               className="md:hidden flex items-center justify-center rounded-full border border-gray-300 dark:border-gray-600 p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -107,3 +101,4 @@ export default function AdminHeader({ onToggleMenu }) {
     </header>
   )
 }
+

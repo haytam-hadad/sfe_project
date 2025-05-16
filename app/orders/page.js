@@ -38,6 +38,8 @@ import {
 } from "@/components/ui/dialog"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useMobile } from "@/hooks/use-mobile"
+import { useAuth } from "@/contexts/auth-context"
+import { fetchMySheetData } from "@/lib/api-client"
 
 export default function OrdersDashboard() {
   // State management
@@ -48,6 +50,7 @@ export default function OrdersDashboard() {
   const [showOrderDetails, setShowOrderDetails] = useState(false)
   const [showFilters, setShowFilters] = useState(true)
   const isMobile = useMobile()
+  const { token } = useAuth()
   const [visibleColumns, setVisibleColumns] = useState({
     "Order date": true,
     "Order ID": true,
@@ -87,12 +90,17 @@ export default function OrdersDashboard() {
     const fetchData = async (retryCount = 0) => {
       setLoading(true)
       try {
-        const response = await fetch("/api/sheet")
-        if (!response.ok) {
-          throw new Error(`Failed to fetch data: ${response.statusText}`)
+        if (!token) {
+          throw new Error("Authentication required")
         }
-        const data = await response.json()
-        setOrders(data)
+
+        const data = await fetchMySheetData(token)
+        if (data && Array.isArray(data)) {
+          setOrders(data)
+        } else {
+          console.error("Invalid data format received:", data)
+          setError("Invalid data format received from server")
+        }
         setLoading(false)
       } catch (err) {
         console.error("Error fetching data:", err)
@@ -107,8 +115,10 @@ export default function OrdersDashboard() {
       }
     }
 
-    fetchData()
-  }, [])
+    if (token) {
+      fetchData()
+    }
+  }, [token])
 
   // Memoized derivations
   const countries = useMemo(() => {
@@ -277,24 +287,22 @@ export default function OrdersDashboard() {
     }
   }, [currentPage, totalPages, goToPage])
 
-  const refreshData = useCallback(() => {
+  const refreshData = useCallback(async () => {
     setLoading(true)
-    fetch("/api/sheet")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to refresh data")
-        }
-        return response.json()
-      })
-      .then((data) => {
+    setError(null)
+    try {
+      const data = await fetchMySheetData(token)
+      if (data && Array.isArray(data)) {
         setOrders(data)
-        setLoading(false)
-      })
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : "Unknown error occurred")
-        setLoading(false)
-      })
-  }, [])
+      } else {
+        throw new Error("Invalid data format received from server")
+      }
+      setLoading(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error occurred")
+      setLoading(false)
+    }
+  }, [token])
 
   const viewOrderDetails = useCallback((order) => {
     setSelectedOrder(order)
@@ -495,7 +503,13 @@ export default function OrdersDashboard() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={refreshData} disabled={loading} className="hidden md:flex h-9">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={refreshData}
+                    disabled={loading}
+                    className="hidden md:flex h-9"
+                  >
                     <RefreshCwIcon className={`mr-1 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
                     Refresh
                   </Button>
@@ -623,8 +637,9 @@ export default function OrdersDashboard() {
           </div>
         </div>
         <div
-          className={`mb-3 md:mb-4 w-full transition-all duration-300 ${showFilters ? "opacity-100 max-h-[500px]" : "opacity-0 max-h-0 overflow-hidden"
-            }`}
+          className={`mb-3 md:mb-4 w-full transition-all duration-300 ${
+            showFilters ? "opacity-100 max-h-[500px]" : "opacity-0 max-h-0 overflow-hidden"
+          }`}
         >
           {showFilters && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 max-w-[100vw] lg:grid-cols-4 p-1 gap-3">
