@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
-import { useStatusConfig } from "@/contexts/status-config-context"
+import { useStatusConfig } from "@/contexts/app-context"
 import { defaultStatusConfig } from "@/lib/status-config"
 import { SaveIcon, RefreshCwIcon, AlertTriangleIcon } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -188,20 +188,11 @@ export default function SettingsPage() {
           <p className="text-muted-foreground">Configure how order statuses are categorized and calculated</p>
         </div>
         <div className="flex gap-2 md:gap-4">
-          <Button
-            className="flex-1 md:flex-none"
-            variant="outline"
-            onClick={resetToDefaults}
-            disabled={loading}
-          >
+          <Button className="flex-1 md:flex-none" variant="outline" onClick={resetToDefaults} disabled={loading}>
             <RefreshCwIcon className="mr-1 h-4 w-4" />
             Reset to Defaults
           </Button>
-          <Button
-            className="flex-1 md:flex-none"
-            onClick={saveConfig}
-            disabled={saveStatus === "saved" || loading}
-          >
+          <Button className="flex-1 md:flex-none" onClick={saveConfig} disabled={saveStatus === "saved" || loading}>
             <SaveIcon className="mr-1 h-4 w-4" />
             Save Changes
           </Button>

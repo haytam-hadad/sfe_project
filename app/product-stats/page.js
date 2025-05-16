@@ -16,7 +16,7 @@ import {
   ChevronRightIcon,
 } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
-import { useStatusConfig } from "@/contexts/status-config-context"
+import { useStatusConfig } from "@/contexts/app-context"
 import { matchesStatus } from "@/lib/status-config"
 
 export default function ProductStatsPage() {

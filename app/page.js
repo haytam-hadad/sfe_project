@@ -44,7 +44,7 @@ import {
   DownloadIcon,
 } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
-import { useStatusConfig } from "@/contexts/status-config-context"
+import { useStatusConfig } from "@/contexts/app-context"
 import { matchesStatus } from "@/lib/status-config"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -784,7 +784,7 @@ export default function Page() {
               { value: "trends", icon: LineChartIcon, label: "Trends" },
               { value: "products", icon: PackageIcon, label: "Products" },
               { value: "geography", icon: MapPinIcon, label: "Geography" },
-            ].map(tab => (
+            ].map((tab) => (
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
@@ -948,39 +948,39 @@ export default function Page() {
                     >
                       <DownloadIcon className="h-4 w-4" />
                     </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Export as CSV</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </CardHeader>
-              <CardContent>
-                {chartData.statusData && chartData.statusData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={500}>
-                    <BarChart data={chartData.statusData} margin={{ top: 10, right: 30, left: 20, bottom: 70 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} interval={0} />
-                      <YAxis label={{ value: "Number of Orders", angle: -90, position: "insideLeft" }} />
-                      <RechartsTooltip
-                        formatter={(value, name, props) => [
-                          `${value} orders (${props.payload.percentage.toFixed(1)}%)`,
-                          "Count",
-                        ]}
-                      />
-                      <Legend />
-                      <Bar dataKey="value" name="Order Count" fill="#8884d8">
-                        {chartData.statusData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex items-center justify-center h-[400px]">
-                    <p className="text-muted-foreground">No data available</p>
-                  </div>
-                )}
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Export as CSV</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </CardHeader>
+            <CardContent>
+              {chartData.statusData && chartData.statusData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={500}>
+                  <BarChart data={chartData.statusData} margin={{ top: 10, right: 30, left: 20, bottom: 70 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} interval={0} />
+                    <YAxis label={{ value: "Number of Orders", angle: -90, position: "insideLeft" }} />
+                    <RechartsTooltip
+                      formatter={(value, name, props) => [
+                        `${value} orders (${props.payload.percentage.toFixed(1)}%)`,
+                        "Count",
+                      ]}
+                    />
+                    <Legend />
+                    <Bar dataKey="value" name="Order Count" fill="#8884d8">
+                      {chartData.statusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[400px]">
+                  <p className="text-muted-foreground">No data available</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

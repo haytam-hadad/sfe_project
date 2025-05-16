@@ -1,10 +1,24 @@
-"use client";
+"use client"
 
-import { Home, Database, ChartBar, ChevronDown, Calculator ,ChevronUp, MapPin, Package, Settings, FileSpreadsheet  } from "lucide-react";
-import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import {
+  Home,
+  Database,
+  BarChartIcon as ChartBar,
+  ChevronDown,
+  Calculator,
+  ChevronUp,
+  MapPin,
+  Package,
+  Settings,
+  FileSpreadsheet,
+  UserPlus,
+  Key,
+} from "lucide-react"
+import Link from "next/link"
+import { motion, AnimatePresence } from "framer-motion"
+import { usePathname } from "next/navigation"
+import { useState } from "react"
+import { useAuth } from "@/contexts/auth-context"
 
 const links = [
   {
@@ -17,7 +31,7 @@ const links = [
     href: "/orders",
     icon: Database,
   },
-];
+]
 
 const statisticsLinks = [
   {
@@ -30,29 +44,37 @@ const statisticsLinks = [
     href: "/product-stats",
     icon: Package,
   },
-];
+]
 
 const settingsLinks = [
   {
-    text: "Parameters",
-    href: "/settings-params",
-    icon: Calculator ,
+    text: "Sheet Configuration",
+    href: "/settings-sheet",
+    icon: FileSpreadsheet,
   },
   {
-    text: "Change Sheet",
-    href: "/settings-change-sheet",
-    icon: FileSpreadsheet ,
+    text: "Change Password",
+    href: "/settings-password",
+    icon: Key,
   },
-];
+  {
+    text: "Parameters",
+    href: "/settings-params",
+    icon: Calculator,
+  },
+]
 
 const AdminSideMenu = ({ isOpen, onClose }) => {
-  const activePath = usePathname();
-  const [statisticsOpen, setStatisticsOpen] = useState(true);
-  const [settingsOpen, setSettingsOpen] = useState(true);
+  const activePath = usePathname()
+  const [statisticsOpen, setStatisticsOpen] = useState(true)
+  const [settingsOpen, setSettingsOpen] = useState(true)
+  const { user } = useAuth()
+
+  const isAdmin = user?.role === "admin"
 
   const handleLinkClick = () => {
-    onClose();
-  };
+    onClose()
+  }
 
   return (
     <motion.div
@@ -78,6 +100,23 @@ const AdminSideMenu = ({ isOpen, onClose }) => {
             </button>
           </Link>
         ))}
+
+        {/* Admin-only: Create User Link */}
+        {isAdmin && (
+          <Link href="/signup" onClick={handleLinkClick}>
+            <button
+              className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${
+                activePath === "/signup"
+                  ? "bg-mainColor text-white font-medium dark:bg-mainColor dark:text-white"
+                  : "hover:bg-gray-100 hover:text-gray-900 text-white dark:hover:bg-gray-900 dark:hover:text-white dark:text-black"
+              }`}
+            >
+              <UserPlus size={20} className={`mr-3 ${activePath === "/signup" ? "text-white" : ""}`} />
+              <span className="text-base font-medium">Create User</span>
+            </button>
+          </Link>
+        )}
+
         <div className="border-t border-gray-700 mx-3 dark:border-gray-600" />
 
         <div>
@@ -137,11 +176,7 @@ const AdminSideMenu = ({ isOpen, onClose }) => {
           >
             <Settings size={20} className="mr-3" />
             <span className="text-base font-medium">Settings</span>
-            {settingsOpen ? (
-              <ChevronUp size={20} className="ml-auto" />
-            ) : (
-              <ChevronDown size={20} className="ml-auto" />
-            )}
+            {settingsOpen ? <ChevronUp size={20} className="ml-auto" /> : <ChevronDown size={20} className="ml-auto" />}
           </button>
           <AnimatePresence>
             {settingsOpen && (
@@ -172,8 +207,7 @@ const AdminSideMenu = ({ isOpen, onClose }) => {
         </div>
       </div>
     </motion.div>
-  );
-};
+  )
+}
 
-export default AdminSideMenu;
-
+export default AdminSideMenu
