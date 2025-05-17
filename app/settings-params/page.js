@@ -10,7 +10,7 @@ import { SaveIcon, RefreshCwIcon, AlertTriangleIcon } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-
+import { fetchMySheetData } from "@/lib/api-client"
 export default function SettingsPage() {
   const { toast } = useToast()
   const { statusConfig, setStatusConfig } = useStatusConfig()
@@ -24,12 +24,8 @@ export default function SettingsPage() {
     const fetchData = async () => {
       setLoading(true)
       try {
-        const response = await fetch("/api/sheet")
-        if (!response.ok) {
-          throw new Error(`Failed to fetch data: ${response.statusText}`)
-        }
-        const result = await response.json()
-
+        const result = await fetchMySheetData()
+        
         // Process the data to ensure we capture all statuses
         const processedOrders = result.map((order) => {
           // Ensure STATUS is a string and properly formatted
@@ -40,16 +36,15 @@ export default function SettingsPage() {
         })
 
         setOrders(processedOrders)
-        setLoading(false)
       } catch (err) {
         console.error("Error fetching data:", err)
+      } finally {
         setLoading(false)
       }
     }
 
     fetchData()
   }, [])
-
   // Get all unique statuses from orders
   const allStatuses = useMemo(() => {
     if (!orders.length) return []
@@ -366,3 +361,4 @@ export default function SettingsPage() {
     </main>
   )
 }
+
