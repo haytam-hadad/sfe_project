@@ -18,18 +18,6 @@ export default function SheetSettings() {
   const [isValidating, setIsValidating] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [validationResult, setValidationResult] = useState(null)
-  const [initialLoad, setInitialLoad] = useState(true)
-
-  useEffect(() => {
-    if (!authLoading) {
-      if (!user) {
-        router.push("/login")
-      } else if (user.sheetUrl && initialLoad) {
-        setSheetUrl(user.sheetUrl)
-        setInitialLoad(false)
-      }
-    }
-  }, [user, authLoading, router, initialLoad])
 
   const handleValidate = async () => {
     if (!sheetUrl.trim()) {
@@ -113,15 +101,14 @@ export default function SheetSettings() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="containe w-full mx-auto py-8 px-4">
       <h1 className="text-2xl font-bold mb-6">Sheet Settings</h1>
 
-      <Card className="max-w-2xl mx-auto">
+      <Card className="max-w-3xl mx-auto">
         <CardHeader>
           <CardTitle>Google Sheet Configuration</CardTitle>
           <CardDescription>
-            Enter the URL of your Google Sheet. Make sure the sheet is publicly accessible or shared with the
-            appropriate permissions.
+            Enter the URL of your Google Sheet. Ensure the sheet is a table with these columns: Order date, Order ID, Cod Amount, Quantity, sku number, City, Phone, STATUS, Receiver Country*. Make sure the sheet is publicly accessible or shared with the appropriate permissions.
           </CardDescription>
         </CardHeader>
 
@@ -179,6 +166,7 @@ export default function SheetSettings() {
               <ol className="list-decimal list-inside space-y-1 text-sm">
                 <li>Create or open a Google Sheet</li>
                 <li>Make sure the sheet is publicly accessible (File &gt; Share &gt; Anyone with the link)</li>
+                <li>Ensure the sheet is a table with these columns: Order date, Order ID, Cod Amount, Quantity, sku number, City, Phone, STATUS, Receiver Country*</li>
                 <li>Copy the URL from your browser&apos;s address bar</li>
                 <li>Paste the URL in the field above</li>
                 <li>Click Validate to check if the sheet is accessible</li>
@@ -207,3 +195,4 @@ export default function SheetSettings() {
     </div>
   )
 }
+

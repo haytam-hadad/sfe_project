@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+import Image from "next/image"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
@@ -8,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, AlertCircle } from "lucide-react"
+import { Loader2, AlertCircle, Logo } from "lucide-react"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -46,16 +48,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Login</CardTitle>
-          <CardDescription>Enter your credentials to access your dashboard</CardDescription>
+    <div className="flex items-center justify-center min-h-full">
+      <Card className="w-full max-w-md p-5">
+        <CardHeader className="flex flex-col items-center space-y-2">
+          <Link href="/">
+            <Image src="/images/logo.svg" alt="Logo" width={40} height={40} />
+          </Link>
+          <CardTitle className="text-xl font-bold text-center">Welcome to Ecomark Dashboard</CardTitle>
+          <CardDescription className="text-center">Please login to access your account</CardDescription>
         </CardHeader>
         <CardContent>
           {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4 mr-2" />
+            <Alert variant="destructive" className="mb-3">
+              <AlertCircle className="h-4 w-4 mr-2"/>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
@@ -70,6 +75,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
                 required
+                className="bg-white border text-primary border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none"
               />
             </div>
             <div className="space-y-2">
@@ -84,6 +90,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
                 required
+                className="bg-white border text-primary border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none"
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
@@ -98,10 +105,8 @@ export default function LoginPage() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-muted-foreground">Contact your administrator if you need access</p>
-        </CardFooter>
       </Card>
     </div>
   )
 }
+

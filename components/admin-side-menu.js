@@ -85,7 +85,7 @@ const AdminSideMenu = ({ onClose }) => {
       transition={{ duration: 0.2, ease: "easeInOut" }}
       style={{ bottom: 0 }}
     >
-      <div className="flex flex-col p-3 space-y-3">
+      <div className="flex flex-col p-3 space-y-2">
         {links.map((link) => (
           <Link key={link.href} href={link.href} onClick={handleLinkClick}>
             <button
