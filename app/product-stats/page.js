@@ -223,8 +223,8 @@ export default function ProductStatsPage() {
         const inProcessPercent = totalLeads > 0 ? (inProcess / totalLeads) * 100 : 0
 
         // Calculate AOV
-        const totalRevenue = deliveredOrders.reduce((sum, order) => sum + order.extractedPrice, 0)
-        const aov = delivery > 0 ? totalRevenue / delivery : 0
+      const totalRevenue = deliveredOrders.reduce((sum, order) => sum + (order.extractedPrice || 0), 0);
+      const aov = delivery > 0 ? totalRevenue / delivery : 0;
 
         // Calculate average quantity per order
         const totalQuantity = allOrders.reduce((sum, order) => sum + Number(order["Quantity"] || 1), 0)

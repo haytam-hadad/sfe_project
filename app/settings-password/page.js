@@ -61,7 +61,7 @@ export default function PasswordSettingsPage() {
     <div className="p-4 md:p-6">
       <h1 className="text-3xl font-bold mb-6">Change Password</h1>
 
-      <Card className="max-w-2xl mx-auto">
+      <Card className="max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle>Update Your Password</CardTitle>
           <CardDescription>Change your account password</CardDescription>
