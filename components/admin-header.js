@@ -7,7 +7,7 @@ import {
   LogOut,
 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
-import { useTheme } from "@/contexts/app-context"
+import { useApp } from "@/contexts/app-context"
 import { useAuth } from "@/contexts/auth-context"
 import Image from "next/image"
 import {
@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 export default function AdminHeader({ onToggleMenu }) {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme } = useApp()
   const { user, logout } = useAuth()
 
   const toggleTheme = () => {

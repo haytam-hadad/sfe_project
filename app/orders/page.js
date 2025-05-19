@@ -39,6 +39,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useMobile } from "@/hooks/use-mobile"
 import { useAuth } from "@/contexts/auth-context"
+import { useFilters } from "@/contexts/app-context"
 import { fetchMySheetData } from "@/lib/api-client"
 
 export default function OrdersDashboard() {
@@ -48,9 +49,10 @@ export default function OrdersDashboard() {
   const [error, setError] = useState(null)
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [showOrderDetails, setShowOrderDetails] = useState(false)
-  const [showFilters, setShowFilters] = useState(true)
+  const [showFilters, setShowFilters] = useState(false)
   const isMobile = useMobile()
   const { token } = useAuth()
+  const { filters, updateFilter, resetFilters } = useFilters()
   const [visibleColumns, setVisibleColumns] = useState({
     "Order date": true,
     "Order ID": true,
@@ -246,7 +248,7 @@ export default function OrdersDashboard() {
   }, [filteredOrders])
 
   // Callbacks
-  const resetFilters = useCallback(() => {
+  const resetLocalFilters = useCallback(() => {
     setSearchQuery("")
     setStatusFilter("")
     setCountryFilter("")
@@ -767,7 +769,7 @@ export default function OrdersDashboard() {
               </div>
               {/* Reset filters button */}
               <div className="col-span-full">
-                <Button variant="outline" size="sm" onClick={resetFilters} className="w-full sm:w-auto">
+                <Button variant="outline" size="sm" onClick={resetLocalFilters} className="w-full sm:w-auto">
                   <XCircleIcon className="mr-1 text-mainColor h-4 w-4" />
                   Reset Filters
                 </Button>
@@ -955,7 +957,7 @@ export default function OrdersDashboard() {
                         : "There are no orders to display. Try refreshing or check back later."}
                     </p>
                     {(searchQuery || statusFilter || countryFilter || startDate || endDate) && (
-                      <Button variant="outline" className="mt-3" onClick={resetFilters}>
+                      <Button variant="outline" className="mt-3" onClick={resetLocalFilters}>
                         <XCircleIcon className="mr-1 h-4 w-4" />
                         Clear filters
                       </Button>

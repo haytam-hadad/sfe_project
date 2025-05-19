@@ -36,6 +36,7 @@ import { CalendarIcon, FilterIcon, RefreshCwIcon, XCircleIcon, BarChart3Icon, Li
 import { useMobile } from "@/hooks/use-mobile"
 import { useStatusConfig } from "@/contexts/app-context"
 import { useAuth } from "@/contexts/auth-context"
+import { useFilters } from "@/contexts/app-context"
 import { matchesStatus } from "@/lib/status-config"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { fetchMySheetData } from "@/lib/api-client"
@@ -46,21 +47,11 @@ export default function Page() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState("overview")
-  const [timeRange, setTimeRange] = useState("all")
   const [showFilters, setShowFilters] = useState(false)
   const isMobile = useMobile()
   const { token, user } = useAuth()
-
-  // Get status configuration from context
   const { statusConfig } = useStatusConfig()
-
-  // Filter states
-  const [statusFilter, setStatusFilter] = useState("")
-  const [countryFilter, setCountryFilter] = useState("")
-  const [productFilter, setProductFilter] = useState("")
-  const [cityFilter, setCityFilter] = useState("")
-  const [startDate, setStartDate] = useState(null)
-  const [endDate, setEndDate] = useState(null)
+  const { filters, updateFilter, resetFilters } = useFilters()
 
   // Fetch data from the API with retry logic
   useEffect(() => {
@@ -70,20 +61,16 @@ export default function Page() {
         if (!token) {
           throw new Error("Authentication required")
         }
-
         const data = await fetchMySheetData(token)
         if (data && Array.isArray(data)) {
           setOrders(data)
         } else {
-          console.error("Invalid data format received:", data)
           setError("Invalid data format received from server")
         }
         setLoading(false)
       } catch (err) {
-        console.error("Error fetching data:", err)
         if (retryCount < 3) {
           const delay = Math.pow(2, retryCount) * 1000
-          console.log(`Retrying in ${delay}ms...`)
           setTimeout(() => fetchData(retryCount + 1), delay)
         } else {
           setError(err instanceof Error ? err.message : "Unknown error occurred")
@@ -91,13 +78,11 @@ export default function Page() {
         }
       }
     }
-
     if (token) {
       fetchData()
     }
   }, [token])
 
-  // Effect for responsive design
   useEffect(() => {
     if (isMobile) {
       setShowFilters(false)
@@ -107,140 +92,110 @@ export default function Page() {
   // Extract unique values for filters
   const uniqueValues = useMemo(() => {
     if (!orders.length) return { statuses: [], products: [], cities: [], countries: [] }
-
     const statuses = [...new Set(orders.map((order) => order["STATUS"]).filter(Boolean))].sort()
     const products = [...new Set(orders.map((order) => order["sku number"]).filter(Boolean))].sort()
     const cities = [...new Set(orders.map((order) => order["City"]).filter(Boolean))].sort()
     const countries = [...new Set(orders.map((order) => order["Receier Country*"]).filter(Boolean))].sort()
-
     return { statuses, products, cities, countries }
   }, [orders])
 
   // Apply time range filter
   const applyTimeRangeFilter = useCallback(
     (range) => {
-      setTimeRange(range)
       const today = new Date()
-
+      let startDate = null
+      let endDate = null
       switch (range) {
         case "7days":
-          setStartDate(subDays(today, 7))
-          setEndDate(today)
+          startDate = subDays(today, 7)
+          endDate = today
           break
         case "30days":
-          setStartDate(subDays(today, 30))
-          setEndDate(today)
+          startDate = subDays(today, 30)
+          endDate = today
           break
         case "90days":
-          setStartDate(subDays(today, 90))
-          setEndDate(today)
+          startDate = subDays(today, 90)
+          endDate = today
           break
         case "custom":
           // Keep current custom dates
+          startDate = filters.startDate
+          endDate = filters.endDate
           break
         default:
-          // "all"
-          setStartDate(null)
-          setEndDate(null)
+          startDate = null
+          endDate = null
           break
       }
+      updateFilter("timeRange", range)
+      updateFilter("startDate", startDate)
+      updateFilter("endDate", endDate)
     },
-    [setTimeRange, setStartDate, setEndDate],
+    [filters.startDate, filters.endDate, updateFilter]
   )
-
-  // Reset all filters
-  const resetFilters = useCallback(() => {
-    setTimeRange("all")
-    setStartDate(null)
-    setEndDate(null)
-    setStatusFilter("")
-    setProductFilter("")
-    setCityFilter("")
-    setCountryFilter("")
-  }, [])
 
   // Apply filters to orders
   const filteredOrders = useMemo(() => {
     if (!orders.length) return []
-
     return orders.filter((order) => {
       // Date filter
-      if (startDate || endDate) {
+      if (filters.startDate || filters.endDate) {
         const orderDate = new Date(order["Order date"])
-        if (startDate && orderDate < startDate) return false
-        if (endDate) {
-          const endDatePlusOne = new Date(endDate)
+        if (filters.startDate && orderDate < filters.startDate) return false
+        if (filters.endDate) {
+          const endDatePlusOne = new Date(filters.endDate)
           endDatePlusOne.setDate(endDatePlusOne.getDate() + 1)
           if (orderDate >= endDatePlusOne) return false
         }
       }
-
       // Status filter
-      if (statusFilter && order["STATUS"] !== statusFilter) return false
-
+      if (filters.status && order["STATUS"] !== filters.status) return false
       // Product filter
-      if (productFilter && order["sku number"] !== productFilter) return false
-
+      if (filters.product && order["sku number"] !== filters.product) return false
       // City filter
-      if (cityFilter && order["City"] !== cityFilter) return false
-
+      if (filters.city && order["City"] !== filters.city) return false
       // Country filter
-      if (countryFilter && order["Receier Country*"] !== countryFilter) return false
-
+      if (filters.country && order["Receier Country*"] !== filters.country) return false
       return true
     })
-  }, [orders, startDate, endDate, statusFilter, productFilter, cityFilter, countryFilter])
+  }, [orders, filters])
 
   // Calculate key metrics based on the configurable status definitions
   const metrics = useMemo(() => {
     if (!filteredOrders.length)
       return {
-        totalLeads: 0,
-        confirmation: 0,
-        confirmationRate: 0,
-        delivery: 0,
-        deliveryRate: 0,
-        returned: 0,
-        returnRate: 0,
-        inProcess: 0,
-        inProcessRate: 0,
-        totalRevenue: 0,
-        avgOrderValue: 0,
-        totalQuantity: 0,
+      totalLeads: 0,
+      confirmation: 0,
+      confirmationRate: 0,
+      delivery: 0,
+      deliveryRate: 0,
+      returned: 0,
+      returnRate: 0,
+      inProcess: 0,
+      inProcessRate: 0,
+      totalRevenue: 0,
+      avgOrderValue: 0,
+      totalQuantity: 0,
       }
-
     const totalLeads = filteredOrders.length
-
-    // Use the status configuration to determine counts
-    const confirmation = filteredOrders.filter((order) =>
-      matchesStatus(order["STATUS"], statusConfig.confirmation),
-    ).length
-
+    const confirmation = filteredOrders.filter((order) => matchesStatus(order["STATUS"], statusConfig.confirmation)).length
     const delivery = filteredOrders.filter((order) => matchesStatus(order["STATUS"], statusConfig.delivery)).length
-
     const returned = filteredOrders.filter((order) => matchesStatus(order["STATUS"], statusConfig.returned)).length
-
     const inProcess = filteredOrders.filter((order) => matchesStatus(order["STATUS"], statusConfig.inProcess)).length
-
-    // Calculate rates
     const confirmationRate = totalLeads > 0 ? (confirmation / totalLeads) * 100 : 0
     const deliveryRate = confirmation > 0 ? (delivery / confirmation) * 100 : 0
     const returnRate = confirmation > 0 ? (returned / confirmation) * 100 : 0
     const inProcessRate = totalLeads > 0 ? (inProcess / totalLeads) * 100 : 0
-
-    // Calculate revenue metrics
     const totalRevenue = filteredOrders.reduce((sum, order) => {
       const amount = Number.parseFloat(order["Cod Amount"]) || 0
       return sum + amount
     }, 0)
-
     const totalQuantity = filteredOrders.reduce((sum, order) => {
       const qty = Number.parseFloat(order["Quantity"]) || 0
       return sum + qty
     }, 0)
-
     const avgOrderValue = totalLeads > 0 ? totalRevenue / totalLeads : 0
-
     return {
       totalLeads,
       confirmation,
@@ -591,12 +546,12 @@ export default function Page() {
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">
-            Analyzing {filteredOrders.length} orders from {startDate ? format(startDate, "MMM d, yyyy") : "all time"} to{" "}
-            {endDate ? format(endDate, "MMM d, yyyy") : "present"}
+            Analyzing {filteredOrders.length} orders from {filters.startDate ? format(filters.startDate, "MMM d, yyyy") : "all time"} to{" "}
+            {filters.endDate ? format(filters.endDate, "MMM d, yyyy") : "present"}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1">
-          <Select value={timeRange} onValueChange={applyTimeRangeFilter}>
+          <Select value={filters.timeRange} onValueChange={applyTimeRangeFilter}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select time range" />
             </SelectTrigger>
@@ -621,9 +576,6 @@ export default function Page() {
         </div>
       </div>
 
-      {/* Rest of the component remains the same */}
-      {/* ... */}
-      {/* Filters Section */}
       {showFilters && (
         <Card className="mb-6">
           <CardHeader className="pb-2">
@@ -636,7 +588,7 @@ export default function Page() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
               {/* Date Range */}
-              {timeRange === "custom" && (
+              {filters.timeRange === "custom" && (
                 <>
                   <div>
                     <label className="block text-sm font-medium mb-1">Start Date</label>
@@ -644,16 +596,16 @@ export default function Page() {
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full justify-start">
                           <CalendarIcon className="mr-1 h-4 w-4" />
-                          {startDate ? format(startDate, "PPP") : "Select date"}
+                          {filters.startDate ? format(filters.startDate, "PPP") : "Select date"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
                         <Calendar
                           mode="single"
-                          selected={startDate}
-                          onSelect={setStartDate}
+                          selected={filters.startDate}
+                          onSelect={(date) => updateFilter("startDate", date)}
                           initialFocus
-                          disabled={(date) => (endDate ? date > endDate : false)}
+                          disabled={(date) => (filters.endDate ? date > filters.endDate : false)}
                         />
                       </PopoverContent>
                     </Popover>
@@ -665,16 +617,16 @@ export default function Page() {
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full justify-start">
                           <CalendarIcon className="mr-1 h-4 w-4" />
-                          {endDate ? format(endDate, "PPP") : "Select date"}
+                          {filters.endDate ? format(filters.endDate, "PPP") : "Select date"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
                         <Calendar
                           mode="single"
-                          selected={endDate}
-                          onSelect={setEndDate}
+                          selected={filters.endDate}
+                          onSelect={(date) => updateFilter("endDate", date)}
                           initialFocus
-                          disabled={(date) => (startDate ? date < startDate : false)}
+                          disabled={(date) => (filters.startDate ? date < filters.startDate : false)}
                         />
                       </PopoverContent>
                     </Popover>
@@ -685,7 +637,7 @@ export default function Page() {
               {/* Status Filter */}
               <div>
                 <label className="block text-sm font-medium mb-1">Status</label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <Select value={filters.status} onValueChange={(v) => updateFilter("status", v === 'all' ? '' : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
@@ -703,7 +655,7 @@ export default function Page() {
               {/* Product Filter */}
               <div>
                 <label className="block text-sm font-medium mb-1">Product</label>
-                <Select value={productFilter} onValueChange={setProductFilter}>
+                <Select value={filters.product} onValueChange={(v) => updateFilter("product", v === 'all' ? '' : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Products" />
                   </SelectTrigger>
@@ -721,7 +673,7 @@ export default function Page() {
               {/* City Filter */}
               <div>
                 <label className="block text-sm font-medium mb-1">City</label>
-                <Select value={cityFilter} onValueChange={setCityFilter}>
+                <Select value={filters.city} onValueChange={(v) => updateFilter("city", v === 'all' ? '' : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Cities" />
                   </SelectTrigger>
@@ -739,7 +691,7 @@ export default function Page() {
               {/* Country Filter */}
               <div>
                 <label className="block text-sm font-medium mb-1">Country</label>
-                <Select value={countryFilter} onValueChange={setCountryFilter}>
+                <Select value={filters.country} onValueChange={(v) => updateFilter("country", v === 'all' ? '' : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Countries" />
                   </SelectTrigger>
@@ -1451,35 +1403,35 @@ export default function Page() {
           <p className="mt-2">
             <strong>Filtered Data:</strong> Showing statistics for {filteredOrders.length} of {orders.length} total
             orders.
-            {productFilter && (
+            {filters.product && (
               <span>
                 {" "}
-                Product: <strong>{productFilter}</strong>
+                Product: <strong>{filters.product}</strong>
               </span>
             )}
-            {statusFilter && (
+            {filters.status && (
               <span>
                 {" "}
-                Status: <strong>{statusFilter}</strong>
+                Status: <strong>{filters.status}</strong>
               </span>
             )}
-            {countryFilter && (
+            {filters.country && (
               <span>
                 {" "}
-                Country: <strong>{countryFilter}</strong>
+                Country: <strong>{filters.country}</strong>
               </span>
             )}
-            {cityFilter && (
+            {filters.city && (
               <span>
                 {" "}
-                City: <strong>{cityFilter}</strong>
+                City: <strong>{filters.city}</strong>
               </span>
             )}
-            {(startDate || endDate) && (
+            {(filters.startDate || filters.endDate) && (
               <span>
                 {" "}
-                Date range: <strong>{startDate ? format(startDate, "PP") : "Any"}</strong> to{" "}
-                <strong>{endDate ? format(endDate, "PP") : "Any"}</strong>
+                Date range: <strong>{filters.startDate ? format(filters.startDate, "PP") : "Any"}</strong> to{" "}
+                <strong>{filters.endDate ? format(filters.endDate, "PP") : "Any"}</strong>
               </span>
             )}
           </p>
@@ -1487,4 +1439,4 @@ export default function Page() {
       </div>
     </main>
   )
-}
+} 

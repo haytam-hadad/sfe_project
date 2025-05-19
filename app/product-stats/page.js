@@ -20,6 +20,7 @@ import { useStatusConfig } from "@/contexts/app-context"
 import { useAuth } from "@/contexts/auth-context"
 import { matchesStatus } from "@/lib/status-config"
 import { fetchMySheetData } from "@/lib/api-client"
+import { useFilters } from "@/contexts/app-context"
 
 export default function ProductStatsPage() {
   const [orders, setOrders] = useState([])
@@ -29,6 +30,7 @@ export default function ProductStatsPage() {
   const [showFilters, setShowFilters] = useState(false)
   const { token } = useAuth()
   const [/*debugMode*/ /*setDebugMode*/ ,] = useState(false)
+  const { filters, updateFilter, resetFilters } = useFilters()
 
   // Get status configuration from context
   const { statusConfig } = useStatusConfig()
@@ -80,6 +82,12 @@ export default function ProductStatsPage() {
     }
   }, [token])
 
+  useEffect(() => {
+    if (isMobile) {
+      setShowFilters(false)
+    }
+  }, [isMobile])
+
   // Extract unique products (SKU numbers)
   const products = useMemo(() => {
     if (!orders.length) return []
@@ -129,7 +137,7 @@ export default function ProductStatsPage() {
   }, [orders, cityFilter, productFilter, startDate, endDate])
 
   // Reset filters
-  const resetFilters = useCallback(() => {
+  const handleResetFilters = useCallback(() => {
     setCityFilter("")
     setProductFilter("")
     setStartDate(null)
@@ -205,10 +213,10 @@ export default function ProductStatsPage() {
 
         // Basic counts
         const totalLeads = allOrders.length
-        const confirmation = allOrders.filter(
+        const confirmed = allOrders.filter(
           (order) => order["STATUS"] && matchesStatus(order["STATUS"], statusConfig.confirmation),
         ).length
-        const delivery = deliveredOrders.length
+        const delivered = deliveredOrders.length
         const returned = allOrders.filter(
           (order) => order["STATUS"] && matchesStatus(order["STATUS"], statusConfig.returned),
         ).length
@@ -217,14 +225,14 @@ export default function ProductStatsPage() {
         ).length
 
         // Calculate percentages
-        const confirmationPercent = totalLeads > 0 ? (confirmation / totalLeads) * 100 : 0
-        const deliveryPercent = confirmation > 0 ? (delivery / confirmation) * 100 : 0
-        const returnedPercent = confirmation > 0 ? (returned / confirmation) * 100 : 0
+        const confirmationPercent = totalLeads > 0 ? (confirmed / totalLeads) * 100 : 0
+        const deliveryPercent = confirmed > 0 ? (delivered / confirmed) * 100 : 0
+        const returnedPercent = confirmed > 0 ? (returned / confirmed) * 100 : 0
         const inProcessPercent = totalLeads > 0 ? (inProcess / totalLeads) * 100 : 0
 
         // Calculate AOV
-      const totalRevenue = deliveredOrders.reduce((sum, order) => sum + (order.extractedPrice || 0), 0);
-      const aov = delivery > 0 ? totalRevenue / delivery : 0;
+        const totalRevenue = deliveredOrders.reduce((sum, order) => sum + (order.extractedPrice || 0), 0);
+        const aov = delivered > 0 ? totalRevenue / delivered : 0;
 
         // Calculate average quantity per order
         const totalQuantity = allOrders.reduce((sum, order) => sum + Number(order["Quantity"] || 1), 0)
@@ -233,9 +241,9 @@ export default function ProductStatsPage() {
         return {
           product,
           totalLeads,
-          confirmation,
+          confirmed,
+          delivery: delivered,
           confirmationPercent: Number.parseFloat(confirmationPercent.toFixed(2)),
-          delivery,
           deliveryPercent: Number.parseFloat(deliveryPercent.toFixed(2)),
           returned,
           returnedPercent: Number.parseFloat(returnedPercent.toFixed(2)),
@@ -264,7 +272,7 @@ export default function ProductStatsPage() {
     if (!productStats.length)
       return {
         totalLeads: 0,
-        confirmation: 0,
+        confirmed: 0,
         confirmationPercent: 0,
         delivery: 0,
         deliveryPercent: 0,
@@ -277,21 +285,21 @@ export default function ProductStatsPage() {
       }
 
     const totalLeads = productStats.reduce((sum, item) => sum + item.totalLeads, 0)
-    const confirmation = productStats.reduce((sum, item) => sum + item.confirmation, 0)
+    const confirmed = productStats.reduce((sum, item) => sum + item.confirmed, 0)
     const delivery = productStats.reduce((sum, item) => sum + item.delivery, 0)
     const returned = productStats.reduce((sum, item) => sum + item.returned, 0)
     const inProcess = productStats.reduce((sum, item) => sum + item.inProcess, 0)
     const totalRevenue = productStats.reduce((sum, item) => sum + item.totalRevenue, 0)
 
-    const confirmationPercent = totalLeads > 0 ? (confirmation / totalLeads) * 100 : 0
-    const deliveryPercent = confirmation > 0 ? (delivery / confirmation) * 100 : 0
-    const returnedPercent = confirmation > 0 ? (returned / confirmation) * 100 : 0
+    const confirmationPercent = totalLeads > 0 ? (confirmed / totalLeads) * 100 : 0
+    const deliveryPercent = confirmed > 0 ? (delivery / confirmed) * 100 : 0
+    const returnedPercent = confirmed > 0 ? (returned / confirmed) * 100 : 0
     const inProcessPercent = totalLeads > 0 ? (inProcess / totalLeads) * 100 : 0
     const aov = delivery > 0 ? totalRevenue / delivery : 0
 
     return {
       totalLeads,
-      confirmation,
+      confirmed,
       confirmationPercent: Number.parseFloat(confirmationPercent.toFixed(2)),
       delivery,
       deliveryPercent: Number.parseFloat(deliveryPercent.toFixed(2)),
@@ -323,17 +331,17 @@ export default function ProductStatsPage() {
 
     // Add headers
     csvContent +=
-      "Product,Total Leads,Confirmation,Confirmation %,Delivery,Delivery %,Returned,Returned %,In Process,In Process %,Avg Qty/Order,AOV\n"
+      "Product,Total Leads,Confirmed,Delivery,Confirmation %,Delivery %,Returned,Returned %,In Process,In Process %,Avg Qty/Order,AOV\n"
 
     // Add total row
     const avgQuantityPerOrderTotal = productStats.length
       ? (productStats.reduce((sum, item) => sum + item.avgQuantityPerOrder, 0) / productStats.length).toFixed(2)
       : "0"
-    csvContent += `TOTAL,${totals.totalLeads},${totals.confirmation},${totals.confirmationPercent}%,${totals.delivery},${totals.deliveryPercent}%,${totals.returned},${totals.returnedPercent}%,${totals.inProcess},${totals.inProcessPercent}%,${avgQuantityPerOrderTotal},${totals.aov.toFixed(2)}\n`
+    csvContent += `TOTAL,${totals.totalLeads},${totals.confirmed},${totals.delivery},${totals.confirmationPercent}%,${totals.deliveryPercent}%,${totals.returned},${totals.returnedPercent}%,${totals.inProcess},${totals.inProcessPercent}%,${avgQuantityPerOrderTotal},${totals.aov.toFixed(2)}\n`
 
     // Add product rows
     productStats.forEach((item) => {
-      csvContent += `"${item.product}",${item.totalLeads},${item.confirmation},${item.confirmationPercent}%,${item.delivery},${item.deliveryPercent}%,${item.returned},${item.returnedPercent}%,${item.inProcess},${item.inProcessPercent}%,${item.avgQuantityPerOrder},${item.aov.toFixed(2)}\n`
+      csvContent += `"${item.product}",${item.totalLeads},${item.confirmed},${item.delivery},${item.confirmationPercent}%,${item.deliveryPercent}%,${item.returned},${item.returnedPercent}%,${item.inProcess},${item.inProcessPercent}%,${item.avgQuantityPerOrder},${item.aov.toFixed(2)}\n`
     })
 
     // Create download link
@@ -572,16 +580,16 @@ export default function ProductStatsPage() {
                 <th
                   className="bg-gradient-to-r from-blue-700 to-blue-600 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
                   colSpan={isMobile ? 1 : 2}
-                  onClick={() => handleSort("confirmation")}
+                  onClick={() => handleSort("confirmed")}
                 >
-                  CONFIRMATION
+                  CONFIRMED
                 </th>
                 <th
                   className="bg-gradient-to-r from-green-600 to-green-500 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
                   colSpan={isMobile ? 1 : 2}
                   onClick={() => handleSort("delivery")}
                 >
-                  DELIVERY
+                  DELIVERED
                 </th>
                 <th
                   className="bg-gradient-to-r from-red-700 to-red-600 text-white text-center p-2 md:p-3 font-bold cursor-pointer"
@@ -638,7 +646,7 @@ export default function ProductStatsPage() {
                 <td className="p-2 text-center bg-orange-100 dark:bg-orange-950">{totals.totalLeads}</td>
                 {!isMobile ? (
                   <>
-                    <td className="p-2 text-center bg-blue-100 dark:bg-blue-950">{totals.confirmation}</td>
+                    <td className="p-2 text-center bg-blue-100 dark:bg-blue-950">{totals.confirmed}</td>
                     <td className="p-2 text-center bg-blue-100 dark:bg-blue-950">{totals.confirmationPercent}%</td>
                     <td className="p-2 text-center bg-green-100 dark:bg-green-950">{totals.delivery}</td>
                     <td className="p-2 text-center bg-green-100 dark:bg-green-950">{totals.deliveryPercent}%</td>
@@ -658,7 +666,7 @@ export default function ProductStatsPage() {
                 ) : (
                   <>
                     <td className="p-2 text-center bg-blue-100 dark:bg-blue-950">
-                      {totals.confirmation} ({totals.confirmationPercent}%)
+                      {totals.confirmed} ({totals.confirmationPercent}%)
                     </td>
                     <td className="p-2 text-center bg-green-100 dark:bg-green-950">
                       {totals.delivery} ({totals.deliveryPercent}%)
@@ -696,7 +704,7 @@ export default function ProductStatsPage() {
                     <td className="p-2 text-center bg-orange-50 dark:bg-orange-950/30">{item.totalLeads}</td>
                     {!isMobile ? (
                       <>
-                        <td className="p-2 text-center bg-blue-50 dark:bg-blue-950/30">{item.confirmation}</td>
+                        <td className="p-2 text-center bg-blue-50 dark:bg-blue-950/30">{item.confirmed}</td>
                         <td className="p-2 text-center bg-blue-50 dark:bg-blue-950/30">{item.confirmationPercent}%</td>
                         <td className="p-2 text-center bg-green-50 dark:bg-green-950/30">{item.delivery}</td>
                         <td className="p-2 text-center bg-green-50 dark:bg-green-950/30">{item.deliveryPercent}%</td>
@@ -710,7 +718,7 @@ export default function ProductStatsPage() {
                     ) : (
                       <>
                         <td className="p-2 text-center bg-blue-50 dark:bg-blue-950/30">
-                          {item.confirmation} ({item.confirmationPercent}%)
+                          {item.confirmed} ({item.confirmationPercent}%)
                         </td>
                         <td className="p-2 text-center bg-green-50 dark:bg-green-950/30">
                           {item.delivery} ({item.deliveryPercent}%)

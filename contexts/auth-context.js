@@ -76,6 +76,9 @@ export function AuthProvider({ children }) {
 
     const data = await response.json()
     return data.user
+    if (!data.user.sheetUrl) {
+      router.push("/settings-sheet")
+    }
   }
 
   // Login function
