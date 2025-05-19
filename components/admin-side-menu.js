@@ -9,10 +9,9 @@ import {
   ChevronUp,
   MapPin,
   Package,
-  Settings,
-  FileSpreadsheet,
+  Settings, 
   UserPlus,
-  Key,
+  User,
 } from "lucide-react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
@@ -48,16 +47,15 @@ const statisticsLinks = [
 
 const settingsLinks = [
   {
-    text: "Sheet Configuration",
-    href: "/settings-sheet",
-    icon: FileSpreadsheet,
+    text: "Profile Settings",
+    href: "/profile",
+    icon: User,
   },
   {
-    text: "Change Password",
-    href: "/settings-password",
-    icon: Key,
+    text: "calculating parames",
+    href: "/calculating-params",
+    icon: Calculator,
   },
-
 ]
 
 const AdminSideMenu = ({ onClose }) => {

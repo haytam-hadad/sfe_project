@@ -15,6 +15,7 @@ const AuthContext = createContext({
   updateSheetUrl: async () => {},
   changePassword: async () => {},
   updateUserRole: async () => {},
+  updateProfile: async () => {},
 })
 
 // API URL - replace with your actual backend URL
@@ -243,6 +244,36 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Update profile
+  const updateProfile = async (currentPassword, newEmail, newUsername) => {
+    if (!token) {
+      return { success: false, error: "Authentication required" }
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/auth/update-profile`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ currentPassword, newEmail, newUsername }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to update profile")
+      }
+
+      const data = await response.json()
+      setUser(data.user)
+      return { success: true }
+    } catch (error) {
+      console.error("Update profile error:", error)
+      return { success: false, error: error.message }
+    }
+  }
+
   // Auth context value
   const value = {
     user,
@@ -255,6 +286,7 @@ export function AuthProvider({ children }) {
     updateSheetUrl,
     changePassword,
     updateUserRole,
+    updateProfile,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
