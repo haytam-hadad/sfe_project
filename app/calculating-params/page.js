@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 import { useStatusConfig } from "@/contexts/app-context"
 import { defaultStatusConfig } from "@/lib/status-config"
-import { fetchMySheetData } from "@/lib/api-client"
+import { fetchMySheetData, updateConversionRate, getConversionRate } from "@/lib/api-client"
 import {
   Loader2,
   CheckCircle,
@@ -20,12 +20,14 @@ import {
   RefreshCwIcon,
   AlertTriangleIcon,
   Settings2,
+  DollarSign,
 } from "lucide-react"
 
 export default function SettingsPage() {
   const { toast } = useToast()
   const { user, loading: authLoading } = useAuth()
   const { statusConfig, setStatusConfig } = useStatusConfig()
+  const [conversionRate, setConversionRate] = useState(getConversionRate())
 
   // Status config state
   const [orders, setOrders] = useState([])
@@ -163,6 +165,27 @@ export default function SettingsPage() {
       }
     }
   }, [])
+
+  // Handle conversion rate update
+  const handleRateUpdate = (e) => {
+    e.preventDefault()
+    const newRate = parseFloat(conversionRate)
+    
+    if (isNaN(newRate) || newRate <= 0) {
+      toast({
+        title: "Invalid rate",
+        description: "Please enter a valid conversion rate",
+        variant: "destructive",
+      })
+      return
+    }
+
+    updateConversionRate(newRate)
+    toast({
+      title: "Rate updated",
+      description: "Currency conversion rate has been updated successfully.",
+    })
+  }
 
   if (authLoading) {
     return (
@@ -375,6 +398,49 @@ export default function SettingsPage() {
               </div>
             </>
           )}
+        </div>
+
+        {/* Currency Conversion Section */}
+        <div className="mt-1">
+          <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+            <div className="mb-4 md:mb-0">
+              <h2 className="text-2xl font-bold">Currency Conversion</h2>
+              <p className="text-muted-foreground">Configure the KES to USD conversion rate</p>
+            </div>
+          </div>
+
+          <Card>
+            <CardHeader className="bg-green-50 dark:bg-green-950/30 border-b">
+              <CardTitle className="text-green-700 dark:text-green-400">Conversion Rate Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <form onSubmit={handleRateUpdate} className="space-y-4">
+                <div>
+                  <Label htmlFor="conversionRate" className="text-sm font-medium">
+                    KES to USD Conversion Rate
+                  </Label>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Input
+                      id="conversionRate"
+                      type="number"
+                      step="0.0001"
+                      value={conversionRate}
+                      onChange={(e) => setConversionRate(e.target.value)}
+                      placeholder="Enter conversion rate (e.g., 0.007)"
+                      className="max-w-xs"
+                    />
+                    <Button type="submit" className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Update Rate
+                    </Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Current rate: 1 KES = {conversionRate} USD
+                  </p>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

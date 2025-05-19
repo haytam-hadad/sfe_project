@@ -68,7 +68,7 @@ export default function AdminHeader({ onToggleMenu }) {
                   <Avatar className="h-8 w-8 font-semibold border ">
                     <AvatarFallback>{getUserInitials()}</AvatarFallback>
                   </Avatar>
-                  <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">{user?.username || "User"}</span>
+                  <span className="hidden md:block p-1 text-sm font-medium text-gray-700 dark:text-gray-300">{user?.username || "User"}</span>
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
@@ -79,6 +79,11 @@ export default function AdminHeader({ onToggleMenu }) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Link href="/profile" className="flex items-center gap-2">
+                    <span>Profile</span>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={logout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>

@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect } from "react"
+import { createContext, useContext, useState, useEffect, useCallback } from "react"
 import { defaultStatusConfig } from "@/lib/status-config"
 
 // Create App Context
@@ -20,6 +20,13 @@ const AppContext = createContext({
   },
   updateFilter: () => {},
   resetFilters: () => {},
+  // Currency conversion
+  conversionRate: 0.007,
+  setConversionRate: () => {},
+  convertToUSD: () => {},
+  formatCurrency: () => {},
+  formatKES: () => {},
+  formatAsUSD: () => {},
 })
 
 // Main App Provider that combines all contexts
@@ -40,6 +47,23 @@ export function AppProvider({ children }) {
     city: "",
     country: "",
   })
+
+  // Initialize conversion rate from localStorage safely
+  const [conversionRate, setConversionRate] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const storedRate = localStorage.getItem('currencyConversionRate');
+      return storedRate ? parseFloat(storedRate) : 0.007;
+    }
+    return 0.007;
+  });
+
+  // Update conversion rate and save to localStorage
+  const updateConversionRate = useCallback((newRate) => {
+    setConversionRate(newRate);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('currencyConversionRate', newRate.toString());
+    }
+  }, []);
 
   // Load theme from localStorage
   useEffect(() => {
@@ -145,6 +169,46 @@ export function AppProvider({ children }) {
     setFilters(defaultFilters)
   }
 
+  // Function to convert KES to USD
+  const convertToUSD = (kesAmount) => {
+    if (!kesAmount || isNaN(kesAmount)) return 0
+    const usdAmount = kesAmount * conversionRate
+    return Number(usdAmount.toFixed(2))
+  }
+
+  // Function to format number as currency
+  const formatCurrency = (amount, currency = 'USD') => {
+    if (!amount || isNaN(amount)) return '$0.00';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+  };
+
+  // Function to format KES amount
+  const formatKES = (amount) => {
+    if (!amount || isNaN(amount)) return 'KES 0';
+    return new Intl.NumberFormat('en-KE', {
+      style: 'currency',
+      currency: 'KES',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
+  // Function to convert and format KES to USD
+  const formatAsUSD = (kesAmount) => {
+    const usdAmount = convertToUSD(kesAmount);
+    return formatCurrency(usdAmount);
+  };
+
+  // Theme toggle function
+  const toggleTheme = () => {
+    setTheme(theme => !theme)
+  }
+
   const contextValue = {
     theme,
     setTheme,
@@ -153,6 +217,14 @@ export function AppProvider({ children }) {
     filters,
     updateFilter,
     resetFilters,
+    // Currency conversion
+    conversionRate,
+    setConversionRate,
+    convertToUSD,
+    formatCurrency,
+    formatKES,
+    formatAsUSD,
+    toggleTheme,
   }
 
   return (
