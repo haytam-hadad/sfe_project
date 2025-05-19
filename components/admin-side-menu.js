@@ -57,11 +57,7 @@ const settingsLinks = [
     href: "/settings-password",
     icon: Key,
   },
-  {
-    text: "Parameters",
-    href: "/settings-params",
-    icon: Calculator,
-  },
+
 ]
 
 const AdminSideMenu = ({ onClose }) => {

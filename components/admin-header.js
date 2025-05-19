@@ -43,12 +43,6 @@ export default function AdminHeader({ onToggleMenu }) {
             <span className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100">Ecomark</span>
           </Link>
 
-          <p className="hidden md:flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-            <span className="mr-1">Welcome,</span>
-            <span className="font-bold">{user?.username || "User"}</span>
-            <span className="ml-1">!</span>
-          </p>
-
           <div className="flex items-center gap-2">
             <div title="Toggle Dark Mode" className="flex items-center max-md:scale-90 sm:gap-1">
               <Switch
@@ -70,11 +64,12 @@ export default function AdminHeader({ onToggleMenu }) {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8 font-semibold">
+                <div className="flex items-center gap-1">
+                  <Avatar className="h-8 w-8 font-semibold border ">
                     <AvatarFallback>{getUserInitials()}</AvatarFallback>
                   </Avatar>
-                </Button>
+                  <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">{user?.username || "User"}</span>
+                </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
@@ -90,7 +85,7 @@ export default function AdminHeader({ onToggleMenu }) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            
+
             <DropdownMenuSeparator className=" md:hidden flex m-0.5 h-5 w-px bg-gray-300 dark:bg-gray-600" />
 
             <button
