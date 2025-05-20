@@ -349,12 +349,12 @@ export default function AdsStatsPage() {
         <h1 className="text-3xl font-bold mb-6">Product Analysis</h1>
         <Alert variant="destructive" className="mb-6">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="ml-2">Error loading data: {errorSheetData}</AlertDescription>
+          <AlertDescription className="ml-1">Error loading data: {errorSheetData}</AlertDescription>
         </Alert>
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Button onClick={handleRefreshData}>
-              <RefreshCw className="h-4 w-4 mr-2" />
+              <RefreshCw className="h-4 w-4 mr-1" />
               Try Again
             </Button>
           </CardContent>
@@ -372,11 +372,11 @@ export default function AdsStatsPage() {
         </div>
         <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
           <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
-            <Filter className="mr-2 h-4 w-4" />
+            <Filter className="mr-1 h-4 w-4" />
             {showFilters ? "Hide Filters" : "Show Filters"}
           </Button>
           <Button variant="outline" size="sm" onClick={handleExport} disabled={!processedData.length}>
-            <Download className="mr-2 h-4 w-4" />
+            <Download className="mr-1 h-4 w-4" />
             Export CSV
           </Button>
         </div>
@@ -443,9 +443,9 @@ export default function AdsStatsPage() {
         <Card className="mb-6 border-t-4 border-t-gray-300">
           <CardHeader className="pb-3">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-lg">Filters</CardTitle>
-              <Button variant="ghost" size="sm" onClick={handleResetAllFilters}>
-                <X className="h-4 w-4 mr-1" />
+              <CardTitle className="text-md flex items-center"><Filter className="h-4 w-4 mr-1" /> Filters</CardTitle>
+              <Button variant="outline" size="sm" onClick={handleResetAllFilters}>
+                <X className="h-4 w-4 mr-1 text-mainColor" />
                 Clear All Filters
               </Button>
             </div>
@@ -481,7 +481,7 @@ export default function AdsStatsPage() {
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full justify-start text-left font-normal">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          <CalendarIcon className="mr-1 h-4 w-4" />
                           {filters.startDate ? format(new Date(filters.startDate), "PPP") : "Pick date"}
                         </Button>
                       </PopoverTrigger>
@@ -500,7 +500,7 @@ export default function AdsStatsPage() {
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full justify-start text-left font-normal">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          <CalendarIcon className="mr-1 h-4 w-4" />
                           {filters.endDate ? format(new Date(filters.endDate), "PPP") : "Pick date"}
                         </Button>
                       </PopoverTrigger>
@@ -613,7 +613,7 @@ export default function AdsStatsPage() {
                               value={productCosts[product.productName] || ""}
                               onChange={(e) => handleCostChange(product.productName, e.target.value)}
                               placeholder="0.00"
-                              className="pl-8 w-full border border-b-2 border-b-black dark:border-b-white"
+                              className="pl-8 w-full border border-b border-b-black dark:border-b-white"
                             />
                           </div>
                         </TableCell>
@@ -625,7 +625,7 @@ export default function AdsStatsPage() {
                               value={productAvgCosts[product.productName] || ""}
                               onChange={(e) => handleAvgCostChange(product.productName, e.target.value)}
                               placeholder="0.00"
-                              className="pl-8 w-full border border-b-2 border-b-black dark:border-b-white"
+                              className="pl-8 w-full border border-b border-b-black dark:border-b-white"
                             />
                           </div>
                         </TableCell>
