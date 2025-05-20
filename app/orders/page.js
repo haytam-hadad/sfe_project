@@ -39,20 +39,17 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useMobile } from "@/hooks/use-mobile"
 import { useAuth } from "@/contexts/auth-context"
-import { useFilters } from "@/contexts/app-context"
-import { fetchMySheetData } from "@/lib/api-client"
+import { useFilters, useSheetData } from "@/contexts/app-context"
 
 export default function OrdersDashboard() {
   // State management
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [showOrderDetails, setShowOrderDetails] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const isMobile = useMobile()
   const { token } = useAuth()
   const { filters, updateFilter, resetFilters } = useFilters()
+  const { sheetData: orders, loadingSheetData: loading, errorSheetData: error, refreshSheetData } = useSheetData()
   const [visibleColumns, setVisibleColumns] = useState({
     "Order date": true,
     "Order ID": true,
@@ -78,49 +75,18 @@ export default function OrdersDashboard() {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(20)
 
-  // Effect for responsive design
+  // Effect to show filters when any filter is active
   useEffect(() => {
-    if (isMobile) {
-      setShowFilters(false)
-    } else {
-      setShowFilters(true)
-    }
-  }, [isMobile])
+    const hasActiveFilters = filters.status || filters.country || filters.city || filters.startDate || filters.endDate
+    setShowFilters(hasActiveFilters)
+  }, [filters])
 
-  // Fetch data with error retry logic
+  // Fetch data if not already loaded
   useEffect(() => {
-    const fetchData = async (retryCount = 0) => {
-      setLoading(true)
-      try {
-        if (!token) {
-          throw new Error("Authentication required")
-        }
-
-        const data = await fetchMySheetData(token)
-        if (data && Array.isArray(data)) {
-          setOrders(data)
-        } else {
-          console.error("Invalid data format received:", data)
-          setError("Invalid data format received from server")
-        }
-        setLoading(false)
-      } catch (err) {
-        console.error("Error fetching data:", err)
-        if (retryCount < 3) {
-          const delay = Math.pow(2, retryCount) * 1000
-          console.log(`Retrying in ${delay}ms...`)
-          setTimeout(() => fetchData(retryCount + 1), delay)
-        } else {
-          setError(err instanceof Error ? err.message : "Unknown error occurred")
-          setLoading(false)
-        }
-      }
+    if (token && !orders.length) {
+      refreshSheetData(token)
     }
-
-    if (token) {
-      fetchData()
-    }
-  }, [token])
+  }, [token, orders.length, refreshSheetData])
 
   // Memoized derivations
   const countries = useMemo(() => {
@@ -169,18 +135,18 @@ export default function OrdersDashboard() {
           if (!matchesSearch) return false
         }
 
-        const matchesStatus = !statusFilter || order["STATUS"] === statusFilter
-        const matchesCountry = !countryFilter || order["Receier Country*"] === countryFilter
-        const matchesCity = !cityFilter || order["City"] === cityFilter
+        const matchesStatus = !filters.status || order["STATUS"] === filters.status
+        const matchesCountry = !filters.country || order["Receier Country*"] === filters.country
+        const matchesCity = !filters.city || order["City"] === filters.city
 
         let matchesDateRange = true
-        if (startDate || endDate) {
+        if (filters.startDate || filters.endDate) {
           const orderDate = new Date(order["Order date"])
-          if (startDate && orderDate < startDate) {
+          if (filters.startDate && orderDate < new Date(filters.startDate)) {
             matchesDateRange = false
           }
-          if (endDate) {
-            const endDatePlusOne = new Date(endDate)
+          if (filters.endDate) {
+            const endDatePlusOne = new Date(filters.endDate)
             endDatePlusOne.setDate(endDatePlusOne.getDate() + 1)
             if (orderDate >= endDatePlusOne) {
               matchesDateRange = false
@@ -211,7 +177,7 @@ export default function OrdersDashboard() {
           return String(fieldB).localeCompare(String(fieldA))
         }
       })
-  }, [orders, searchQuery, statusFilter, countryFilter, cityFilter, startDate, endDate, sortField, sortDirection])
+  }, [orders, searchQuery, filters.status, filters.country, filters.city, sortField, sortDirection])
 
   // Pagination logic
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage)
@@ -290,52 +256,36 @@ export default function OrdersDashboard() {
   }, [currentPage, totalPages, goToPage])
 
   const refreshData = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await fetchMySheetData(token)
-      if (data && Array.isArray(data)) {
-        setOrders(data)
-      } else {
-        throw new Error("Invalid data format received from server")
-      }
-      setLoading(false)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error occurred")
-      setLoading(false)
+    if (token) {
+      await refreshSheetData(token)
     }
-  }, [token])
+  }, [token, refreshSheetData])
 
   const viewOrderDetails = useCallback((order) => {
     setSelectedOrder(order)
     setShowOrderDetails(true)
   }, [])
 
-  const handleSearchQueryChange = useCallback((value) => {
+  const handleSearchQueryChange = (value) => {
     setSearchQuery(value)
-    setCurrentPage(1) // Reset to the first page
-  }, [])
+  }
 
-  const handleStatusFilterChange = useCallback((value) => {
-    setStatusFilter(value)
-    setCurrentPage(1) // Reset to the first page
-  }, [])
+  const handleStatusFilterChange = (value) => {
+    updateFilter("status", value)
+  }
 
-  const handleCountryFilterChange = useCallback((value) => {
-    setCountryFilter(value)
-    setCurrentPage(1) // Reset to the first page
-  }, [])
+  const handleCountryFilterChange = (value) => {
+    updateFilter("country", value)
+  }
 
-  const handleCityFilterChange = useCallback((value) => {
-    setCityFilter(value)
-    setCurrentPage(1) // Reset to the first page
-  }, [])
+  const handleCityFilterChange = (value) => {
+    updateFilter("city", value)
+  }
 
   const handleDateRangeChange = useCallback((start, end) => {
-    setStartDate(start)
-    setEndDate(end)
-    setCurrentPage(1) // Reset to the first page
-  }, [])
+    updateFilter("startDate", start?.toISOString())
+    updateFilter("endDate", end?.toISOString())
+  }, [updateFilter])
 
   // UI Helper Functions
   const getStatusBadge = useCallback((status) => {
@@ -666,7 +616,7 @@ export default function OrdersDashboard() {
                 <select
                   id="status-filter"
                   className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
-                  value={statusFilter}
+                  value={filters.status || ""}
                   onChange={(e) => handleStatusFilterChange(e.target.value)}
                   aria-label="Filter by status"
                 >
@@ -687,7 +637,7 @@ export default function OrdersDashboard() {
                 <select
                   id="country-filter"
                   className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
-                  value={countryFilter}
+                  value={filters.country || ""}
                   onChange={(e) => handleCountryFilterChange(e.target.value)}
                   aria-label="Filter by country"
                 >
@@ -708,7 +658,7 @@ export default function OrdersDashboard() {
                 <select
                   id="city-filter"
                   className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
-                  value={cityFilter}
+                  value={filters.city || ""}
                   onChange={(e) => handleCityFilterChange(e.target.value)}
                   aria-label="Filter by city"
                 >
@@ -722,47 +672,33 @@ export default function OrdersDashboard() {
               </div>
 
               {/* Date range */}
-              <div className="flex gap-2 col-span-full sm:col-span-2">
+              <div className="relative">
+                <label className="sr-only">Date range</label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="justify-start dark:bg-black text-left font-normal flex-1"
-                      aria-label="Select start date"
-                    >
-                      <CalendarIcon className="mr-1 h-4 w-4" />
-                      {startDate ? format(startDate, "PPP") : "Start date"}
+                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {filters.startDate || filters.endDate ? (
+                        <>
+                          {filters.startDate ? format(new Date(filters.startDate), "PP") : "Start"} -{" "}
+                          {filters.endDate ? format(new Date(filters.endDate), "PP") : "End"}
+                        </>
+                      ) : (
+                        "Select date range"
+                      )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
-                      mode="single"
-                      selected={startDate}
-                      onSelect={(date) => handleDateRangeChange(date, endDate)}
+                      mode="range"
+                      selected={{
+                        from: filters.startDate ? new Date(filters.startDate) : undefined,
+                        to: filters.endDate ? new Date(filters.endDate) : undefined,
+                      }}
+                      onSelect={(range) => {
+                        handleDateRangeChange(range?.from, range?.to)
+                      }}
                       initialFocus
-                      disabled={(date) => (endDate ? date > endDate : false)}
-                    />
-                  </PopoverContent>
-                </Popover>
-
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="justify-start dark:bg-black text-left font-normal flex-1"
-                      aria-label="Select end date"
-                    >
-                      <CalendarIcon className="mr-1 h-4 w-4" />
-                      {endDate ? format(endDate, "PPP") : "End date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={endDate}
-                      onSelect={(date) => handleDateRangeChange(startDate, date)}
-                      initialFocus
-                      disabled={(date) => (startDate ? date < startDate : false)}
                     />
                   </PopoverContent>
                 </Popover>
@@ -952,11 +888,11 @@ export default function OrdersDashboard() {
                     <PackageIcon className="h-12 w-12 mb-4 opacity-40" />
                     <p className="text-lg font-medium mb-1">No orders found</p>
                     <p className="text-sm max-w-sm text-center">
-                      {searchQuery || statusFilter || countryFilter || startDate || endDate
+                      {searchQuery || filters.status || filters.country || filters.startDate || filters.endDate
                         ? "Try adjusting your filters or clearing the search"
                         : "There are no orders to display. Try refreshing or check back later."}
                     </p>
-                    {(searchQuery || statusFilter || countryFilter || startDate || endDate) && (
+                    {(searchQuery || filters.status || filters.country || filters.startDate || filters.endDate) && (
                       <Button variant="outline" className="mt-3" onClick={resetLocalFilters}>
                         <XCircleIcon className="mr-1 h-4 w-4" />
                         Clear filters

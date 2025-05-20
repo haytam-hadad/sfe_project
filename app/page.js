@@ -41,47 +41,23 @@ import { matchesStatus } from "@/lib/status-config"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { fetchMySheetData } from "@/lib/api-client"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useSheetData } from "@/contexts/app-context"
 
 export default function Page() {
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState("overview")
   const [showFilters, setShowFilters] = useState(false)
   const isMobile = useMobile()
   const { token, user } = useAuth()
   const { statusConfig } = useStatusConfig()
   const { filters, updateFilter, resetFilters } = useFilters()
+  const { sheetData: orders, loading, error, refreshSheetData } = useSheetData()
 
-  // Fetch data from the API with retry logic
+  // Refresh data when token changes
   useEffect(() => {
-    const fetchData = async (retryCount = 0) => {
-      setLoading(true)
-      try {
-        if (!token) {
-          throw new Error("Authentication required")
-        }
-        const data = await fetchMySheetData(token)
-        if (data && Array.isArray(data)) {
-          setOrders(data)
-        } else {
-          setError("Invalid data format received from server")
-        }
-        setLoading(false)
-      } catch (err) {
-        if (retryCount < 3) {
-          const delay = Math.pow(2, retryCount) * 1000
-          setTimeout(() => fetchData(retryCount + 1), delay)
-        } else {
-          setError(err instanceof Error ? err.message : "Unknown error occurred")
-          setLoading(false)
-        }
-      }
-    }
     if (token) {
-      fetchData()
+      refreshSheetData(token)
     }
-  }, [token])
+  }, [token, refreshSheetData])
 
   useEffect(() => {
     if (isMobile) {
@@ -91,7 +67,7 @@ export default function Page() {
 
   // Extract unique values for filters
   const uniqueValues = useMemo(() => {
-    if (!orders.length) return { statuses: [], products: [], cities: [], countries: [] }
+    if (!orders || !Array.isArray(orders) || !orders.length) return { statuses: [], products: [], cities: [], countries: [] }
     const statuses = [...new Set(orders.map((order) => order["STATUS"]).filter(Boolean))].sort()
     const products = [...new Set(orders.map((order) => order["sku number"]).filter(Boolean))].sort()
     const cities = [...new Set(orders.map((order) => order["City"]).filter(Boolean))].sort()
@@ -137,7 +113,7 @@ export default function Page() {
 
   // Apply filters to orders
   const filteredOrders = useMemo(() => {
-    if (!orders.length) return []
+    if (!orders || !Array.isArray(orders) || !orders.length) return []
     return orders.filter((order) => {
       // Date filter
       if (filters.startDate || filters.endDate) {

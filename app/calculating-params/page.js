@@ -9,9 +9,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
-import { useStatusConfig } from "@/contexts/app-context"
+import { useStatusConfig, useSheetData } from "@/contexts/app-context"
 import { defaultStatusConfig } from "@/lib/status-config"
-import { fetchMySheetData, updateConversionRate, getConversionRate } from "@/lib/api-client"
+import { updateConversionRate, getConversionRate } from "@/lib/api-client"
 import {
   Loader2,
   CheckCircle,
@@ -25,52 +25,31 @@ import {
 
 export default function SettingsPage() {
   const { toast } = useToast()
-  const { user, loading: authLoading } = useAuth()
+  const { user, loading: authLoading, token } = useAuth()
   const { statusConfig, setStatusConfig } = useStatusConfig()
+  const { sheetData, loadingSheetData, errorSheetData, refreshSheetData } = useSheetData()
   const [conversionRate, setConversionRate] = useState(getConversionRate())
 
   // Status config state
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
   const [localConfig, setLocalConfig] = useState({ ...statusConfig })
   const [saveStatus, setSaveStatus] = useState(null)
   const [newStatus, setNewStatus] = useState("")
 
   // Fetch data to get all possible statuses
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true)
-      try {
-        const result = await fetchMySheetData()
-
-        // Process the data to ensure we capture all statuses
-        const processedOrders = result.map((order) => {
-          // Ensure STATUS is a string and properly formatted
-          if (order["STATUS"] !== undefined) {
-            order["STATUS"] = String(order["STATUS"]).trim()
-          }
-          return order
-        })
-
-        setOrders(processedOrders)
-      } catch (err) {
-        console.error("Error fetching data:", err)
-      } finally {
-        setLoading(false)
-      }
+    if (token && !sheetData.length) {
+      refreshSheetData(token)
     }
-
-    fetchData()
-  }, [])
+  }, [token, sheetData.length, refreshSheetData])
 
   // Get all unique statuses from orders
   const allStatuses = useMemo(() => {
-    if (!orders.length) return []
+    if (!sheetData.length) return []
 
     // Extract all unique statuses, ensuring we don't miss any
     const uniqueStatuses = [
       ...new Set(
-        orders
+        sheetData
           .map((order) => {
             // Ensure we're getting the exact status value, with proper case sensitivity
             return order["STATUS"] !== undefined ? String(order["STATUS"]).trim() : null
@@ -80,7 +59,7 @@ export default function SettingsPage() {
     ]
 
     return uniqueStatuses.sort()
-  }, [orders])
+  }, [sheetData])
 
   // Add custom status
   const addCustomStatus = () => {
@@ -187,10 +166,22 @@ export default function SettingsPage() {
     })
   }
 
-  if (authLoading) {
+  if (authLoading || loadingSheetData) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (errorSheetData) {
+    return (
+      <div className="container mx-auto py-8 px-4 max-w-6xl">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{errorSheetData}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -202,15 +193,15 @@ export default function SettingsPage() {
         <div>
           <div className="flex flex-col md:flex-row justify-between items-center mb-6">
             <div className="mb-4 md:mb-0">
-              <h2 className="text-2xl font-bold">Status Configuration</h2>
-              <p className="text-muted-foreground">Configure how order statuses are categorized and calculated</p>
+              <h2 className="text-2xl font-bold">Calculating Parameters</h2>
+              <p className="text-muted-foreground">Configure how order statuses are calculated and categorized for metrics and statistics</p>
             </div>
             <div className="flex gap-2 md:gap-4">
-              <Button className="flex-1 md:flex-none" variant="outline" onClick={resetToDefaults} disabled={loading}>
+              <Button className="flex-1 md:flex-none" variant="outline" onClick={resetToDefaults} disabled={loadingSheetData}>
                 <RefreshCwIcon className="mr-1 h-4 w-4" />
                 Reset to Defaults
               </Button>
-              <Button className="flex-1 md:flex-none" onClick={saveConfig} disabled={saveStatus === "saved" || loading}>
+              <Button className="flex-1 md:flex-none" onClick={saveConfig} disabled={saveStatus === "saved" || loadingSheetData}>
                 <SaveIcon className="mr-1 h-4 w-4" />
                 Save Changes
               </Button>
@@ -235,7 +226,7 @@ export default function SettingsPage() {
             </Alert>
           )}
 
-          {loading ? (
+          {loadingSheetData ? (
             <Card>
               <CardHeader>
                 <CardTitle>Loading status options...</CardTitle>
@@ -244,6 +235,17 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-center h-[200px]">
                   <RefreshCwIcon className="animate-spin h-10 w-10 text-primary" />
                 </div>
+              </CardContent>
+            </Card>
+          ) : allStatuses.length === 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>No statuses found</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  No order statuses were found in the data. Please check your data source or try refreshing the page.
+                </p>
               </CardContent>
             </Card>
           ) : (
@@ -391,7 +393,7 @@ export default function SettingsPage() {
               </Card>
 
               <div className="mt-6 flex justify-end">
-                <Button onClick={saveConfig} disabled={saveStatus === "saved" || loading} className="w-full sm:w-auto">
+                <Button onClick={saveConfig} disabled={saveStatus === "saved" || loadingSheetData} className="w-full sm:w-auto">
                   <SaveIcon className="mr-1 h-4 w-4" />
                   Save Changes
                 </Button>

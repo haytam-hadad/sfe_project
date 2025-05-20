@@ -16,63 +16,30 @@ import {
   ChevronRightIcon,
 } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
-import { useStatusConfig, useFilters } from "@/contexts/app-context"
+import { useStatusConfig, useFilters, useSheetData } from "@/contexts/app-context"
 import { useAuth } from "@/contexts/auth-context"
 import { matchesStatus } from "@/lib/status-config"
-import { fetchMySheetData } from "@/lib/api-client"
 
 export default function CityStatsPage() {
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const isMobile = useMobile()
   const [showFilters, setShowFilters] = useState(false)
+  const isMobile = useMobile()
   const { token } = useAuth()
-
-  // Get status configuration and filters from context
   const { statusConfig } = useStatusConfig()
   const { filters, updateFilter, resetFilters } = useFilters()
+  const { sheetData: orders, loadingSheetData: loading, errorSheetData: error, refreshSheetData } = useSheetData()
 
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1)
-  const [rowsPerPage, setRowsPerPage] = useState(20)
-  const [sortField, setSortField] = useState("totalLeads")
-  const [sortDirection, setSortDirection] = useState("desc")
-
-  // Fetch data from the API with retry logic
+  // Effect to show filters when any filter is active
   useEffect(() => {
-    const fetchData = async (retryCount = 0) => {
-      setLoading(true)
-      try {
-        if (!token) {
-          throw new Error("Authentication required")
-        }
+    const hasActiveFilters = filters.city || filters.product || filters.startDate || filters.endDate
+    setShowFilters(hasActiveFilters)
+  }, [filters])
 
-        const data = await fetchMySheetData(token)
-        if (data && Array.isArray(data)) {
-          setOrders(data)
-        } else {
-          console.error("Invalid data format received:", data)
-          setError("Invalid data format received from server")
-        }
-        setLoading(false)
-      } catch (err) {
-        console.error("Error fetching data:", err)
-        if (retryCount < 3) {
-          const delay = Math.pow(2, retryCount) * 1000
-          console.log(`Retrying in ${delay}ms...`)
-          setTimeout(() => fetchData(retryCount + 1), delay)
-        } else {
-          setError(err instanceof Error ? err.message : "Unknown error occurred")
-          setLoading(false)
-        }
-      }
+  // Fetch data if not already loaded
+  useEffect(() => {
+    if (token && !orders.length) {
+      refreshSheetData(token)
     }
-
-    if (token) {
-      fetchData()
-    }
-  }, [token])
+  }, [token, orders.length, refreshSheetData])
 
   // Extract unique products (SKU numbers)
   const products = useMemo(() => {
@@ -80,6 +47,12 @@ export default function CityStatsPage() {
     const uniqueProducts = [...new Set(orders.map((order) => order["sku number"]).filter(Boolean))]
     return uniqueProducts.sort()
   }, [orders])
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(20)
+  const [sortField, setSortField] = useState("totalLeads")
+  const [sortDirection, setSortDirection] = useState("desc")
 
   // Apply filters to the data
   const filteredOrders = useMemo(() => {
@@ -294,6 +267,12 @@ export default function CityStatsPage() {
   const handlePageChange = (pageNumber) => {
     setCurrentPage(Math.max(1, Math.min(pageNumber, totalPages)))
   }
+
+  const refreshData = useCallback(async () => {
+    if (token) {
+      await refreshSheetData(token)
+    }
+  }, [token, refreshSheetData])
 
   // Render loading state
   if (loading) {

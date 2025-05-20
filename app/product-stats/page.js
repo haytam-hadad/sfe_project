@@ -16,77 +16,37 @@ import {
   ChevronRightIcon,
 } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
-import { useStatusConfig } from "@/contexts/app-context"
+import { useStatusConfig, useFilters, useSheetData } from "@/contexts/app-context"
 import { useAuth } from "@/contexts/auth-context"
 import { matchesStatus } from "@/lib/status-config"
 import { fetchMySheetData } from "@/lib/api-client"
-import { useFilters } from "@/contexts/app-context"
 
 export default function ProductStatsPage() {
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const isMobile = useMobile()
   const [showFilters, setShowFilters] = useState(false)
+  const isMobile = useMobile()
   const { token } = useAuth()
-  const [/*debugMode*/ /*setDebugMode*/ ,] = useState(false)
-  const { filters, updateFilter, resetFilters } = useFilters()
-
-  // Get status configuration from context
   const { statusConfig } = useStatusConfig()
-
-  // Filter states
-  const [startDate, setStartDate] = useState(null)
-  const [endDate, setEndDate] = useState(null)
-  const [cityFilter, setCityFilter] = useState("")
-  const [productFilter, setProductFilter] = useState("")
-  const [sortField, setSortField] = useState("totalLeads")
-  const [sortDirection, setSortDirection] = useState("desc")
+  const { filters, updateFilter, resetFilters } = useFilters()
+  const { sheetData: orders, loadingSheetData: loading, errorSheetData: error, refreshSheetData } = useSheetData()
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(20)
+  const [sortField, setSortField] = useState("totalLeads")
+  const [sortDirection, setSortDirection] = useState("desc")
 
-  // Fetch data from the API with retry logic
+  // Effect to show filters when any filter is active
   useEffect(() => {
-    const fetchData = async (retryCount = 0) => {
-      setLoading(true)
-      try {
-        if (!token) {
-          throw new Error("Authentication required")
-        }
+    const hasActiveFilters = filters.city || filters.product || filters.startDate || filters.endDate
+    setShowFilters(hasActiveFilters)
+  }, [filters])
 
-        const data = await fetchMySheetData(token)
-        if (data && Array.isArray(data)) {
-          setOrders(data)
-        } else {
-          console.error("Invalid data format received:", data)
-          setError("Invalid data format received from server")
-        }
-        setLoading(false)
-      } catch (err) {
-        console.error("Error fetching data:", err)
-        if (retryCount < 3) {
-          const delay = Math.pow(2, retryCount) * 1000
-          console.log(`Retrying in ${delay}ms...`)
-          setTimeout(() => fetchData(retryCount + 1), delay)
-        } else {
-          setError(err instanceof Error ? err.message : "Unknown error occurred")
-          setLoading(false)
-        }
-      }
-    }
-
-    if (token) {
-      fetchData()
-    }
-  }, [token])
-
+  // Fetch data if not already loaded
   useEffect(() => {
-    if (isMobile) {
-      setShowFilters(false)
+    if (token && !orders.length) {
+      refreshSheetData(token)
     }
-  }, [isMobile])
+  }, [token, orders.length, refreshSheetData])
 
   // Extract unique products (SKU numbers)
   const products = useMemo(() => {
@@ -108,23 +68,23 @@ export default function ProductStatsPage() {
 
     return orders.filter((order) => {
       // City filter
-      if (cityFilter && order["City"]?.toLowerCase() !== cityFilter.toLowerCase()) {
+      if (filters.city && order["City"]?.toLowerCase() !== filters.city.toLowerCase()) {
         return false
       }
 
       // Product filter
-      if (productFilter && order["sku number"] !== productFilter) {
+      if (filters.product && order["sku number"] !== filters.product) {
         return false
       }
 
       // Date range filter
-      if (startDate || endDate) {
+      if (filters.startDate || filters.endDate) {
         const orderDate = new Date(order["Order date"])
-        if (startDate && orderDate < startDate) {
+        if (filters.startDate && orderDate < new Date(filters.startDate)) {
           return false
         }
-        if (endDate) {
-          const endDatePlusOne = new Date(endDate)
+        if (filters.endDate) {
+          const endDatePlusOne = new Date(filters.endDate)
           endDatePlusOne.setDate(endDatePlusOne.getDate() + 1)
           if (orderDate >= endDatePlusOne) {
             return false
@@ -134,15 +94,12 @@ export default function ProductStatsPage() {
 
       return true
     })
-  }, [orders, cityFilter, productFilter, startDate, endDate])
+  }, [orders, filters])
 
   // Reset filters
   const handleResetFilters = useCallback(() => {
-    setCityFilter("")
-    setProductFilter("")
-    setStartDate(null)
-    setEndDate(null)
-  }, [])
+    resetFilters()
+  }, [resetFilters])
 
   // Helper function to extract price from an order
   const extractPrice = useCallback((order) => {
@@ -367,6 +324,12 @@ export default function ProductStatsPage() {
     setCurrentPage(Math.max(1, Math.min(pageNumber, totalPages)))
   }
 
+  const refreshData = useCallback(async () => {
+    if (token) {
+      await refreshSheetData(token)
+    }
+  }, [token, refreshSheetData])
+
   // Render loading state
   if (loading) {
     return (
@@ -439,7 +402,7 @@ export default function ProductStatsPage() {
                 size="sm"
                 className="ml-auto"
                 onClick={resetFilters}
-                disabled={!cityFilter && !productFilter && !startDate && !endDate}
+                disabled={!filters.city && !filters.product && !filters.startDate && !filters.endDate}
               >
                 <XCircleIcon className="mr-1 text-mainColor h-4 w-4" />
                 Clear Filters
@@ -456,8 +419,8 @@ export default function ProductStatsPage() {
                 <select
                   id="product-filter"
                   className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
-                  value={productFilter}
-                  onChange={(e) => setProductFilter(e.target.value)}
+                  value={filters.product || ""}
+                  onChange={(e) => updateFilter("product", e.target.value)}
                 >
                   <option value="">All Products</option>
                   {products.map((product) => (
@@ -475,8 +438,8 @@ export default function ProductStatsPage() {
                 <select
                   id="city-filter"
                   className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
-                  value={cityFilter}
-                  onChange={(e) => setCityFilter(e.target.value)}
+                  value={filters.city || ""}
+                  onChange={(e) => updateFilter("city", e.target.value)}
                 >
                   <option value="">All Cities</option>
                   {cities.map((city) => (
@@ -493,16 +456,16 @@ export default function ProductStatsPage() {
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="justify-start dark:bg-black text-left font-normal w-full">
                       <CalendarIcon className="mr-1 h-4 w-4" />
-                      {startDate ? format(startDate, "PPP") : "Select date"}
+                      {filters.startDate ? format(new Date(filters.startDate), "PPP") : "Select date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
                     <Calendar
                       mode="single"
-                      selected={startDate}
-                      onSelect={(date) => setStartDate(date)}
+                      selected={filters.startDate ? new Date(filters.startDate) : undefined}
+                      onSelect={(date) => updateFilter("startDate", date?.toISOString())}
                       initialFocus
-                      disabled={(date) => (endDate ? date > endDate : false)}
+                      disabled={(date) => (filters.endDate ? date > new Date(filters.endDate) : false)}
                     />
                   </PopoverContent>
                 </Popover>
@@ -514,16 +477,16 @@ export default function ProductStatsPage() {
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="justify-start dark:bg-black text-left font-normal w-full">
                       <CalendarIcon className="mr-1 h-4 w-4" />
-                      {endDate ? format(endDate, "PPP") : "Select date"}
+                      {filters.endDate ? format(new Date(filters.endDate), "PPP") : "Select date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
                     <Calendar
                       mode="single"
-                      selected={endDate}
-                      onSelect={(date) => setEndDate(date)}
+                      selected={filters.endDate ? new Date(filters.endDate) : undefined}
+                      onSelect={(date) => updateFilter("endDate", date?.toISOString())}
                       initialFocus
-                      disabled={(date) => (startDate ? date < startDate : false)}
+                      disabled={(date) => (filters.startDate ? date < new Date(filters.startDate) : false)}
                     />
                   </PopoverContent>
                 </Popover>
@@ -741,11 +704,11 @@ export default function ProductStatsPage() {
                     <div className="flex flex-col items-center justify-center">
                       <p className="text-lg font-medium mb-2">No data available</p>
                       <p className="text-sm max-w-md">
-                        {cityFilter || productFilter || startDate || endDate
+                        {filters.city || filters.product || filters.startDate || filters.endDate
                           ? "Try adjusting your filters to see more results."
                           : "There are no product statistics to display. Try refreshing or check back later."}
                       </p>
-                      {(cityFilter || productFilter || startDate || endDate) && (
+                      {(filters.city || filters.product || filters.startDate || filters.endDate) && (
                         <Button variant="outline" className="mt-4" onClick={resetFilters}>
                           <XCircleIcon className="mr-1 h-4 w-4" />
                           Clear filters

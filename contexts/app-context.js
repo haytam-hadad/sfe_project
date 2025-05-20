@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback } from "react"
 import { defaultStatusConfig } from "@/lib/status-config"
+import { fetchMySheetData } from "@/lib/api-client"
 
 // Create App Context
 const AppContext = createContext({
@@ -27,6 +28,11 @@ const AppContext = createContext({
   formatCurrency: () => {},
   formatKES: () => {},
   formatAsUSD: () => {},
+  // Sheet data
+  sheetData: [],
+  loadingSheetData: false,
+  errorSheetData: null,
+  refreshSheetData: () => {},
 })
 
 // Main App Provider that combines all contexts
@@ -36,6 +42,11 @@ export function AppProvider({ children }) {
 
   // Status Config state
   const [statusConfig, setStatusConfig] = useState(defaultStatusConfig)
+
+  // Sheet data state
+  const [sheetData, setSheetData] = useState([])
+  const [loadingSheetData, setLoadingSheetData] = useState(false)
+  const [errorSheetData, setErrorSheetData] = useState(null)
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -56,6 +67,37 @@ export function AppProvider({ children }) {
     }
     return 0.007;
   });
+
+  // Function to fetch sheet data
+  const refreshSheetData = useCallback(async (token) => {
+    if (!token) return;
+    
+    setLoadingSheetData(true);
+    setErrorSheetData(null);
+    
+    try {
+      const result = await fetchMySheetData(token);
+      
+      if (!result || !Array.isArray(result)) {
+        throw new Error('Invalid data format received');
+      }
+      
+      // Process the data to ensure we capture all statuses
+      const processedData = result.map((order) => {
+        if (order["STATUS"] !== undefined) {
+          order["STATUS"] = String(order["STATUS"]).trim();
+        }
+        return order;
+      });
+      
+      setSheetData(processedData);
+    } catch (error) {
+      console.error('Error fetching sheet data:', error);
+      setErrorSheetData(error.message || 'Failed to fetch data');
+    } finally {
+      setLoadingSheetData(false);
+    }
+  }, []);
 
   // Update conversion rate and save to localStorage
   const updateConversionRate = useCallback((newRate) => {
@@ -225,6 +267,11 @@ export function AppProvider({ children }) {
     formatKES,
     formatAsUSD,
     toggleTheme,
+    // Sheet data
+    sheetData,
+    loadingSheetData,
+    errorSheetData,
+    refreshSheetData,
   }
 
   return (
@@ -253,4 +300,10 @@ export function useStatusConfig() {
 export function useFilters() {
   const { filters, updateFilter, resetFilters } = useApp()
   return { filters, updateFilter, resetFilters }
+}
+
+// Custom hook to use sheet data
+export function useSheetData() {
+  const { sheetData, loadingSheetData, errorSheetData, refreshSheetData } = useApp()
+  return { sheetData, loadingSheetData, errorSheetData, refreshSheetData }
 }
