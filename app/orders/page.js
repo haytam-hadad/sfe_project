@@ -920,7 +920,7 @@ export default function OrdersDashboard() {
                     </TableCell>
                   )}
                   {visibleColumns["Cod Amount"] && (
-                    <TableCell className="text-center">{formatCurrency(order["Cod Amount"])}</TableCell>
+                    <TableCell className="text-center">{ `$` + formatCurrency(order["Cod Amount"])}</TableCell>
                   )}
                   {visibleColumns["Quantity"] && (
                     <TableCell className="text-center">{order["Quantity"] || "N/A"}</TableCell>

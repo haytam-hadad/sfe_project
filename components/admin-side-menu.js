@@ -12,6 +12,7 @@ import {
   Settings, 
   UserPlus,
   User,
+  BarChart3
 } from "lucide-react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
@@ -42,6 +43,11 @@ const statisticsLinks = [
     text: "Products",
     href: "/product-stats",
     icon: Package,
+  },
+  {
+    text: "Advertisement Statistics",
+    href: "/ad-stats",
+    icon: BarChart3,
   },
 ]
 

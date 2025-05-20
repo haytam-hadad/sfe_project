@@ -22,13 +22,15 @@ import {
   Settings2,
   DollarSign,
 } from "lucide-react"
+import { useApp } from "@/contexts/app-context"
 
 export default function SettingsPage() {
   const { toast } = useToast()
   const { user, loading: authLoading, token } = useAuth()
   const { statusConfig, setStatusConfig } = useStatusConfig()
   const { sheetData, loadingSheetData, errorSheetData, refreshSheetData } = useSheetData()
-  const [conversionRate, setConversionRate] = useState(getConversionRate())
+  const { conversionRate, setConversionRate } = useApp()
+  const [localConversionRate, setLocalConversionRate] = useState(conversionRate)
 
   // Status config state
   const [localConfig, setLocalConfig] = useState({ ...statusConfig })
@@ -148,7 +150,7 @@ export default function SettingsPage() {
   // Handle conversion rate update
   const handleRateUpdate = (e) => {
     e.preventDefault()
-    const newRate = parseFloat(conversionRate)
+    const newRate = parseFloat(localConversionRate)
     
     if (isNaN(newRate) || newRate <= 0) {
       toast({
@@ -159,7 +161,7 @@ export default function SettingsPage() {
       return
     }
 
-    updateConversionRate(newRate)
+    setConversionRate(newRate)
     toast({
       title: "Rate updated",
       description: "Currency conversion rate has been updated successfully.",
@@ -403,47 +405,42 @@ export default function SettingsPage() {
         </div>
 
         {/* Currency Conversion Section */}
-        <div className="mt-1">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-            <div className="mb-4 md:mb-0">
-              <h2 className="text-2xl font-bold">Currency Conversion</h2>
-              <p className="text-muted-foreground">Configure the KES to USD conversion rate</p>
-            </div>
-          </div>
-
-          <Card>
-            <CardHeader className="bg-green-50 dark:bg-green-950/30 border-b">
-              <CardTitle className="text-green-700 dark:text-green-400">Conversion Rate Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <form onSubmit={handleRateUpdate} className="space-y-4">
-                <div>
-                  <Label htmlFor="conversionRate" className="text-sm font-medium">
-                    KES to USD Conversion Rate
-                  </Label>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Input
-                      id="conversionRate"
-                      type="number"
-                      step="0.0001"
-                      value={conversionRate}
-                      onChange={(e) => setConversionRate(e.target.value)}
-                      placeholder="Enter conversion rate (e.g., 0.007)"
-                      className="max-w-xs"
-                    />
-                    <Button type="submit" className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
-                      Update Rate
-                    </Button>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Current rate: 1 KES = {conversionRate} USD
-                  </p>
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Currency Conversion
+            </CardTitle>
+            <CardDescription>
+              Set the conversion rate for monetary values
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleRateUpdate} className="space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="conversionRate">Conversion Rate</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="conversionRate"
+                    type="number"
+                    step="0.000001"
+                    min="0"
+                    value={localConversionRate}
+                    onChange={(e) => setLocalConversionRate(e.target.value)}
+                    placeholder="Enter conversion rate"
+                  />
+                  <Button type="submit">
+                    <SaveIcon className="h-4 w-4 mr-2" />
+                    Save Rate
+                  </Button>
                 </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+                <p className="text-sm text-muted-foreground">
+                  This rate will be used to convert monetary values in your sheet.
+                </p>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

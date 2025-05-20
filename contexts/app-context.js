@@ -26,7 +26,7 @@ const AppContext = createContext({
   setConversionRate: () => {},
   convertToUSD: () => {},
   formatCurrency: () => {},
-  formatKES: () => {},
+  formatAmount: () => {},
   formatAsUSD: () => {},
   // Sheet data
   sheetData: [],
@@ -63,9 +63,9 @@ export function AppProvider({ children }) {
   const [conversionRate, setConversionRate] = useState(() => {
     if (typeof window !== 'undefined') {
       const storedRate = localStorage.getItem('currencyConversionRate');
-      return storedRate ? parseFloat(storedRate) : 0.007;
+      return storedRate ? parseFloat(storedRate) : 1;
     }
-    return 0.007;
+    return 1;
   });
 
   // Function to fetch sheet data
@@ -211,11 +211,11 @@ export function AppProvider({ children }) {
     setFilters(defaultFilters)
   }
 
-  // Function to convert KES to USD
-  const convertToUSD = (kesAmount) => {
-    if (!kesAmount || isNaN(kesAmount)) return 0
-    const usdAmount = kesAmount * conversionRate
-    return Number(usdAmount.toFixed(2))
+  // Function to convert amount to USD
+  const convertToUSD = (amount) => {
+    if (!amount || isNaN(amount)) return 0;
+    const usdAmount = amount * conversionRate;
+    return Number(usdAmount.toFixed(2));
   }
 
   // Function to format number as currency
@@ -229,20 +229,20 @@ export function AppProvider({ children }) {
     }).format(amount);
   };
 
-  // Function to format KES amount
-  const formatKES = (amount) => {
-    if (!amount || isNaN(amount)) return 'KES 0';
-    return new Intl.NumberFormat('en-KE', {
+  // Function to format amount
+  const formatAmount = (amount) => {
+    if (!amount || isNaN(amount)) return '$0';
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'KES',
+      currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(amount);
   };
 
-  // Function to convert and format KES to USD
-  const formatAsUSD = (kesAmount) => {
-    const usdAmount = convertToUSD(kesAmount);
+  // Function to convert and format to USD
+  const formatAsUSD = (amount) => {
+    const usdAmount = convertToUSD(amount);
     return formatCurrency(usdAmount);
   };
 
@@ -264,7 +264,7 @@ export function AppProvider({ children }) {
     setConversionRate,
     convertToUSD,
     formatCurrency,
-    formatKES,
+    formatAmount,
     formatAsUSD,
     toggleTheme,
     // Sheet data

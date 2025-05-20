@@ -137,6 +137,17 @@ export default function Page() {
     })
   }, [orders, filters])
 
+  // Format currency
+  const formatCurrency = (amount) => {
+    if (amount === undefined || amount === null) return "—"
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount)
+  }
+
   // Calculate key metrics based on the configurable status definitions
   const metrics = useMemo(() => {
     if (!filteredOrders.length)
@@ -377,17 +388,6 @@ export default function Page() {
     "#009688",
     "#795548",
   ]
-
-  // Format currency
-  const formatCurrency = (amount) => {
-    if (amount === undefined || amount === null) return "—"
-
-    return new Intl.NumberFormat("en-US", {
-      style: "decimal",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
-  }
 
   // Export chart data as CSV
   const exportChartData = (data, filename) => {
