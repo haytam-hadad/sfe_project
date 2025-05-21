@@ -5,6 +5,7 @@ import {
   Moon,
   Sun,
   LogOut,
+  User,
 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { useApp } from "@/contexts/app-context"
@@ -81,6 +82,7 @@ export default function AdminHeader({ onToggleMenu }) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <Link href="/profile" className="flex items-center gap-2">
+                    <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </Link>
                 </DropdownMenuItem>

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import {
+  Loader2,
   RefreshCwIcon,
   DownloadIcon,
   FilterIcon,
@@ -333,19 +334,9 @@ export default function ProductStatsPage() {
   // Render loading state
   if (loading) {
     return (
-      <div className="p-4 md:p-6">
-        <h1 className="text-2xl font-bold mb-6">Product Statistics</h1>
-        <Card>
-          <CardHeader>
-            <CardTitle>Loading data...</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center h-[400px]">
-              <RefreshCwIcon className="animate-spin h-10 w-10 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        <div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+         </div>
     )
   }
 

@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
 import {
+  Loader2,
   Search,
   DollarSign,
   TrendingUp,
@@ -365,15 +366,8 @@ export default function AdsStatsPage() {
 
   if (loadingSheetData) {
     return (
-      <div className="container mx-auto py-6 px-4">
-        <h1 className="text-3xl font-bold mb-6">Product Analysis</h1>
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <RefreshCw className="h-12 w-12 text-primary animate-spin mb-4" />
-            <p className="text-lg font-medium">Loading data...</p>
-            <p className="text-sm text-muted-foreground mt-2">Fetching the latest information from your sheet</p>
-          </CardContent>
-        </Card>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
       </div>
     )
   }
