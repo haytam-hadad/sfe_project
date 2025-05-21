@@ -22,7 +22,6 @@ import {
   ChevronRight,
   Download,
   RefreshCw,
-  Save,
   AlertCircle,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
@@ -88,6 +87,27 @@ export default function AdsStatsPage() {
     return 0
   }
 
+  // Extract quantity from an order
+  const extractQuantity = (order) => {
+    const qtyFields = ["Quantity", "Qty", "Count", "Units"]
+
+    for (const field of qtyFields) {
+      const value = order[field]
+      if (value !== undefined && value !== null && value !== "") {
+        if (typeof value === "number") {
+          return value
+        } else if (typeof value === "string") {
+          const cleanedValue = value.replace(/[^0-9]/g, "")
+          const numValue = Number.parseInt(cleanedValue)
+          if (!isNaN(numValue)) {
+            return numValue
+          }
+        }
+      }
+    }
+    return 1 // Default to 1 if no quantity found
+  }
+
   // Fetch data if not already loaded
   useEffect(() => {
     if (token && (!sheetData || sheetData.length === 0) && !loadingSheetData) {
@@ -100,7 +120,7 @@ export default function AdsStatsPage() {
     if (!sheetData || !sheetData.length) return []
 
     const productMap = new Map()
-    
+
     sheetData.forEach((order) => {
       const product = order["Product Name"] || order["sku number"] || order["product"]
       if (!product) return
@@ -140,11 +160,16 @@ export default function AdsStatsPage() {
           totalOrders: 0,
           totalAmount: 0,
           sellingPrice: 0,
+          totalQuantity: 0,
         })
       }
 
       const productData = productMap.get(product)
       productData.totalOrders++
+
+      // Get quantity
+      const quantity = extractQuantity(order)
+      productData.totalQuantity += quantity
 
       // Try to find amount in various possible field names
       const amount = extractAmount(order)
@@ -219,8 +244,8 @@ export default function AdsStatsPage() {
   const calculateTotalCost = (product) => {
     const adCost = Number.parseFloat(productCosts[product.productName] || 0)
     const avgCost = Number.parseFloat(productAvgCosts[product.productName] || 0)
-    // AD cost is per product, average cost is per order
-    return adCost + (avgCost * product.totalOrders)
+    // AD cost is one-time, average cost is per unit
+    return adCost + avgCost * product.totalQuantity
   }
 
   const calculateProfit = (product) => {
@@ -235,7 +260,8 @@ export default function AdsStatsPage() {
     let csvContent = "data:text/csv;charset=utf-8,"
 
     // Add headers
-    csvContent += "Product Name,Total Orders,Selling Price,Total Amount,AD Cost,Average Cost,Total Cost,Profit\n"
+    csvContent +=
+      "Product Name,Total Orders,Total Quantity,Selling Price,Total Amount,AD Cost,Average Cost,Total Cost,Profit\n"
 
     // Add data rows
     processedData.forEach((product) => {
@@ -244,7 +270,7 @@ export default function AdsStatsPage() {
       const totalCost = calculateTotalCost(product)
       const profit = calculateProfit(product)
 
-      csvContent += `"${product.productName}",${product.totalOrders},${product.sellingPrice.toFixed(2)},${product.totalAmount.toFixed(2)},${adCost.toFixed(2)},${avgCost.toFixed(2)},${totalCost.toFixed(2)},${profit.toFixed(2)}\n`
+      csvContent += `"${product.productName}",${product.totalOrders},${product.totalQuantity},${product.sellingPrice.toFixed(2)},${product.totalAmount.toFixed(2)},${adCost.toFixed(2)},${avgCost.toFixed(2)},${totalCost.toFixed(2)},${profit.toFixed(2)}\n`
     })
 
     // Create download link
@@ -292,10 +318,19 @@ export default function AdsStatsPage() {
 
   // Calculate totals
   const totals = useMemo(() => {
-    if (!processedData.length) return { totalOrders: 0, totalAmount: 0, totalAdCost: 0, totalCost: 0, totalProfit: 0 }
+    if (!processedData.length)
+      return {
+        totalOrders: 0,
+        totalAmount: 0,
+        totalAdCost: 0,
+        totalCost: 0,
+        totalProfit: 0,
+        totalQuantity: 0,
+      }
 
     const totalOrders = processedData.reduce((sum, product) => sum + product.totalOrders, 0)
     const totalAmount = processedData.reduce((sum, product) => sum + product.totalAmount, 0)
+    const totalQuantity = processedData.reduce((sum, product) => sum + product.totalQuantity, 0)
 
     let totalAdCost = 0
     let totalCost = 0
@@ -310,7 +345,7 @@ export default function AdsStatsPage() {
       totalProfit += calculateProfit(product)
     })
 
-    return { totalOrders, totalAmount, totalAdCost, totalCost, totalProfit }
+    return { totalOrders, totalAmount, totalAdCost, totalCost, totalProfit, totalQuantity }
   }, [processedData, productCosts, productAvgCosts])
 
   // Handle refresh data
@@ -384,7 +419,7 @@ export default function AdsStatsPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className="border-l-4 border-l-blue-500">
+        <Card className="border-l-4 border-blue-500">
           <CardContent className="pt-6">
             <div className="flex justify-between items-center">
               <div>
@@ -397,7 +432,7 @@ export default function AdsStatsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-green-500">
+        <Card className="border-l-4 border-green-500">
           <CardContent className="pt-6">
             <div className="flex justify-between items-center">
               <div>
@@ -410,12 +445,12 @@ export default function AdsStatsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-yellow-500">
+        <Card className="border-l-4 border-yellow-500">
           <CardContent className="pt-6">
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm text-muted-foreground">Total Revenue</p>
-                <h3 className="text-2xl font-bold">{formatCurrency(totals.totalAmount)}</h3>
+                <h3 className="text-2xl font-bold">{formatNumber(totals.totalAmount)}</h3>
               </div>
               <div className="bg-yellow-100 p-3 rounded-full dark:bg-yellow-900">
                 <DollarSign className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
@@ -423,12 +458,12 @@ export default function AdsStatsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-purple-500">
+        <Card className="border-l-4 border-purple-500">
           <CardContent className="pt-6">
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm text-muted-foreground">Total Profit</p>
-                <h3 className="text-2xl font-bold">{formatCurrency(totals.totalProfit)}</h3>
+                <h3 className="text-2xl font-bold">{formatNumber(totals.totalProfit)}</h3>
               </div>
               <div className="bg-purple-100 p-3 rounded-full dark:bg-purple-900">
                 <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400" />
@@ -443,7 +478,9 @@ export default function AdsStatsPage() {
         <Card className="mb-6 border-t-4 border-t-gray-300">
           <CardHeader className="pb-3">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-md flex items-center"><Filter className="h-4 w-4 mr-1" /> Filters</CardTitle>
+              <CardTitle className="text-md flex items-center">
+                <Filter className="h-4 w-4 mr-1" /> Filters
+              </CardTitle>
               <Button variant="outline" size="sm" onClick={handleResetAllFilters}>
                 <X className="h-4 w-4 mr-1 text-mainColor" />
                 Clear All Filters
@@ -521,9 +558,8 @@ export default function AdsStatsPage() {
         </Card>
       )}
 
-      <Card className="border-t-4 border-t-blue-500">
+      <Card className="border-t-4 border-t-blue-700">
         <CardHeader>
-          <CardTitle>Product Analysis</CardTitle>
           <CardDescription>Enter product costs to calculate profitability</CardDescription>
           <div className="flex items-center space-x-2 mt-2">
             <div className="relative flex-1 max-w-sm">
@@ -560,7 +596,10 @@ export default function AdsStatsPage() {
             <Table>
               <TableHeader className="bg-gray-100 dark:bg-gray-900">
                 <TableRow className="cursor-pointer text-center">
-                  <TableHead className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center" onClick={() => handleSort("productName")}>
+                  <TableHead
+                    className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
+                    onClick={() => handleSort("productName")}
+                  >
                     Product Name
                     {sortField === "productName" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
                   </TableHead>
@@ -573,10 +612,21 @@ export default function AdsStatsPage() {
                   </TableHead>
                   <TableHead
                     className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
+                    onClick={() => handleSort("totalQuantity")}
+                  >
+                    Total Qty
+                    {sortField === "totalQuantity" && (
+                      <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
                     onClick={() => handleSort("sellingPrice")}
                   >
                     Selling Price
-                    {sortField === "sellingPrice" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                    {sortField === "sellingPrice" && (
+                      <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                    )}
                   </TableHead>
                   <TableHead
                     className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
@@ -585,10 +635,18 @@ export default function AdsStatsPage() {
                     Total Amount
                     {sortField === "totalAmount" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
                   </TableHead>
-                  <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center">AD Cost</TableHead>
-                  <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center">Average Cost</TableHead>
-                  <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center">Total Cost</TableHead>
-                  <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center text-mainColor">Profit</TableHead>
+                  <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center">
+                    AD Cost
+                  </TableHead>
+                  <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center">
+                    Average Cost
+                  </TableHead>
+                  <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center">
+                    Total Cost
+                  </TableHead>
+                  <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center text-mainColor">
+                    Profit
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -603,6 +661,7 @@ export default function AdsStatsPage() {
                       <TableRow key={product.productName}>
                         <TableCell className="font-medium">{product.productName}</TableCell>
                         <TableCell className="text-right">{product.totalOrders}</TableCell>
+                        <TableCell className="text-right">{product.totalQuantity}</TableCell>
                         <TableCell className="text-right">{formatNumber(product.sellingPrice)}</TableCell>
                         <TableCell className="text-right">{formatNumber(product.totalAmount)}</TableCell>
                         <TableCell>
@@ -640,7 +699,7 @@ export default function AdsStatsPage() {
                   })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center">
+                    <TableCell colSpan={9} className="h-24 text-center">
                       {processedData.length === 0 ? (
                         <div className="flex flex-col items-center justify-center">
                           <p className="text-muted-foreground">No products found</p>
@@ -670,6 +729,7 @@ export default function AdsStatsPage() {
                   <TableRow className="bg-muted/50 font-medium">
                     <TableCell className="text-mainColor font-bold">TOTALS</TableCell>
                     <TableCell className="text-right">{totals.totalOrders}</TableCell>
+                    <TableCell className="text-right">{totals.totalQuantity}</TableCell>
                     <TableCell className="text-right">-</TableCell>
                     <TableCell className="text-right">{formatNumber(totals.totalAmount)}</TableCell>
                     <TableCell>{formatNumber(totals.totalAdCost)}</TableCell>
@@ -688,7 +748,7 @@ export default function AdsStatsPage() {
 
           {/* Pagination */}
           {processedData.length > rowsPerPage && (
-            <div className="flex items-center justify-between space-x-2 py-4">
+            <div className="flex items-center justify-between space-x-1 py-2">
               <div className="text-sm text-muted-foreground">
                 Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, processedData.length)} of{" "}
                 {processedData.length} entries
