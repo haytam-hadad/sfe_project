@@ -29,7 +29,7 @@ export default function SettingsPage() {
   const { user, loading: authLoading, token } = useAuth()
   const { statusConfig, setStatusConfig } = useStatusConfig()
   const { sheetData, loadingSheetData, errorSheetData, refreshSheetData } = useSheetData()
-  const { conversionRate, setConversionRate } = useApp()
+  const { conversionRate, updateConversionRate } = useApp()
   const [localConversionRate, setLocalConversionRate] = useState(conversionRate)
 
   // Status config state
@@ -161,7 +161,7 @@ export default function SettingsPage() {
       return
     }
 
-    setConversionRate(newRate)
+    updateConversionRate(newRate) // <-- use this instead of setConversionRate
     toast({
       title: "Rate updated",
       description: "Currency conversion rate has been updated successfully.",

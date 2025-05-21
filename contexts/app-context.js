@@ -63,9 +63,9 @@ export function AppProvider({ children }) {
   const [conversionRate, setConversionRate] = useState(() => {
     if (typeof window !== 'undefined') {
       const storedRate = localStorage.getItem('currencyConversionRate');
-      return storedRate ? parseFloat(storedRate) : 1;
+      return storedRate ? parseFloat(storedRate) : 0.007; // <-- use 0.007 as default
     }
-    return 1;
+    return 0.007; // <-- use 0.007 as default
   });
 
   // Function to fetch sheet data
@@ -272,6 +272,7 @@ export function AppProvider({ children }) {
     loadingSheetData,
     errorSheetData,
     refreshSheetData,
+    updateConversionRate, // <-- add this line
   }
 
   return (
