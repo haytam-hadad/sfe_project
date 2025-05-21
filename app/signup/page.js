@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2, AlertCircle, CheckCircle } from "lucide-react"
+import { LoaderCircle, AlertCircle, CheckCircle } from "lucide-react"
 
 export default function SignupPage() {
   const [username, setUsername] = useState("")
@@ -209,7 +209,7 @@ export default function SignupPage() {
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
                   Creating User...
                 </>
               ) : (

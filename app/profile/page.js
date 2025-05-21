@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { User, Mail, Key, FileSpreadsheet, Eye, EyeOff, AlertCircle, CheckCircle2, Loader2, Camera } from "lucide-react"
+import { User, Mail, Key, FileSpreadsheet, Eye, EyeOff, AlertCircle, CheckCircle2, LoaderCircle, Camera } from "lucide-react"
 
 export default function ProfilePage() {
   const { user, updateProfile, changePassword, updateSheetUrl } = useAuth()
@@ -363,7 +363,7 @@ export default function ProfilePage() {
                     <Button type="submit" className="flex-1" disabled={isUpdatingProfile}>
                       {isUpdatingProfile ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
                           Updating...
                         </>
                       ) : (
@@ -476,7 +476,7 @@ export default function ProfilePage() {
                 <Button type="submit" className="w-full sm:w-auto mt-2" disabled={isChangingPassword}>
                   {isChangingPassword ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
                       Changing Password...
                     </>
                   ) : (
@@ -571,7 +571,7 @@ export default function ProfilePage() {
                     <Button type="submit" className="flex-1" disabled={isUpdatingSheet}>
                       {isUpdatingSheet ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
                           Updating...
                         </>
                       ) : (

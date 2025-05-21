@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import {
-  Loader2,
+  LoaderCircle,
   RefreshCwIcon,
   DownloadIcon,
   FilterIcon,
@@ -279,7 +279,7 @@ export default function CityStatsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
       </div>
     )
   }
