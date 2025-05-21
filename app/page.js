@@ -71,7 +71,7 @@ export default function Page() {
     const statuses = [...new Set(orders.map((order) => order["STATUS"]).filter(Boolean))].sort()
     const products = [...new Set(orders.map((order) => order["sku number"]).filter(Boolean))].sort()
     const cities = [...new Set(orders.map((order) => order["City"]).filter(Boolean))].sort()
-    const countries = [...new Set(orders.map((order) => order["Receier Country*"]).filter(Boolean))].sort()
+    const countries = [...new Set(orders.map((order) => order["Receier Country"]).filter(Boolean))].sort()
     return { statuses, products, cities, countries }
   }, [orders])
 
@@ -132,7 +132,7 @@ export default function Page() {
       // City filter
       if (filters.city && order["City"] !== filters.city) return false
       // Country filter
-      if (filters.country && order["Receier Country*"] !== filters.country) return false
+      if (filters.country && order["Receier Country"] !== filters.country) return false
       return true
     })
   }, [orders, filters])
@@ -234,7 +234,7 @@ export default function Page() {
 
     // Country distribution data
     const countryCounts = filteredOrders.reduce((acc, order) => {
-      const country = order["Receier Country*"] || "Unknown"
+      const country = order["Receier Country"] || "Unknown"
       acc[country] = (acc[country] || 0) + 1
       return acc
     }, {})

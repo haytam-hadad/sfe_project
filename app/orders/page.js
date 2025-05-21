@@ -57,7 +57,7 @@ export default function OrdersDashboard() {
     "Cod Amount": true,
     Quantity: true,
     City: true,
-    "Receier Country*": true,
+    "Receier Country": true,
     STATUS: true,
   })
 
@@ -91,7 +91,7 @@ export default function OrdersDashboard() {
   // Memoized derivations
   const countries = useMemo(() => {
     if (!orders.length) return []
-    const uniqueCountries = [...new Set(orders.map((order) => order["Receier Country*"]).filter(Boolean))]
+    const uniqueCountries = [...new Set(orders.map((order) => order["Receier Country"]).filter(Boolean))]
     return uniqueCountries.sort()
   }, [orders])
 
@@ -136,7 +136,7 @@ export default function OrdersDashboard() {
         }
 
         const matchesStatus = !filters.status || order["STATUS"] === filters.status
-        const matchesCountry = !filters.country || order["Receier Country*"] === filters.country
+        const matchesCountry = !filters.country || order["Receier Country"] === filters.country
         const matchesCity = !filters.city || order["City"] === filters.city
 
         let matchesDateRange = true
@@ -836,18 +836,18 @@ export default function OrdersDashboard() {
                   </div>
                 </TableHead>
               )}
-              {visibleColumns["Receier Country*"] && (
+              {visibleColumns["Receier Country"] && (
                 <TableHead
                   className="cursor-pointer select-none"
-                  onClick={() => handleSort("Receier Country*")}
+                  onClick={() => handleSort("Receier Country")}
                   role="columnheader"
-                  aria-sort={sortField === "Receier Country*" ? sortDirection : "none"}
+                  aria-sort={sortField === "Receier Country" ? sortDirection : "none"}
                 >
                   <div className="flex justify-center items-center">
-                    <span className={sortField === "Receier Country*" ? "text-green-600 font-medium" : ""}>
+                    <span className={sortField === "Receier Country" ? "text-green-600 font-medium" : ""}>
                       Country
                     </span>
-                    {sortField === "Receier Country*" ? (
+                    {sortField === "Receier Country" ? (
                       sortDirection === "asc" ? (
                         <ArrowUpIcon className="ml-1 h-4 w-4" />
                       ) : (
@@ -932,8 +932,8 @@ export default function OrdersDashboard() {
                       </div>
                     </TableCell>
                   )}
-                  {visibleColumns["Receier Country*"] && (
-                    <TableCell className="text-center">{order["Receier Country*"]}</TableCell>
+                  {visibleColumns["Receier Country"] && (
+                    <TableCell className="text-center">{order["Receier Country"]}</TableCell>
                   )}
                   {visibleColumns["STATUS"] && (
                     <TableCell className="text-center">{getStatusBadge(order["STATUS"])}</TableCell>
