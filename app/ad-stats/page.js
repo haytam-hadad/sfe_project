@@ -116,7 +116,7 @@ export default function AdsStatsPage() {
     }
   }, [token, sheetData, loadingSheetData, refreshSheetData])
 
-  // Process data to get unique products and their order counts
+  // Replace the existing processedData useMemo with this updated version that calculates average selling price
   const processedData = useMemo(() => {
     if (!sheetData || !sheetData.length) return []
 
@@ -160,7 +160,7 @@ export default function AdsStatsPage() {
           productName: product,
           totalOrders: 0,
           totalAmount: 0,
-          sellingPrice: 0,
+          orderAmounts: [], // Track all order amounts to calculate average
           totalQuantity: 0,
         })
       }
@@ -176,11 +176,22 @@ export default function AdsStatsPage() {
       const amount = extractAmount(order)
       if (amount) {
         productData.totalAmount += amount
-        // Set selling price if not already set
-        if (productData.sellingPrice === 0) {
-          productData.sellingPrice = amount
-        }
+        // Add this order's amount to the array for averaging later
+        productData.orderAmounts.push(amount)
       }
+    })
+
+    // Calculate average selling price for each product
+    productMap.forEach((product) => {
+      if (product.orderAmounts.length > 0) {
+        // Calculate average selling price from all orders
+        product.sellingPrice =
+          product.orderAmounts.reduce((sum, amount) => sum + amount, 0) / product.orderAmounts.length
+      } else {
+        product.sellingPrice = 0
+      }
+      // Remove the orderAmounts array as it's no longer needed
+      delete product.orderAmounts
     })
 
     let result = Array.from(productMap.values())
@@ -254,24 +265,24 @@ export default function AdsStatsPage() {
     return product.totalAmount - totalCost
   }
 
+  // Replace the handleExport function to remove profit column
   const handleExport = () => {
     if (!processedData.length) return
 
     // Create CSV content
     let csvContent = "data:text/csv;charset=utf-8,"
 
-    // Add headers
+    // Add headers - removed Profit column
     csvContent +=
-      "Product Name,Total Orders,Total Quantity,Selling Price,Total Amount,AD Cost,Average Cost,Total Cost,Profit\n"
+      "Product Name,Total Orders,Total Quantity,Selling Price,Total Amount,AD Cost,Average Cost,Total Cost\n"
 
-    // Add data rows
+    // Add data rows - removed profit column
     processedData.forEach((product) => {
       const adCost = Number.parseFloat(productCosts[product.productName] || 0)
       const avgCost = Number.parseFloat(productAvgCosts[product.productName] || 0)
       const totalCost = calculateTotalCost(product)
-      const profit = calculateProfit(product)
 
-      csvContent += `"${product.productName}",${product.totalOrders},${product.totalQuantity},${product.sellingPrice.toFixed(2)},${product.totalAmount.toFixed(2)},${adCost.toFixed(2)},${avgCost.toFixed(2)},${totalCost.toFixed(2)},${profit.toFixed(2)}\n`
+      csvContent += `"${product.productName}",${product.totalOrders},${product.totalQuantity},${product.sellingPrice.toFixed(2)},${product.totalAmount.toFixed(2)},${adCost.toFixed(2)},${avgCost.toFixed(2)},${totalCost.toFixed(2)}\n`
     })
 
     // Create download link
@@ -286,19 +297,29 @@ export default function AdsStatsPage() {
     document.body.removeChild(link)
   }
 
-  // Reset local filters
+  // Update the resetLocalFilters function to use the shared resetAllFilters
   const resetLocalFilters = () => {
     setLocalFilters({
       minAmount: "",
       maxAmount: "",
     })
+
+    // Save the reset state to localStorage
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("localFilters")
+    }
   }
 
-  // Reset all filters
+  // Update the handleResetAllFilters function to use the shared resetAllFilters
   const handleResetAllFilters = () => {
     resetFilters()
     resetLocalFilters()
     setSearchTerm("")
+
+    // Save the reset state to localStorage
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("searchTerm")
+    }
   }
 
   // Handle sorting
@@ -325,7 +346,6 @@ export default function AdsStatsPage() {
         totalAmount: 0,
         totalAdCost: 0,
         totalCost: 0,
-        totalProfit: 0,
         totalQuantity: 0,
       }
 
@@ -335,7 +355,6 @@ export default function AdsStatsPage() {
 
     let totalAdCost = 0
     let totalCost = 0
-    let totalProfit = 0
 
     processedData.forEach((product) => {
       const adCost = Number.parseFloat(productCosts[product.productName] || 0)
@@ -343,10 +362,9 @@ export default function AdsStatsPage() {
 
       const cost = calculateTotalCost(product)
       totalCost += cost
-      totalProfit += calculateProfit(product)
     })
 
-    return { totalOrders, totalAmount, totalAdCost, totalCost, totalProfit, totalQuantity }
+    return { totalOrders, totalAmount, totalAdCost, totalCost, totalQuantity }
   }, [processedData, productCosts, productAvgCosts])
 
   // Handle refresh data
@@ -448,19 +466,6 @@ export default function AdsStatsPage() {
               </div>
               <div className="bg-yellow-100 p-3 rounded-full dark:bg-yellow-900">
                 <DollarSign className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-purple-500">
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Profit</p>
-                <h3 className="text-2xl font-bold">{formatNumber(totals.totalProfit)}</h3>
-              </div>
-              <div className="bg-purple-100 p-3 rounded-full dark:bg-purple-900">
-                <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
           </CardContent>
@@ -586,159 +591,138 @@ export default function AdsStatsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border overflow-hidden">
-            <Table>
-              <TableHeader className="bg-gray-100 dark:bg-gray-900">
-                <TableRow className="cursor-pointer text-center">
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
-                    onClick={() => handleSort("productName")}
-                  >
-                    Product Name
-                    {sortField === "productName" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
-                    onClick={() => handleSort("totalOrders")}
-                  >
-                    Total Orders
-                    {sortField === "totalOrders" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
-                    onClick={() => handleSort("totalQuantity")}
-                  >
-                    Total Qty
-                    {sortField === "totalQuantity" && (
-                      <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+          <Table className="bg-gray-100 dark:bg-gray-900">
+            <TableHeader>
+              <TableRow className="cursor-pointer text-center">
+                <TableHead
+                  className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
+                  onClick={() => handleSort("productName")}
+                >
+                  Product Name
+                  {sortField === "productName" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                </TableHead>
+                <TableHead
+                  className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
+                  onClick={() => handleSort("totalOrders")}
+                >
+                  Total Orders
+                  {sortField === "totalOrders" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                </TableHead>
+                <TableHead
+                  className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
+                  onClick={() => handleSort("totalQuantity")}
+                >
+                  Total Qty
+                  {sortField === "totalQuantity" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                </TableHead>
+                <TableHead
+                  className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
+                  onClick={() => handleSort("sellingPrice")}
+                >
+                  Avg Selling Price
+                  {sortField === "sellingPrice" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                </TableHead>
+                <TableHead
+                  className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
+                  onClick={() => handleSort("totalAmount")}
+                >
+                  Total Amount
+                  {sortField === "totalAmount" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                </TableHead>
+                <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center">AD Cost</TableHead>
+                <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center">
+                  Average Cost
+                </TableHead>
+                <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center">
+                  Total Cost
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {currentItems.length > 0 ? (
+                currentItems.map((product) => {
+                  const adCost = Number.parseFloat(productCosts[product.productName] || 0)
+                  const avgCost = Number.parseFloat(productAvgCosts[product.productName] || 0)
+                  const totalCost = calculateTotalCost(product)
+                  const profit = calculateProfit(product)
+
+                  return (
+                    <TableRow key={product.productName}>
+                      <TableCell className="font-medium">{product.productName}</TableCell>
+                      <TableCell className="text-right">{product.totalOrders}</TableCell>
+                      <TableCell className="text-right">{product.totalQuantity}</TableCell>
+                      <TableCell className="text-right">{formatNumber(product.sellingPrice)}</TableCell>
+                      <TableCell className="text-right">{formatNumber(product.totalAmount)}</TableCell>
+                      <TableCell>
+                        <div className="relative">
+                          <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="number"
+                            value={productCosts[product.productName] || ""}
+                            onChange={(e) => handleCostChange(product.productName, e.target.value)}
+                            placeholder="0.00"
+                            className="pl-8 w-full border border-b border-b-black dark:border-b-white"
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="relative">
+                          <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="number"
+                            value={productAvgCosts[product.productName] || ""}
+                            onChange={(e) => handleAvgCostChange(product.productName, e.target.value)}
+                            placeholder="0.00"
+                            className="pl-8 w-full border border-b border-b-black dark:border-b-white"
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">{formatNumber(totalCost)}</TableCell>
+                    </TableRow>
+                  )
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={9} className="h-24 text-center">
+                    {processedData.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center">
+                        <p className="text-muted-foreground">No products found</p>
+                        {(searchTerm ||
+                          Object.values(localFilters).some((v) => v) ||
+                          filters.startDate ||
+                          filters.endDate ||
+                          filters.product ||
+                          filters.city ||
+                          filters.country) && (
+                          <Button variant="ghost" size="sm" onClick={handleResetAllFilters} className="mt-2">
+                            Clear all filters
+                          </Button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex justify-center">
+                        <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+                      </div>
                     )}
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
-                    onClick={() => handleSort("sellingPrice")}
-                  >
-                    Selling Price
-                    {sortField === "sellingPrice" && (
-                      <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                    )}
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
-                    onClick={() => handleSort("totalAmount")}
-                  >
-                    Total Amount
-                    {sortField === "totalAmount" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                  </TableHead>
-                  <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center">
-                    AD Cost
-                  </TableHead>
-                  <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center">
-                    Average Cost
-                  </TableHead>
-                  <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center">
-                    Total Cost
-                  </TableHead>
-                  <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center text-mainColor">
-                    Profit
-                  </TableHead>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {currentItems.length > 0 ? (
-                  currentItems.map((product) => {
-                    const adCost = Number.parseFloat(productCosts[product.productName] || 0)
-                    const avgCost = Number.parseFloat(productAvgCosts[product.productName] || 0)
-                    const totalCost = calculateTotalCost(product)
-                    const profit = calculateProfit(product)
+              )}
 
-                    return (
-                      <TableRow key={product.productName}>
-                        <TableCell className="font-medium">{product.productName}</TableCell>
-                        <TableCell className="text-right">{product.totalOrders}</TableCell>
-                        <TableCell className="text-right">{product.totalQuantity}</TableCell>
-                        <TableCell className="text-right">{formatNumber(product.sellingPrice)}</TableCell>
-                        <TableCell className="text-right">{formatNumber(product.totalAmount)}</TableCell>
-                        <TableCell>
-                          <div className="relative">
-                            <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              type="number"
-                              value={productCosts[product.productName] || ""}
-                              onChange={(e) => handleCostChange(product.productName, e.target.value)}
-                              placeholder="0.00"
-                              className="pl-8 w-full border border-b border-b-black dark:border-b-white"
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="relative">
-                            <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              type="number"
-                              value={productAvgCosts[product.productName] || ""}
-                              onChange={(e) => handleAvgCostChange(product.productName, e.target.value)}
-                              placeholder="0.00"
-                              className="pl-8 w-full border border-b border-b-black dark:border-b-white"
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">{formatNumber(totalCost)}</TableCell>
-                        <TableCell
-                          className={`text-right font-medium ${profit >= 0 ? "text-green-600" : "text-red-600"}`}
-                        >
-                          {formatNumber(profit)}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={9} className="h-24 text-center">
-                      {processedData.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center">
-                          <p className="text-muted-foreground">No products found</p>
-                          {(searchTerm ||
-                            Object.values(localFilters).some((v) => v) ||
-                            filters.startDate ||
-                            filters.endDate ||
-                            filters.product ||
-                            filters.city ||
-                            filters.country) && (
-                            <Button variant="ghost" size="sm" onClick={handleResetAllFilters} className="mt-2">
-                              Clear all filters
-                            </Button>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="flex justify-center">
-                          <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
-                        </div>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                )}
-
-                {/* Totals row */}
-                {currentItems.length > 0 && (
-                  <TableRow className="bg-muted/50 font-medium">
-                    <TableCell className="text-mainColor font-bold">TOTALS</TableCell>
-                    <TableCell className="text-right">{totals.totalOrders}</TableCell>
-                    <TableCell className="text-right">{totals.totalQuantity}</TableCell>
-                    <TableCell className="text-right">-</TableCell>
-                    <TableCell className="text-right">{formatNumber(totals.totalAmount)}</TableCell>
-                    <TableCell>{formatNumber(totals.totalAdCost)}</TableCell>
-                    <TableCell>-</TableCell>
-                    <TableCell className="text-right">{formatNumber(totals.totalCost)}</TableCell>
-                    <TableCell
-                      className={`text-right font-medium ${totals.totalProfit >= 0 ? "text-green-600" : "text-red-600"}`}
-                    >
-                      {formatNumber(totals.totalProfit)}
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+              {/* Totals row */}
+              {currentItems.length > 0 && (
+                <TableRow className="bg-muted/50 font-medium">
+                  <TableCell className="text-mainColor font-bold">TOTALS</TableCell>
+                  <TableCell className="text-right">{totals.totalOrders}</TableCell>
+                  <TableCell className="text-right">{totals.totalQuantity}</TableCell>
+                  <TableCell className="text-right">-</TableCell>
+                  <TableCell className="text-right">{formatNumber(totals.totalAmount)}</TableCell>
+                  <TableCell>{formatNumber(totals.totalAdCost)}</TableCell>
+                  <TableCell>-</TableCell>
+                  <TableCell className="text-right">{formatNumber(totals.totalCost)}</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
 
           {/* Pagination */}
           {processedData.length > rowsPerPage && (

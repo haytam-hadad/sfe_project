@@ -1,29 +1,29 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, useCallback } from "react"
-import { defaultStatusConfig } from "@/lib/status-config"
 import { fetchMySheetData } from "@/lib/api-client"
+import {
+  DEFAULT_STATUS_CONFIG,
+  DEFAULT_FILTERS,
+  DEFAULT_CONVERSION_RATE,
+  DEFAULT_CONVERSION_RATES,
+} from "@/lib/constants"
 
 // Create App Context
 const AppContext = createContext({
   theme: false,
   setTheme: () => {},
-  statusConfig: defaultStatusConfig,
+  statusConfig: DEFAULT_STATUS_CONFIG,
   setStatusConfig: () => {},
-  filters: {
-    timeRange: "all",
-    startDate: null,
-    endDate: null,
-    status: "",
-    product: "",
-    city: "",
-    country: "",
-  },
+  filters: DEFAULT_FILTERS,
   updateFilter: () => {},
   resetFilters: () => {},
   // Currency conversion
-  conversionRate: 0.007,
+  conversionRate: DEFAULT_CONVERSION_RATE,
   setConversionRate: () => {},
+  countryRates: DEFAULT_CONVERSION_RATES,
+  updateCountryRate: () => {},
+  getCountryRate: () => {},
   convertToUSD: () => {},
   formatCurrency: () => {},
   formatAmount: () => {},
@@ -41,71 +41,114 @@ export function AppProvider({ children }) {
   const [theme, setTheme] = useState(false)
 
   // Status Config state
-  const [statusConfig, setStatusConfig] = useState(defaultStatusConfig)
+  const [statusConfig, setStatusConfig] = useState(DEFAULT_STATUS_CONFIG)
 
   // Sheet data state
   const [sheetData, setSheetData] = useState([])
   const [loadingSheetData, setLoadingSheetData] = useState(false)
   const [errorSheetData, setErrorSheetData] = useState(null)
 
-  // Filter states
-  const [filters, setFilters] = useState({
-    timeRange: "all",
-    startDate: null,
-    endDate: null,
-    status: "",
-    product: "",
-    city: "",
-    country: "",
+  // Global shared filters state
+  const [filters, setFilters] = useState(() => {
+    if (typeof window !== "undefined") {
+      const savedFilters = localStorage.getItem("globalFilters")
+      if (savedFilters) {
+        try {
+          const parsedFilters = JSON.parse(savedFilters)
+          // Convert date strings back to Date objects if they exist
+          if (parsedFilters.startDate) {
+            parsedFilters.startDate = parsedFilters.startDate
+          }
+          if (parsedFilters.endDate) {
+            parsedFilters.endDate = parsedFilters.endDate
+          }
+          return parsedFilters
+        } catch (error) {
+          console.error("Failed to parse saved filters:", error)
+        }
+      }
+    }
+    return DEFAULT_FILTERS
   })
 
   // Initialize conversion rate from localStorage safely
   const [conversionRate, setConversionRate] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const storedRate = localStorage.getItem('currencyConversionRate');
-      return storedRate ? parseFloat(storedRate) : 0.007; // <-- use 0.007 as default
+    if (typeof window !== "undefined") {
+      const storedRate = localStorage.getItem("currencyConversionRate")
+      return storedRate ? Number.parseFloat(storedRate) : DEFAULT_CONVERSION_RATE
     }
-    return 0.007; // <-- use 0.007 as default
-  });
+    return DEFAULT_CONVERSION_RATE
+  })
+
+  // Initialize country-specific conversion rates from localStorage
+  const [countryRates, setCountryRates] = useState(() => {
+    if (typeof window !== "undefined") {
+      const storedRates = localStorage.getItem("countryConversionRates")
+      return storedRates ? JSON.parse(storedRates) : DEFAULT_CONVERSION_RATES
+    }
+    return DEFAULT_CONVERSION_RATES
+  })
 
   // Function to fetch sheet data
   const refreshSheetData = useCallback(async (token) => {
-    if (!token) return;
-    
-    setLoadingSheetData(true);
-    setErrorSheetData(null);
-    
+    if (!token) return
+
+    setLoadingSheetData(true)
+    setErrorSheetData(null)
+
     try {
-      const result = await fetchMySheetData(token);
-      
+      const result = await fetchMySheetData(token)
+
       if (!result || !Array.isArray(result)) {
-        throw new Error('Invalid data format received');
+        throw new Error("Invalid data format received")
       }
-      
+
       // Process the data to ensure we capture all statuses
       const processedData = result.map((order) => {
         if (order["STATUS"] !== undefined) {
-          order["STATUS"] = String(order["STATUS"]).trim();
+          order["STATUS"] = String(order["STATUS"]).trim()
         }
-        return order;
-      });
-      
-      setSheetData(processedData);
+        return order
+      })
+
+      setSheetData(processedData)
     } catch (error) {
-      console.error('Error fetching sheet data:', error);
-      setErrorSheetData(error.message || 'Failed to fetch data');
+      console.error("Error fetching sheet data:", error)
+      setErrorSheetData(error.message || "Failed to fetch data")
     } finally {
-      setLoadingSheetData(false);
+      setLoadingSheetData(false)
     }
-  }, []);
+  }, [])
 
   // Update conversion rate and save to localStorage
   const updateConversionRate = useCallback((newRate) => {
-    setConversionRate(newRate);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('currencyConversionRate', newRate.toString());
+    setConversionRate(newRate)
+    if (typeof window !== "undefined") {
+      localStorage.setItem("currencyConversionRate", newRate.toString())
     }
-  }, []);
+  }, [])
+
+  // Update country-specific conversion rate
+  const updateCountryRate = useCallback((country, rate) => {
+    setCountryRates((prev) => {
+      const newRates = { ...prev, [country]: Number.parseFloat(rate) }
+
+      // Save to localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem("countryConversionRates", JSON.stringify(newRates))
+      }
+
+      return newRates
+    })
+  }, [])
+
+  // Get country-specific conversion rate
+  const getCountryRate = useCallback(
+    (country) => {
+      return countryRates[country] || conversionRate
+    },
+    [countryRates, conversionRate],
+  )
 
   // Load theme from localStorage
   useEffect(() => {
@@ -157,98 +200,112 @@ export function AppProvider({ children }) {
     }
   }, [statusConfig])
 
-  // Load filters from localStorage
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedFilters = localStorage.getItem("filters")
-      if (savedFilters) {
-        try {
-          const parsedFilters = JSON.parse(savedFilters)
-          // Convert date strings back to Date objects
-          if (parsedFilters.startDate) {
-            parsedFilters.startDate = new Date(parsedFilters.startDate)
-          }
-          if (parsedFilters.endDate) {
-            parsedFilters.endDate = new Date(parsedFilters.endDate)
-          }
-          setFilters(parsedFilters)
-        } catch (error) {
-          console.error("Failed to parse saved filters:", error)
-        }
-      }
-    }
-  }, [])
-
   // Save filters to localStorage when they change
   useEffect(() => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("filters", JSON.stringify(filters))
+      localStorage.setItem("globalFilters", JSON.stringify(filters))
     }
   }, [filters])
 
-  // Update filter function
-  const updateFilter = (key, value) => {
-    setFilters(prev => {
+  // Update filter function - enhanced to handle shared filters
+  const updateFilter = useCallback((key, value) => {
+    setFilters((prev) => {
       const newFilters = {
         ...prev,
-        [key]: value
+        [key]: value,
       }
+
+      // Save to localStorage immediately
+      if (typeof window !== "undefined") {
+        localStorage.setItem("globalFilters", JSON.stringify(newFilters))
+      }
+
       return newFilters
     })
-  }
+  }, [])
 
-  // Reset filters function
-  const resetFilters = () => {
-    const defaultFilters = {
-      timeRange: "all",
-      startDate: null,
-      endDate: null,
-      status: "",
-      product: "",
-      city: "",
-      country: "",
+  // Reset filters function - enhanced to properly reset all shared filters
+  const resetFilters = useCallback(() => {
+    // Reset to default filters
+    setFilters(DEFAULT_FILTERS)
+
+    // Clear localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem("globalFilters", JSON.stringify(DEFAULT_FILTERS))
+
+      // Also clear any page-specific filter storage
+      localStorage.removeItem("localFilters")
+      localStorage.removeItem("searchTerm")
+      localStorage.removeItem("sortField")
+      localStorage.removeItem("sortDirection")
+
+      // Clear URL parameters if applicable
+      try {
+        const url = new URL(window.location.href)
+        url.searchParams.delete("startDate")
+        url.searchParams.delete("endDate")
+        url.searchParams.delete("product")
+        url.searchParams.delete("city")
+        url.searchParams.delete("country")
+        url.searchParams.delete("status")
+        url.searchParams.delete("search")
+        window.history.pushState({}, "", url)
+      } catch (e) {
+        console.error("Error clearing URL parameters:", e)
+      }
     }
-    setFilters(defaultFilters)
-  }
+
+    // Notify user if needed
+    console.log("All filters have been reset")
+
+    return DEFAULT_FILTERS
+  }, [])
 
   // Function to convert amount to USD
-  const convertToUSD = (amount) => {
-    if (!amount || isNaN(amount)) return 0;
-    const usdAmount = amount * conversionRate;
-    return Number(usdAmount.toFixed(2));
-  }
+  const convertToUSD = useCallback(
+    (amount, country) => {
+      if (!amount || isNaN(amount)) return 0
+      const rate = getCountryRate(country)
+      const usdAmount = amount * rate
+      return Number(usdAmount.toFixed(2))
+    },
+    [getCountryRate],
+  )
 
   // Function to format number as currency
-  const formatCurrency = (amount, currency = 'USD') => {
-    if (!amount || isNaN(amount)) return '$0.00';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
+  const formatCurrency = useCallback((amount, currency = "USD") => {
+    if (!amount || isNaN(amount)) return "$0.00"
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
       currency: currency,
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
-  };
+      maximumFractionDigits: 2,
+    }).format(amount)
+  }, [])
 
   // Function to format amount
-  const formatAmount = (amount) => {
-    if (!amount || isNaN(amount)) return '$0';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+  const formatAmount = useCallback((amount) => {
+    if (!amount || isNaN(amount)) return "$0"
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
+      maximumFractionDigits: 0,
+    }).format(amount)
+  }, [])
 
   // Function to convert and format to USD
-  const formatAsUSD = (amount) => {
-    const usdAmount = convertToUSD(amount);
-    return formatCurrency(usdAmount);
-  };
+  const formatAsUSD = useCallback(
+    (amount, country) => {
+      const usdAmount = convertToUSD(amount, country)
+      return formatCurrency(usdAmount)
+    },
+    [convertToUSD, formatCurrency],
+  )
 
   // Theme toggle function
   const toggleTheme = () => {
-    setTheme(theme => !theme)
+    setTheme((theme) => !theme)
   }
 
   const contextValue = {
@@ -262,6 +319,9 @@ export function AppProvider({ children }) {
     // Currency conversion
     conversionRate,
     setConversionRate,
+    countryRates,
+    updateCountryRate,
+    getCountryRate,
     convertToUSD,
     formatCurrency,
     formatAmount,
@@ -272,14 +332,10 @@ export function AppProvider({ children }) {
     loadingSheetData,
     errorSheetData,
     refreshSheetData,
-    updateConversionRate, // <-- add this line
+    updateConversionRate,
   }
 
-  return (
-    <AppContext.Provider value={contextValue}>
-      {children}
-    </AppContext.Provider>
-  )
+  return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
 }
 
 // Custom hook to use the app context

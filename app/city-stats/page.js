@@ -31,7 +31,7 @@ export default function CityStatsPage() {
 
   // Effect to show filters when any filter is active
   useEffect(() => {
-    const hasActiveFilters = filters.city || filters.product || filters.startDate || filters.endDate
+    const hasActiveFilters = filters.city || filters.product || filters.startDate || filters.endDate || filters.country
     setShowFilters(hasActiveFilters)
   }, [filters])
 
@@ -47,6 +47,13 @@ export default function CityStatsPage() {
     if (!orders.length) return []
     const uniqueProducts = [...new Set(orders.map((order) => order["sku number"]).filter(Boolean))]
     return uniqueProducts.sort()
+  }, [orders])
+
+  // Extract unique countries
+  const countries = useMemo(() => {
+    if (!orders.length) return []
+    const uniqueCountries = [...new Set(orders.map((order) => order["Receiver Country"]).filter(Boolean))]
+    return uniqueCountries.sort()
   }, [orders])
 
   // Pagination states
@@ -67,6 +74,11 @@ export default function CityStatsPage() {
 
       // Product filter
       if (filters.product && order["sku number"] !== filters.product) {
+        return false
+      }
+
+      // Country filter
+      if (filters.country && order["Receiver Country"] !== filters.country) {
         return false
       }
 
@@ -335,7 +347,9 @@ export default function CityStatsPage() {
                 size="sm"
                 className="ml-auto"
                 onClick={resetFilters}
-                disabled={!filters.city && !filters.product && !filters.startDate && !filters.endDate}
+                disabled={
+                  !filters.city && !filters.product && !filters.startDate && !filters.endDate && !filters.country
+                }
               >
                 <XCircleIcon className="mr-1 text-mainColor h-4 w-4" />
                 Clear Filters
@@ -378,6 +392,26 @@ export default function CityStatsPage() {
                   {cities.map((city) => (
                     <option key={city} value={city}>
                       {city}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Country Filter */}
+              <div>
+                <label htmlFor="country-filter" className="block text-sm font-medium mb-1">
+                  Filter by Country
+                </label>
+                <select
+                  id="country-filter"
+                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
+                  value={filters.country || ""}
+                  onChange={(e) => updateFilter("country", e.target.value)}
+                >
+                  <option value="">All Countries</option>
+                  {countries.map((country) => (
+                    <option key={country} value={country}>
+                      {country}
                     </option>
                   ))}
                 </select>
@@ -607,11 +641,11 @@ export default function CityStatsPage() {
                     <div className="flex flex-col items-center justify-center">
                       <p className="text-lg font-medium mb-2">No data available</p>
                       <p className="text-sm max-w-md">
-                        {filters.city || filters.product || filters.startDate || filters.endDate
+                        {filters.city || filters.product || filters.startDate || filters.endDate || filters.country
                           ? "Try adjusting your filters to see more results."
                           : "There are no city statistics to display. Try refreshing or check back later."}
                       </p>
-                      {(filters.city || filters.product || filters.startDate || filters.endDate) && (
+                      {(filters.city || filters.product || filters.startDate || filters.endDate || filters.country) && (
                         <Button variant="outline" className="mt-4" onClick={resetFilters}>
                           <XCircleIcon className="mr-1 h-4 w-4" />
                           Clear filters

@@ -39,7 +39,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useMobile } from "@/hooks/use-mobile"
 import { useAuth } from "@/contexts/auth-context"
-import { useFilters, useSheetData } from "@/contexts/app-context"
+import { useFilters, useSheetData, useApp } from "@/contexts/app-context"
 
 export default function OrdersDashboard() {
   // State management
@@ -50,6 +50,7 @@ export default function OrdersDashboard() {
   const { token } = useAuth()
   const { filters, updateFilter, resetFilters } = useFilters()
   const { sheetData: orders, loadingSheetData: loading, errorSheetData: error, refreshSheetData } = useSheetData()
+  const { formatCurrency, getCountryRate } = useApp()
   const [visibleColumns, setVisibleColumns] = useState({
     "Order date": true,
     "Order ID": true,
@@ -177,7 +178,17 @@ export default function OrdersDashboard() {
           return String(fieldB).localeCompare(String(fieldA))
         }
       })
-  }, [orders, searchQuery, filters.status, filters.country, filters.city, sortField, sortDirection])
+  }, [
+    orders,
+    searchQuery,
+    filters.status,
+    filters.country,
+    filters.city,
+    filters.startDate,
+    filters.endDate,
+    sortField,
+    sortDirection,
+  ])
 
   // Pagination logic
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage)
@@ -282,10 +293,13 @@ export default function OrdersDashboard() {
     updateFilter("city", value)
   }
 
-  const handleDateRangeChange = useCallback((start, end) => {
-    updateFilter("startDate", start?.toISOString())
-    updateFilter("endDate", end?.toISOString())
-  }, [updateFilter])
+  const handleDateRangeChange = useCallback(
+    (start, end) => {
+      updateFilter("startDate", start?.toISOString())
+      updateFilter("endDate", end?.toISOString())
+    },
+    [updateFilter],
+  )
 
   // UI Helper Functions
   const getStatusBadge = useCallback((status) => {
@@ -307,15 +321,23 @@ export default function OrdersDashboard() {
     }
   }, [])
 
-  const formatCurrency = useCallback((amount) => {
-    if (amount === undefined || amount === null || amount === "") return "—"
+  const formatOrderCurrency = useCallback(
+    (amount, country) => {
+      if (amount === undefined || amount === null || amount === "") return "—"
 
-    return new Intl.NumberFormat("en-US", {
-      style: "decimal",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(typeof amount === "string" ? Number.parseFloat(amount) : amount)
-  }, [])
+      // Apply country-specific conversion rate
+      const rate = getCountryRate(country)
+      const convertedAmount = amount * rate
+
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(convertedAmount)
+    },
+    [getCountryRate],
+  )
 
   // Pagination rendering
   const renderPaginationButtons = useCallback(() => {
@@ -490,11 +512,11 @@ export default function OrdersDashboard() {
                     <div className="text-xs sm:text-sm space-y-1">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Total Amount:</span>
-                        <span className="font-medium">{formatCurrency(orderStats.totalAmount)}</span>
+                        <span className="font-medium">{formatOrderCurrency(orderStats.totalAmount)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Total Quantity:</span>
-                        <span className="font-medium">{formatCurrency(orderStats.totalQuantity)}</span>
+                        <span className="font-medium">{orderStats.totalQuantity.toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
@@ -844,9 +866,7 @@ export default function OrdersDashboard() {
                   aria-sort={sortField === "Receier Country" ? sortDirection : "none"}
                 >
                   <div className="flex justify-center items-center">
-                    <span className={sortField === "Receier Country" ? "text-green-600 font-medium" : ""}>
-                      Country
-                    </span>
+                    <span className={sortField === "Receier Country" ? "text-green-600 font-medium" : ""}>Country</span>
                     {sortField === "Receier Country" ? (
                       sortDirection === "asc" ? (
                         <ArrowUpIcon className="ml-1 h-4 w-4" />
@@ -920,7 +940,9 @@ export default function OrdersDashboard() {
                     </TableCell>
                   )}
                   {visibleColumns["Cod Amount"] && (
-                    <TableCell className="text-center">{ `$` + formatCurrency(order["Cod Amount"])}</TableCell>
+                    <TableCell className="text-center">
+                      {formatOrderCurrency(order["Cod Amount"], order["Receier Country"])}
+                    </TableCell>
                   )}
                   {visibleColumns["Quantity"] && (
                     <TableCell className="text-center">{order["Quantity"] || "N/A"}</TableCell>
@@ -1004,7 +1026,7 @@ export default function OrdersDashboard() {
                     {key === "STATUS"
                       ? getStatusBadge(value)
                       : key === "Cod Amount"
-                        ? formatCurrency(value)
+                        ? formatOrderCurrency(value, selectedOrder["Receier Country"])
                         : value || "—"}
                   </div>
                 </div>

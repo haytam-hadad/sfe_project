@@ -20,7 +20,6 @@ import { useMobile } from "@/hooks/use-mobile"
 import { useStatusConfig, useFilters, useSheetData } from "@/contexts/app-context"
 import { useAuth } from "@/contexts/auth-context"
 import { matchesStatus } from "@/lib/status-config"
-import { fetchMySheetData } from "@/lib/api-client"
 
 export default function ProductStatsPage() {
   const [showFilters, setShowFilters] = useState(false)
@@ -38,7 +37,7 @@ export default function ProductStatsPage() {
 
   // Effect to show filters when any filter is active
   useEffect(() => {
-    const hasActiveFilters = filters.city || filters.product || filters.startDate || filters.endDate
+    const hasActiveFilters = filters.city || filters.product || filters.startDate || filters.endDate || filters.country
     setShowFilters(hasActiveFilters)
   }, [filters])
 
@@ -63,6 +62,13 @@ export default function ProductStatsPage() {
     return uniqueCities.sort()
   }, [orders])
 
+  // Extract unique countries
+  const countries = useMemo(() => {
+    if (!orders.length) return []
+    const uniqueCountries = [...new Set(orders.map((order) => order["Receiver Country"]).filter(Boolean))]
+    return uniqueCountries.sort()
+  }, [orders])
+
   // Apply filters to the data
   const filteredOrders = useMemo(() => {
     if (!orders.length) return []
@@ -75,6 +81,11 @@ export default function ProductStatsPage() {
 
       // Product filter
       if (filters.product && order["sku number"] !== filters.product) {
+        return false
+      }
+
+      // Country filter
+      if (filters.country && order["Receiver Country"] !== filters.country) {
         return false
       }
 
@@ -189,8 +200,8 @@ export default function ProductStatsPage() {
         const inProcessPercent = totalLeads > 0 ? (inProcess / totalLeads) * 100 : 0
 
         // Calculate AOV
-        const totalRevenue = deliveredOrders.reduce((sum, order) => sum + (order.extractedPrice || 0), 0);
-        const aov = delivered > 0 ? totalRevenue / delivered : 0;
+        const totalRevenue = deliveredOrders.reduce((sum, order) => sum + (order.extractedPrice || 0), 0)
+        const aov = delivered > 0 ? totalRevenue / delivered : 0
 
         // Calculate average quantity per order
         const totalQuantity = allOrders.reduce((sum, order) => sum + Number(order["Quantity"] || 1), 0)
@@ -334,9 +345,9 @@ export default function ProductStatsPage() {
   // Render loading state
   if (loading) {
     return (
-        <div className="flex items-center justify-center min-h-screen">
-            <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
-         </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
+      </div>
     )
   }
 
@@ -393,7 +404,9 @@ export default function ProductStatsPage() {
                 size="sm"
                 className="ml-auto"
                 onClick={resetFilters}
-                disabled={!filters.city && !filters.product && !filters.startDate && !filters.endDate}
+                disabled={
+                  !filters.city && !filters.product && !filters.startDate && !filters.endDate && !filters.country
+                }
               >
                 <XCircleIcon className="mr-1 text-mainColor h-4 w-4" />
                 Clear Filters
@@ -436,6 +449,26 @@ export default function ProductStatsPage() {
                   {cities.map((city) => (
                     <option key={city} value={city}>
                       {city}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Country Filter */}
+              <div>
+                <label htmlFor="country-filter" className="block text-sm font-medium mb-1">
+                  Filter by Country
+                </label>
+                <select
+                  id="country-filter"
+                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
+                  value={filters.country || ""}
+                  onChange={(e) => updateFilter("country", e.target.value)}
+                >
+                  <option value="">All Countries</option>
+                  {countries.map((country) => (
+                    <option key={country} value={country}>
+                      {country}
                     </option>
                   ))}
                 </select>
@@ -695,11 +728,11 @@ export default function ProductStatsPage() {
                     <div className="flex flex-col items-center justify-center">
                       <p className="text-lg font-medium mb-2">No data available</p>
                       <p className="text-sm max-w-md">
-                        {filters.city || filters.product || filters.startDate || filters.endDate
+                        {filters.city || filters.product || filters.startDate || filters.endDate || filters.country
                           ? "Try adjusting your filters to see more results."
                           : "There are no product statistics to display. Try refreshing or check back later."}
                       </p>
-                      {(filters.city || filters.product || filters.startDate || filters.endDate) && (
+                      {(filters.city || filters.product || filters.startDate || filters.endDate || filters.country) && (
                         <Button variant="outline" className="mt-4" onClick={resetFilters}>
                           <XCircleIcon className="mr-1 h-4 w-4" />
                           Clear filters
