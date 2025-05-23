@@ -29,12 +29,6 @@ export default function CityStatsPage() {
   const { filters, updateFilter, resetFilters } = useFilters()
   const { sheetData: orders, loadingSheetData: loading, errorSheetData: error, refreshSheetData } = useSheetData()
 
-  // Effect to show filters when any filter is active
-  useEffect(() => {
-    const hasActiveFilters = filters.city || filters.product || filters.startDate || filters.endDate || filters.country
-    setShowFilters(hasActiveFilters)
-  }, [filters])
-
   // Fetch data if not already loaded
   useEffect(() => {
     if (token && !orders.length) {
@@ -49,11 +43,25 @@ export default function CityStatsPage() {
     return uniqueProducts.sort()
   }, [orders])
 
-  // Extract unique countries
+  // Extract unique countries (from all orders, not filtered)
   const countries = useMemo(() => {
     if (!orders.length) return []
-    const uniqueCountries = [...new Set(orders.map((order) => order["Receiver Country"]).filter(Boolean))]
+    const uniqueCountries = [...new Set(orders.map((order) => order["Receier Country"]).filter(Boolean))]
     return uniqueCountries.sort()
+  }, [orders])
+
+  // Extract unique cities (from all orders, not filtered)
+  const cities = useMemo(() => {
+    if (!orders.length) return []
+    const uniqueCities = [...new Set(orders.map((order) => order["City"]).filter(Boolean))]
+    return uniqueCities.sort()
+  }, [orders])
+
+  // Extract unique source traffic (from all orders, not filtered)
+  const sources = useMemo(() => {
+    if (!orders.length) return []
+    const uniqueSources = [...new Set(orders.map((order) => order["Source Traffic"]).filter(Boolean))]
+    return uniqueSources.sort()
   }, [orders])
 
   // Pagination states
@@ -62,23 +70,28 @@ export default function CityStatsPage() {
   const [sortField, setSortField] = useState("totalLeads")
   const [sortDirection, setSortDirection] = useState("desc")
 
-  // Apply filters to the data
+  // Apply filters to the data (match logic from orders page)
   const filteredOrders = useMemo(() => {
     if (!orders.length) return []
 
     return orders.filter((order) => {
-      // City filter
-      if (filters.city && order["City"]?.toLowerCase() !== filters.city.toLowerCase()) {
-        return false
-      }
-
       // Product filter
       if (filters.product && order["sku number"] !== filters.product) {
         return false
       }
 
+      // City filter
+      if (filters.city && order["City"] !== filters.city) {
+        return false
+      }
+
       // Country filter
-      if (filters.country && order["Receiver Country"] !== filters.country) {
+      if (filters.country && order["Receier Country"] !== filters.country) {
+        return false
+      }
+
+      // Source Traffic filter
+      if (filters.source && order["Source Traffic"] !== filters.source) {
         return false
       }
 
@@ -100,14 +113,6 @@ export default function CityStatsPage() {
       return true
     })
   }, [orders, filters])
-
-  // Extract unique cities from orders
-  const cities = useMemo(() => {
-    if (!filteredOrders.length) return []
-
-    const uniqueCities = [...new Set(filteredOrders.map((order) => order["City"]).filter(Boolean))]
-    return uniqueCities.sort()
-  }, [filteredOrders])
 
   // Calculate statistics for each city using the configurable status definitions
   const cityStats = useMemo(() => {
@@ -346,9 +351,9 @@ export default function CityStatsPage() {
                 variant="ghost"
                 size="sm"
                 className="ml-auto"
-                onClick={resetFilters}
+                onClick={resetFilters} // <-- use resetFilters from context
                 disabled={
-                  !filters.city && !filters.product && !filters.startDate && !filters.endDate && !filters.country
+                  !filters.city && !filters.product && !filters.startDate && !filters.endDate && !filters.country && !filters.source
                 }
               >
                 <XCircleIcon className="mr-1 text-mainColor h-4 w-4" />
@@ -357,7 +362,7 @@ export default function CityStatsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2">
               {/* Product Filter */}
               <div>
                 <label htmlFor="product-filter" className="block text-sm font-medium mb-1">
@@ -378,6 +383,7 @@ export default function CityStatsPage() {
                 </select>
               </div>
 
+              {/* City Filter */}
               <div>
                 <label htmlFor="city-filter" className="block text-sm font-medium mb-1">
                   Filter by City
@@ -412,6 +418,26 @@ export default function CityStatsPage() {
                   {countries.map((country) => (
                     <option key={country} value={country}>
                       {country}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Source Traffic Filter */}
+              <div>
+                <label htmlFor="source-filter" className="block text-sm font-medium mb-1">
+                  Source Traffic
+                </label>
+                <select
+                  id="source-filter"
+                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
+                  value={filters.source || ""}
+                  onChange={(e) => updateFilter("source", e.target.value)}
+                >
+                  <option value="">All Sources</option>
+                  {sources.map((src) => (
+                    <option key={src} value={src}>
+                      {src}
                     </option>
                   ))}
                 </select>
@@ -628,11 +654,11 @@ export default function CityStatsPage() {
                     <div className="flex flex-col items-center justify-center">
                       <p className="text-lg font-medium mb-2">No data available</p>
                       <p className="text-sm max-w-md">
-                        {filters.city || filters.product || filters.startDate || filters.endDate || filters.country
+                        {filters.city || filters.product || filters.startDate || filters.endDate || filters.country || filters.source
                           ? "Try adjusting your filters to see more results."
                           : "There are no city statistics to display. Try refreshing or check back later."}
                       </p>
-                      {(filters.city || filters.product || filters.startDate || filters.endDate || filters.country) && (
+                      {(filters.city || filters.product || filters.startDate || filters.endDate || filters.country || filters.source) && (
                         <Button variant="outline" className="mt-4" onClick={resetFilters}>
                           <XCircleIcon className="mr-1 h-4 w-4" />
                           Clear filters

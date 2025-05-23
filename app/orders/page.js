@@ -64,7 +64,6 @@ export default function OrdersDashboard() {
   })
 
   // Filter states
-  const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
   const [countryFilter, setCountryFilter] = useState("")
   const [cityFilter, setCityFilter] = useState("")
@@ -88,12 +87,6 @@ export default function OrdersDashboard() {
       ),
     ].sort()
   }, [orders])
-
-  // Effect to show filters when any filter is active
-  useEffect(() => {
-    const hasActiveFilters = filters.status || filters.country || filters.city || filters.startDate || filters.endDate
-    setShowFilters(hasActiveFilters)
-  }, [filters])
 
   // Fetch data if not already loaded
   useEffect(() => {
@@ -129,10 +122,11 @@ export default function OrdersDashboard() {
       .map(([city, count]) => ({ city, count })) // Return city and count as objects
   }, [orders])
 
-  // Memoized unique sources (for future use if needed)
-  const sources = useMemo(() => {
+  // Memoized unique products (SKU numbers)
+  const products = useMemo(() => {
     if (!orders.length) return []
-    return [...new Set(orders.map((order) => order["Source Traffic"]).filter((src) => sourceTrafficOptions.includes(src)))]
+    const uniqueProducts = [...new Set(orders.map((order) => order["sku number"]).filter(Boolean))]
+    return uniqueProducts.sort()
   }, [orders])
 
   // Filter orders based on current criteria
@@ -141,20 +135,7 @@ export default function OrdersDashboard() {
 
     return orders
       .filter((order) => {
-        const searchLower = searchQuery.toLowerCase().trim()
-        if (searchLower) {
-          const matchesSearch = Object.entries(order).some(([key, value]) => {
-            if (typeof value === "string" || value instanceof String) {
-              return value.toLowerCase().includes(searchLower)
-            }
-            if (typeof value === "number") {
-              return value.toString().includes(searchLower)
-            }
-            return false
-          })
-          if (!matchesSearch) return false
-        }
-
+        const matchesProduct = !filters.product || order["sku number"] === filters.product
         const matchesStatus = !filters.status || order["STATUS"] === filters.status
         const matchesCountry = !filters.country || order["Receier Country"] === filters.country
         const matchesCity = !filters.city || order["City"] === filters.city
@@ -175,7 +156,14 @@ export default function OrdersDashboard() {
           }
         }
 
-        return matchesStatus && matchesCountry && matchesCity && matchesSource && matchesDateRange
+        return (
+          matchesProduct &&
+          matchesStatus &&
+          matchesCountry &&
+          matchesCity &&
+          matchesSource &&
+          matchesDateRange
+        )
       })
       .sort((a, b) => {
         const fieldA = a[sortField]
@@ -200,11 +188,11 @@ export default function OrdersDashboard() {
       })
   }, [
     orders,
-    searchQuery,
+    filters.product,
     filters.status,
     filters.country,
     filters.city,
-    filters.source, // <-- add this
+    filters.source,
     filters.startDate,
     filters.endDate,
     sortField,
@@ -251,7 +239,6 @@ export default function OrdersDashboard() {
 
   // Callbacks
   const resetLocalFilters = useCallback(() => {
-    setSearchQuery("")
     setStatusFilter("")
     setCountryFilter("")
     setCityFilter("")
@@ -302,10 +289,6 @@ export default function OrdersDashboard() {
     setShowOrderDetails(true)
   }, [])
 
-  const handleSearchQueryChange = (value) => {
-    setSearchQuery(value)
-  }
-
   const handleStatusFilterChange = (value) => {
     updateFilter("status", value)
   }
@@ -317,6 +300,12 @@ export default function OrdersDashboard() {
   const handleCityFilterChange = (value) => {
     updateFilter("city", value)
   }
+
+  // Use the context resetFilters for clearing all filters
+  const handleResetFilters = useCallback(() => {
+    resetFilters()
+    setCurrentPage(1)
+  }, [resetFilters])
 
   // UI Helper Functions
   const getStatusBadge = useCallback((status) => {
@@ -589,17 +578,25 @@ export default function OrdersDashboard() {
         >
           {showFilters && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 max-w-[100vw] lg:grid-cols-4 p-1 gap-3">
-              {/* Filters */}
-              <div className="relative col-span-full">
-                <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search by ID, city, SKU or any field..."
-                  className="pl-8 w-full border-2 border-mainColor"
-                  value={searchQuery}
-                  onChange={(e) => handleSearchQueryChange(e.target.value)}
-                  aria-label="Search orders"
-                />
+              {/* Product filter */}
+              <div className="relative">
+                <label htmlFor="product-filter" className="sr-only">
+                  Filter by product
+                </label>
+                <select
+                  id="product-filter"
+                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
+                  value={filters.product || ""}
+                  onChange={(e) => updateFilter("product", e.target.value)}
+                  aria-label="Filter by product"
+                >
+                  <option value="">All Products</option>
+                  {products.map((product) => (
+                    <option key={product} value={product}>
+                      {product}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Status filter */}
@@ -720,7 +717,7 @@ export default function OrdersDashboard() {
               </div>
               {/* Reset filters button */}
               <div className="col-span-full">
-                <Button variant="outline" size="sm" onClick={resetLocalFilters} className="w-full sm:w-auto">
+                <Button variant="outline" size="sm" onClick={handleResetFilters} className="w-full sm:w-auto">
                   <XCircleIcon className="mr-1 text-mainColor h-4 w-4" />
                   Reset Filters
                 </Button>
@@ -922,12 +919,12 @@ export default function OrdersDashboard() {
                     <PackageIcon className="h-12 w-12 mb-4 opacity-40" />
                     <p className="text-lg font-medium mb-1">No orders found</p>
                     <p className="text-sm max-w-sm text-center">
-                      {searchQuery || filters.status || filters.country || filters.startDate || filters.endDate
-                        ? "Try adjusting your filters or clearing the search"
+                      {filters.status || filters.country || filters.startDate || filters.endDate || filters.city || filters.source
+                        ? "Try adjusting your filters to see more results."
                         : "There are no orders to display. Try refreshing or check back later."}
                     </p>
-                    {(searchQuery || filters.status || filters.country || filters.startDate || filters.endDate) && (
-                      <Button variant="outline" className="mt-3" onClick={resetLocalFilters}>
+                    {(filters.status || filters.country || filters.startDate || filters.endDate || filters.city || filters.source) && (
+                      <Button variant="outline" className="mt-3" onClick={handleResetFilters}>
                         <XCircleIcon className="mr-1 h-4 w-4" />
                         Clear filters
                       </Button>

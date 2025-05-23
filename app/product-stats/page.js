@@ -23,23 +23,15 @@ import { matchesStatus } from "@/lib/constants"
 
 export default function ProductStatsPage() {
   const [showFilters, setShowFilters] = useState(false)
+  const [sortField, setSortField] = useState("totalLeads")
+  const [sortDirection, setSortDirection] = useState("desc")
+  const [rowsPerPage, setRowsPerPage] = useState(20)
+  const [currentPage, setCurrentPage] = useState(1)
   const isMobile = useMobile()
   const { token } = useAuth()
   const { statusConfig } = useStatusConfig()
   const { filters, updateFilter, resetFilters } = useFilters()
   const { sheetData: orders, loadingSheetData: loading, errorSheetData: error, refreshSheetData } = useSheetData()
-
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1)
-  const [rowsPerPage, setRowsPerPage] = useState(20)
-  const [sortField, setSortField] = useState("totalLeads")
-  const [sortDirection, setSortDirection] = useState("desc")
-
-  // Effect to show filters when any filter is active
-  useEffect(() => {
-    const hasActiveFilters = filters.city || filters.product || filters.startDate || filters.endDate || filters.country
-    setShowFilters(hasActiveFilters)
-  }, [filters])
 
   // Fetch data if not already loaded
   useEffect(() => {
@@ -65,27 +57,39 @@ export default function ProductStatsPage() {
   // Extract unique countries
   const countries = useMemo(() => {
     if (!orders.length) return []
-    const uniqueCountries = [...new Set(orders.map((order) => order["Receiver Country"]).filter(Boolean))]
+    const uniqueCountries = [...new Set(orders.map((order) => order["Receier Country"]).filter(Boolean))]
     return uniqueCountries.sort()
   }, [orders])
 
-  // Apply filters to the data
+  // Extract unique source traffic
+  const sources = useMemo(() => {
+    if (!orders.length) return []
+    const uniqueSources = [...new Set(orders.map((order) => order["Source Traffic"]).filter(Boolean))]
+    return uniqueSources.sort()
+  }, [orders])
+
+  // Apply filters to the data (same logic as city-stats)
   const filteredOrders = useMemo(() => {
     if (!orders.length) return []
 
     return orders.filter((order) => {
-      // City filter
-      if (filters.city && order["City"]?.toLowerCase() !== filters.city.toLowerCase()) {
-        return false
-      }
-
       // Product filter
       if (filters.product && order["sku number"] !== filters.product) {
         return false
       }
 
+      // City filter
+      if (filters.city && order["City"] !== filters.city) {
+        return false
+      }
+
       // Country filter
-      if (filters.country && order["Receiver Country"] !== filters.country) {
+      if (filters.country && order["Receier Country"] !== filters.country) {
+        return false
+      }
+
+      // Source Traffic filter
+      if (filters.source && order["Source Traffic"] !== filters.source) {
         return false
       }
 
@@ -405,7 +409,7 @@ export default function ProductStatsPage() {
                 className="ml-auto"
                 onClick={resetFilters}
                 disabled={
-                  !filters.city && !filters.product && !filters.startDate && !filters.endDate && !filters.country
+                  !filters.city && !filters.product && !filters.startDate && !filters.endDate && !filters.country && !filters.source
                 }
               >
                 <XCircleIcon className="mr-1 text-mainColor h-4 w-4" />
@@ -414,11 +418,11 @@ export default function ProductStatsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2">
               {/* Product Filter */}
               <div>
                 <label htmlFor="product-filter" className="block text-sm font-medium mb-1">
-                  Filter by Product
+                  Product
                 </label>
                 <select
                   id="product-filter"
@@ -435,9 +439,10 @@ export default function ProductStatsPage() {
                 </select>
               </div>
 
+              {/* City Filter */}
               <div>
                 <label htmlFor="city-filter" className="block text-sm font-medium mb-1">
-                  Filter by City
+                  City
                 </label>
                 <select
                   id="city-filter"
@@ -457,7 +462,7 @@ export default function ProductStatsPage() {
               {/* Country Filter */}
               <div>
                 <label htmlFor="country-filter" className="block text-sm font-medium mb-1">
-                  Filter by Country
+                  Country
                 </label>
                 <select
                   id="country-filter"
@@ -469,6 +474,26 @@ export default function ProductStatsPage() {
                   {countries.map((country) => (
                     <option key={country} value={country}>
                       {country}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Source Traffic Filter */}
+              <div>
+                <label htmlFor="source-filter" className="block text-sm font-medium mb-1">
+                  Source Traffic
+                </label>
+                <select
+                  id="source-filter"
+                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
+                  value={filters.source || ""}
+                  onChange={(e) => updateFilter("source", e.target.value)}
+                >
+                  <option value="">All Sources</option>
+                  {sources.map((src) => (
+                    <option key={src} value={src}>
+                      {src}
                     </option>
                   ))}
                 </select>

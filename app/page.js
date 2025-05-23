@@ -549,24 +549,11 @@ export default function Page() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1">
-          <Select value={filters.timeRange} onValueChange={applyTimeRangeFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select time range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Time</SelectItem>
-              <SelectItem value="7days">Last 7 Days</SelectItem>
-              <SelectItem value="30days">Last 30 Days</SelectItem>
-              <SelectItem value="90days">Last 90 Days</SelectItem>
-              <SelectItem value="custom">Custom Range</SelectItem>
-            </SelectContent>
-          </Select>
-
+          {/* Removed time range select, only show Refresh and Filters */}
           <Button variant="outline" size="sm" className="h-9" onClick={() => setShowFilters(!showFilters)}>
             <FilterIcon className="mr-1 h-4 w-4" />
             {showFilters ? "Hide Filters" : "Show Filters"}
           </Button>
-
           <Button variant="outline" size="sm" className="h-9" onClick={refreshData}>
             <RefreshCwIcon className="mr-1 h-4 w-4" />
             Refresh
@@ -585,36 +572,34 @@ export default function Page() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
-              {/* Date Range (single input for range) */}
-              {filters.timeRange === "custom" && (
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium mb-1">Date Range</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start">
-                        <CalendarIcon className="mr-1 h-4 w-4" />
-                        {filters.startDate || filters.endDate
-                          ? `${filters.startDate ? format(filters.startDate, "PPP") : "Start"} - ${filters.endDate ? format(filters.endDate, "PPP") : "End"}`
-                          : "Select date range"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="range"
-                        selected={{
-                          from: filters.startDate || undefined,
-                          to: filters.endDate || undefined,
-                        }}
-                        onSelect={(range) => {
-                          updateFilter("startDate", range?.from ?? null)
-                          updateFilter("endDate", range?.to ?? null)
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              )}
+              {/* Date Range (always visible) */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-1">Date Range</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start">
+                      <CalendarIcon className="mr-1 h-4 w-4" />
+                      {filters.startDate || filters.endDate
+                        ? `${filters.startDate ? format(filters.startDate, "PPP") : "Start"} - ${filters.endDate ? format(filters.endDate, "PPP") : "End"}`
+                        : "Select date range"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="range"
+                      selected={{
+                        from: filters.startDate || undefined,
+                        to: filters.endDate || undefined,
+                      }}
+                      onSelect={(range) => {
+                        updateFilter("startDate", range?.from ?? null)
+                        updateFilter("endDate", range?.to ?? null)
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
 
               {/* Status Filter */}
               <div>
