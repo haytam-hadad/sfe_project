@@ -7,6 +7,7 @@ import {
   DEFAULT_FILTERS,
   DEFAULT_CONVERSION_RATE,
   DEFAULT_CONVERSION_RATES,
+  matchesStatus,
 } from "@/lib/constants"
 
 // Create App Context
@@ -18,6 +19,8 @@ const AppContext = createContext({
   filters: DEFAULT_FILTERS,
   updateFilter: () => {},
   resetFilters: () => {},
+  // Status matching
+  matchesStatus: () => false,
   // Currency conversion
   conversionRate: DEFAULT_CONVERSION_RATE,
   setConversionRate: () => {},
@@ -40,7 +43,7 @@ export function AppProvider({ children }) {
   // Theme state
   const [theme, setTheme] = useState(false)
 
-  // Status Config state
+  // Status Config state - initialize with DEFAULT_STATUS_CONFIG
   const [statusConfig, setStatusConfig] = useState(DEFAULT_STATUS_CONFIG)
 
   // Sheet data state
@@ -179,16 +182,40 @@ export function AppProvider({ children }) {
     }
   }, [theme])
 
-  // Load status config from localStorage
+  // Load status config from localStorage with a check for DEFAULT_STATUS_CONFIG changes
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedConfig = localStorage.getItem("statusConfig")
-      if (savedConfig) {
-        try {
-          setStatusConfig(JSON.parse(savedConfig))
-        } catch (error) {
-          console.error("Failed to parse saved status config:", error)
+      try {
+        // Check if there's a saved config in localStorage
+        const savedConfig = localStorage.getItem("statusConfig")
+
+        if (savedConfig) {
+          const parsedConfig = JSON.parse(savedConfig)
+
+          // Check if the structure matches the DEFAULT_STATUS_CONFIG
+          // This ensures we're using the latest structure if DEFAULT_STATUS_CONFIG changes
+          const defaultKeys = Object.keys(DEFAULT_STATUS_CONFIG)
+          const savedKeys = Object.keys(parsedConfig)
+
+          // If the keys match, use the saved config
+          if (defaultKeys.length === savedKeys.length && defaultKeys.every((key) => savedKeys.includes(key))) {
+            setStatusConfig(parsedConfig)
+          } else {
+            // If structure doesn't match, use the default and update localStorage
+            console.log("Status config structure changed, using defaults")
+            setStatusConfig(DEFAULT_STATUS_CONFIG)
+            localStorage.setItem("statusConfig", JSON.stringify(DEFAULT_STATUS_CONFIG))
+          }
+        } else {
+          // If no saved config, use the default
+          setStatusConfig(DEFAULT_STATUS_CONFIG)
+          localStorage.setItem("statusConfig", JSON.stringify(DEFAULT_STATUS_CONFIG))
         }
+      } catch (error) {
+        console.error("Failed to parse saved status config:", error)
+        // On error, reset to defaults
+        setStatusConfig(DEFAULT_STATUS_CONFIG)
+        localStorage.setItem("statusConfig", JSON.stringify(DEFAULT_STATUS_CONFIG))
       }
     }
   }, [])
@@ -261,6 +288,15 @@ export function AppProvider({ children }) {
     return DEFAULT_FILTERS
   }, [])
 
+  // Reset status config to defaults
+  const resetStatusConfig = useCallback(() => {
+    setStatusConfig(DEFAULT_STATUS_CONFIG)
+    if (typeof window !== "undefined") {
+      localStorage.setItem("statusConfig", JSON.stringify(DEFAULT_STATUS_CONFIG))
+    }
+    return DEFAULT_STATUS_CONFIG
+  }, [])
+
   // Function to convert amount to USD
   const convertToUSD = useCallback(
     (amount, country) => {
@@ -313,9 +349,12 @@ export function AppProvider({ children }) {
     setTheme,
     statusConfig,
     setStatusConfig,
+    resetStatusConfig,
     filters,
     updateFilter,
     resetFilters,
+    // Status matching
+    matchesStatus,
     // Currency conversion
     conversionRate,
     setConversionRate,
@@ -349,8 +388,8 @@ export function useApp() {
 
 // Custom hook to use status config
 export function useStatusConfig() {
-  const { statusConfig, setStatusConfig } = useApp()
-  return { statusConfig, setStatusConfig }
+  const { statusConfig, setStatusConfig, resetStatusConfig, matchesStatus } = useApp()
+  return { statusConfig, setStatusConfig, resetStatusConfig, matchesStatus }
 }
 
 // Custom hook to use filters

@@ -19,7 +19,7 @@ import {
 import { useMobile } from "@/hooks/use-mobile"
 import { useStatusConfig, useFilters, useSheetData } from "@/contexts/app-context"
 import { useAuth } from "@/contexts/auth-context"
-import { matchesStatus } from "@/lib/status-config"
+import { matchesStatus } from "@/lib/constants"
 
 export default function ProductStatsPage() {
   const [showFilters, setShowFilters] = useState(false)

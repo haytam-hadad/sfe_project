@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { useApp, useSheetData, useFilters } from "@/contexts/app-context"
+import { useApp, useSheetData, useFilters, useStatusConfig } from "@/contexts/app-context"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -24,10 +24,13 @@ import {
   Download,
   RefreshCw,
   AlertCircle,
+  MapPin,
+  Globe,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { matchesStatus } from "@/lib/constants"
 
 export default function AdsStatsPage() {
   const { toast } = useToast()
@@ -35,10 +38,18 @@ export default function AdsStatsPage() {
   const { sheetData, loadingSheetData, errorSheetData, refreshSheetData } = useSheetData()
   const { filters, updateFilter, resetFilters } = useFilters()
   const { formatCurrency } = useApp()
+  const { statusConfig } = useStatusConfig()
 
   const [searchTerm, setSearchTerm] = useState("")
-  const [productCosts, setProductCosts] = useState({}) // AD costs - not stored in localStorage
-  const [productAvgCosts, setProductAvgCosts] = useState({}) // Average product costs - stored in localStorage
+  const [productCosts, setProductCosts] = useState({}) // Cost price - stored in localStorage
+
+  // Ad costs for different platforms
+  const [adFbCosts, setAdFbCosts] = useState({})
+  const [adTtCosts, setAdTtCosts] = useState({})
+  const [adGoogleCosts, setAdGoogleCosts] = useState({})
+  const [adXCosts, setAdXCosts] = useState({})
+  const [adSnapCosts, setAdSnapCosts] = useState({})
+
   const [sortField, setSortField] = useState("totalOrders")
   const [sortDirection, setSortDirection] = useState("desc")
 
@@ -53,13 +64,43 @@ export default function AdsStatsPage() {
   })
   const [showFilters, setShowFilters] = useState(false)
 
+  // Available countries and cities for filtering
+  const [availableCountries, setAvailableCountries] = useState([])
+  const [availableCities, setAvailableCities] = useState([])
+
   // Load saved costs from localStorage on component mount
   useEffect(() => {
     try {
-      const savedAvgCosts = localStorage.getItem("productAvgCosts")
-      if (savedAvgCosts) {
-        const parsedCosts = JSON.parse(savedAvgCosts)
-        setProductAvgCosts(parsedCosts)
+      const savedCosts = localStorage.getItem("productCosts")
+      if (savedCosts) {
+        const parsedCosts = JSON.parse(savedCosts)
+        setProductCosts(parsedCosts)
+      }
+
+      // Load ad costs from localStorage
+      const savedAdFbCosts = localStorage.getItem("adFbCosts")
+      if (savedAdFbCosts) {
+        setAdFbCosts(JSON.parse(savedAdFbCosts))
+      }
+
+      const savedAdTtCosts = localStorage.getItem("adTtCosts")
+      if (savedAdTtCosts) {
+        setAdTtCosts(JSON.parse(savedAdTtCosts))
+      }
+
+      const savedAdGoogleCosts = localStorage.getItem("adGoogleCosts")
+      if (savedAdGoogleCosts) {
+        setAdGoogleCosts(JSON.parse(savedAdGoogleCosts))
+      }
+
+      const savedAdXCosts = localStorage.getItem("adXCosts")
+      if (savedAdXCosts) {
+        setAdXCosts(JSON.parse(savedAdXCosts))
+      }
+
+      const savedAdSnapCosts = localStorage.getItem("adSnapCosts")
+      if (savedAdSnapCosts) {
+        setAdSnapCosts(JSON.parse(savedAdSnapCosts))
       }
     } catch (error) {
       console.error("Error loading saved costs:", error)
@@ -116,17 +157,48 @@ export default function AdsStatsPage() {
     }
   }, [token, sheetData, loadingSheetData, refreshSheetData])
 
-  // Replace the existing processedData useMemo with this updated version that calculates average selling price
-  const processedData = useMemo(() => {
+  // Extract only delivered orders from sheet data
+  const deliveredOrders = useMemo(() => {
     if (!sheetData || !sheetData.length) return []
+
+    return sheetData.filter((order) => {
+      const status = order["STATUS"] || ""
+      return matchesStatus(status, statusConfig.delivery)
+    })
+  }, [sheetData, statusConfig])
+
+  // Extract available countries and cities from delivered orders
+  useEffect(() => {
+    if (deliveredOrders.length > 0) {
+      const countries = new Set()
+      const cities = new Set()
+
+      deliveredOrders.forEach((order) => {
+        const country = order["Receiver Country"]
+        const city = order["City"]
+
+        if (country) countries.add(country)
+        if (city) cities.add(city)
+      })
+
+      setAvailableCountries(Array.from(countries).sort())
+      setAvailableCities(Array.from(cities).sort())
+    }
+  }, [deliveredOrders])
+
+  // Process data with only delivered orders
+  const processedData = useMemo(() => {
+    if (!deliveredOrders.length) return []
 
     const productMap = new Map()
 
-    sheetData.forEach((order) => {
+    deliveredOrders.forEach((order) => {
       const product = order["Product Name"] || order["sku number"] || order["product"]
       if (!product) return
 
       const orderDate = order["Order date"] ? new Date(order["Order date"]) : null
+      const country = order["Receiver Country"] || ""
+      const city = order["City"] || ""
 
       // Apply date filters
       if (filters.startDate && orderDate && orderDate < new Date(filters.startDate)) {
@@ -146,12 +218,12 @@ export default function AdsStatsPage() {
       }
 
       // Apply city filter
-      if (filters.city && order["City"] && order["City"] !== filters.city) {
+      if (filters.city && city && city !== filters.city) {
         return
       }
 
       // Apply country filter
-      if (filters.country && order["Receiver Country"] && order["Receiver Country"] !== filters.country) {
+      if (filters.country && country && country !== filters.country) {
         return
       }
 
@@ -184,7 +256,7 @@ export default function AdsStatsPage() {
     // Calculate average selling price for each product
     productMap.forEach((product) => {
       if (product.orderAmounts.length > 0) {
-        // Calculate average selling price from all orders
+        // Calculate average selling price from delivered orders
         product.sellingPrice =
           product.orderAmounts.reduce((sum, amount) => sum + amount, 0) / product.orderAmounts.length
       } else {
@@ -228,16 +300,21 @@ export default function AdsStatsPage() {
     })
 
     return result
-  }, [sheetData, searchTerm, filters, localFilters, sortField, sortDirection])
+  }, [deliveredOrders, searchTerm, filters, localFilters, sortField, sortDirection])
 
-  // Save average costs to localStorage when they change
+  // Save costs to localStorage when they change
   useEffect(() => {
     try {
-      localStorage.setItem("productAvgCosts", JSON.stringify(productAvgCosts))
+      localStorage.setItem("productCosts", JSON.stringify(productCosts))
+      localStorage.setItem("adFbCosts", JSON.stringify(adFbCosts))
+      localStorage.setItem("adTtCosts", JSON.stringify(adTtCosts))
+      localStorage.setItem("adGoogleCosts", JSON.stringify(adGoogleCosts))
+      localStorage.setItem("adXCosts", JSON.stringify(adXCosts))
+      localStorage.setItem("adSnapCosts", JSON.stringify(adSnapCosts))
     } catch (error) {
       console.error("Error saving costs:", error)
     }
-  }, [productAvgCosts])
+  }, [productCosts, adFbCosts, adTtCosts, adGoogleCosts, adXCosts, adSnapCosts])
 
   const handleCostChange = (productName, value) => {
     setProductCosts((prev) => ({
@@ -246,50 +323,82 @@ export default function AdsStatsPage() {
     }))
   }
 
-  const handleAvgCostChange = (productName, value) => {
-    setProductAvgCosts((prev) => ({
-      ...prev,
-      [productName]: value,
-    }))
+  const handleAdCostChange = (platform, productName, value) => {
+    switch (platform) {
+      case "fb":
+        setAdFbCosts((prev) => ({ ...prev, [productName]: value }))
+        break
+      case "tt":
+        setAdTtCosts((prev) => ({ ...prev, [productName]: value }))
+        break
+      case "google":
+        setAdGoogleCosts((prev) => ({ ...prev, [productName]: value }))
+        break
+      case "x":
+        setAdXCosts((prev) => ({ ...prev, [productName]: value }))
+        break
+      case "snap":
+        setAdSnapCosts((prev) => ({ ...prev, [productName]: value }))
+        break
+    }
   }
 
+  // Calculate total ad cost for a product
+  const calculateTotalAdCost = (productName) => {
+    const fbCost = Number.parseFloat(adFbCosts[productName] || 0)
+    const ttCost = Number.parseFloat(adTtCosts[productName] || 0)
+    const googleCost = Number.parseFloat(adGoogleCosts[productName] || 0)
+    const xCost = Number.parseFloat(adXCosts[productName] || 0)
+    const snapCost = Number.parseFloat(adSnapCosts[productName] || 0)
+
+    return fbCost + ttCost + googleCost + xCost + snapCost
+  }
+
+  // Calculate average cost per order
+  const calculateAverageCost = (product) => {
+    const totalAdCost = calculateTotalAdCost(product.productName)
+    return product.totalOrders > 0 ? totalAdCost / product.totalOrders : 0
+  }
+
+  // Calculate total cost with new formula
   const calculateTotalCost = (product) => {
-    const adCost = Number.parseFloat(productCosts[product.productName] || 0)
-    const avgCost = Number.parseFloat(productAvgCosts[product.productName] || 0)
-    // AD cost is one-time, average cost is per unit
-    return adCost + avgCost * product.totalQuantity
+    const costPrice = Number.parseFloat(productCosts[product.productName] || 0)
+    const avgCost = calculateAverageCost(product)
+
+    // New formula: (avg cost * total orders) + (cost price * total qty)
+    return avgCost * product.totalOrders + costPrice * product.totalQuantity
   }
 
-  const calculateProfit = (product) => {
-    const totalCost = calculateTotalCost(product)
-    return product.totalAmount - totalCost
-  }
-
-  // Replace the handleExport function to remove profit column
+  // Updated export function with new columns
   const handleExport = () => {
     if (!processedData.length) return
 
     // Create CSV content
     let csvContent = "data:text/csv;charset=utf-8,"
 
-    // Add headers - removed Profit column
+    // Add headers with new columns
     csvContent +=
-      "Product Name,Total Orders,Total Quantity,Selling Price,Total Amount,AD Cost,Average Cost,Total Cost\n"
+      "Product Name,Total Orders,Total Quantity,Selling Price,Total Amount,AD FB,AD TT,AD GOOGLE,AD X,AD SNAP,Cost Price,Average Cost,Total Cost\n"
 
-    // Add data rows - removed profit column
+    // Add data rows with new columns
     processedData.forEach((product) => {
-      const adCost = Number.parseFloat(productCosts[product.productName] || 0)
-      const avgCost = Number.parseFloat(productAvgCosts[product.productName] || 0)
+      const fbCost = Number.parseFloat(adFbCosts[product.productName] || 0)
+      const ttCost = Number.parseFloat(adTtCosts[product.productName] || 0)
+      const googleCost = Number.parseFloat(adGoogleCosts[product.productName] || 0)
+      const xCost = Number.parseFloat(adXCosts[product.productName] || 0)
+      const snapCost = Number.parseFloat(adSnapCosts[product.productName] || 0)
+      const costPrice = Number.parseFloat(productCosts[product.productName] || 0)
+      const avgCost = calculateAverageCost(product)
       const totalCost = calculateTotalCost(product)
 
-      csvContent += `"${product.productName}",${product.totalOrders},${product.totalQuantity},${product.sellingPrice.toFixed(2)},${product.totalAmount.toFixed(2)},${adCost.toFixed(2)},${avgCost.toFixed(2)},${totalCost.toFixed(2)}\n`
+      csvContent += `"${product.productName}",${product.totalOrders},${product.totalQuantity},${product.sellingPrice.toFixed(2)},${product.totalAmount.toFixed(2)},${fbCost.toFixed(2)},${ttCost.toFixed(2)},${googleCost.toFixed(2)},${xCost.toFixed(2)},${snapCost.toFixed(2)},${costPrice.toFixed(2)},${avgCost.toFixed(2)},${totalCost.toFixed(2)}\n`
     })
 
     // Create download link
     const encodedUri = encodeURI(csvContent)
     const link = document.createElement("a")
     link.setAttribute("href", encodedUri)
-    link.setAttribute("download", `product-analysis-${new Date().toISOString().split("T")[0]}.csv`)
+    link.setAttribute("download", `delivered-products-analysis-${new Date().toISOString().split("T")[0]}.csv`)
     document.body.appendChild(link)
 
     // Trigger download
@@ -338,7 +447,7 @@ export default function AdsStatsPage() {
   const currentItems = processedData.slice(indexOfFirstItem, indexOfLastItem)
   const totalPages = Math.ceil(processedData.length / rowsPerPage)
 
-  // Calculate totals
+  // Calculate totals with updated metrics
   const totals = useMemo(() => {
     if (!processedData.length)
       return {
@@ -353,19 +462,45 @@ export default function AdsStatsPage() {
     const totalAmount = processedData.reduce((sum, product) => sum + product.totalAmount, 0)
     const totalQuantity = processedData.reduce((sum, product) => sum + product.totalQuantity, 0)
 
-    let totalAdCost = 0
+    let totalFbCost = 0
+    let totalTtCost = 0
+    let totalGoogleCost = 0
+    let totalXCost = 0
+    let totalSnapCost = 0
     let totalCost = 0
 
     processedData.forEach((product) => {
-      const adCost = Number.parseFloat(productCosts[product.productName] || 0)
-      totalAdCost += adCost
+      const fbCost = Number.parseFloat(adFbCosts[product.productName] || 0)
+      const ttCost = Number.parseFloat(adTtCosts[product.productName] || 0)
+      const googleCost = Number.parseFloat(adGoogleCosts[product.productName] || 0)
+      const xCost = Number.parseFloat(adXCosts[product.productName] || 0)
+      const snapCost = Number.parseFloat(adSnapCosts[product.productName] || 0)
+
+      totalFbCost += fbCost
+      totalTtCost += ttCost
+      totalGoogleCost += googleCost
+      totalXCost += xCost
+      totalSnapCost += snapCost
 
       const cost = calculateTotalCost(product)
       totalCost += cost
     })
 
-    return { totalOrders, totalAmount, totalAdCost, totalCost, totalQuantity }
-  }, [processedData, productCosts, productAvgCosts])
+    const totalAdCost = totalFbCost + totalTtCost + totalGoogleCost + totalXCost + totalSnapCost
+
+    return {
+      totalOrders,
+      totalAmount,
+      totalAdCost,
+      totalFbCost,
+      totalTtCost,
+      totalGoogleCost,
+      totalXCost,
+      totalSnapCost,
+      totalCost,
+      totalQuantity,
+    }
+  }, [processedData, adFbCosts, adTtCosts, adGoogleCosts, adXCosts, adSnapCosts, productCosts])
 
   // Handle refresh data
   const handleRefreshData = () => {
@@ -393,7 +528,7 @@ export default function AdsStatsPage() {
   if (errorSheetData) {
     return (
       <div className="container mx-auto py-6 px-4">
-        <h1 className="text-3xl font-bold mb-6">Product Analysis</h1>
+        <h1 className="text-3xl font-bold mb-6">Delivered Products Analysis</h1>
         <Alert variant="destructive" className="mb-6">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="ml-1">Error loading data: {errorSheetData}</AlertDescription>
@@ -414,8 +549,12 @@ export default function AdsStatsPage() {
     <div className="container mx-auto py-6 px-4">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Product Analysis</h1>
-          <p className="text-muted-foreground mt-1">Analyze product performance and calculate profitability</p>
+          <h1 className="text-3xl font-bold">Delivered Products Analysis</h1>
+          <p className="text-muted-foreground mt-1">
+            Analyze delivered products performance and calculate costs
+            {filters.country && <span> - {filters.country}</span>}
+            {filters.city && <span> - {filters.city}</span>}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
           <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
@@ -448,7 +587,7 @@ export default function AdsStatsPage() {
           <CardContent className="pt-6">
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm text-muted-foreground">Total Orders</p>
+                <p className="text-sm text-muted-foreground">Delivered Orders</p>
                 <h3 className="text-2xl font-bold">{totals.totalOrders}</h3>
               </div>
               <div className="bg-green-100 p-3 rounded-full dark:bg-green-900">
@@ -461,11 +600,24 @@ export default function AdsStatsPage() {
           <CardContent className="pt-6">
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm text-muted-foreground">Total Revenue</p>
+                <p className="text-sm text-muted-foreground">Delivered Revenue</p>
                 <h3 className="text-2xl font-bold">{formatNumber(totals.totalAmount)}</h3>
               </div>
               <div className="bg-yellow-100 p-3 rounded-full dark:bg-yellow-900">
                 <DollarSign className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-purple-500">
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Cost</p>
+                <h3 className="text-2xl font-bold">{formatNumber(totals.totalCost)}</h3>
+              </div>
+              <div className="bg-purple-100 p-3 rounded-full dark:bg-purple-900">
+                <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
           </CardContent>
@@ -487,7 +639,49 @@ export default function AdsStatsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              {/* Country Filter */}
+              <div>
+                <label className="text-sm font-medium flex items-center mb-1">
+                  <Globe className="h-4 w-4 mr-1" /> Country
+                </label>
+                <Select value={filters.country || ""} onValueChange={(value) => updateFilter("country", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Countries</SelectItem>
+                    {availableCountries.map((country) => (
+                      <SelectItem key={country} value={country}>
+                        {country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* City Filter */}
+              <div>
+                <label className="text-sm font-medium flex items-center mb-1">
+                  <MapPin className="h-4 w-4 mr-1" /> City
+                </label>
+                <Select value={filters.city || ""} onValueChange={(value) => updateFilter("city", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select city" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Cities</SelectItem>
+                    {availableCities.map((city) => (
+                      <SelectItem key={city} value={city}>
+                        {city}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -559,7 +753,9 @@ export default function AdsStatsPage() {
 
       <Card className="border-t-4 border-t-blue-700">
         <CardHeader>
-          <CardDescription>Enter product costs to calculate profitability</CardDescription>
+          <CardDescription>
+            Analysis of delivered products only. Enter product costs to calculate profitability.
+          </CardDescription>
           <div className="flex items-center space-x-2 mt-2">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -591,179 +787,282 @@ export default function AdsStatsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table className="bg-gray-100 dark:bg-gray-900">
-            <TableHeader>
-              <TableRow className="cursor-pointer text-center">
-                <TableHead
-                  className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
-                  onClick={() => handleSort("productName")}
-                >
-                  Product Name
-                  {sortField === "productName" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                </TableHead>
-                <TableHead
-                  className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
-                  onClick={() => handleSort("totalOrders")}
-                >
-                  Total Orders
-                  {sortField === "totalOrders" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                </TableHead>
-                <TableHead
-                  className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
-                  onClick={() => handleSort("totalQuantity")}
-                >
-                  Total Qty
-                  {sortField === "totalQuantity" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                </TableHead>
-                <TableHead
-                  className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
-                  onClick={() => handleSort("sellingPrice")}
-                >
-                  Avg Selling Price
-                  {sortField === "sellingPrice" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                </TableHead>
-                <TableHead
-                  className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center"
-                  onClick={() => handleSort("totalAmount")}
-                >
-                  Total Amount
-                  {sortField === "totalAmount" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                </TableHead>
-                <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center">AD Cost</TableHead>
-                <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center">
-                  Average Cost
-                </TableHead>
-                <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center">
-                  Total Cost
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {currentItems.length > 0 ? (
-                currentItems.map((product) => {
-                  const adCost = Number.parseFloat(productCosts[product.productName] || 0)
-                  const avgCost = Number.parseFloat(productAvgCosts[product.productName] || 0)
-                  const totalCost = calculateTotalCost(product)
-                  const profit = calculateProfit(product)
-
-                  return (
-                    <TableRow key={product.productName}>
-                      <TableCell className="font-medium">{product.productName}</TableCell>
-                      <TableCell className="text-right">{product.totalOrders}</TableCell>
-                      <TableCell className="text-right">{product.totalQuantity}</TableCell>
-                      <TableCell className="text-right">{formatNumber(product.sellingPrice)}</TableCell>
-                      <TableCell className="text-right">{formatNumber(product.totalAmount)}</TableCell>
-                      <TableCell>
-                        <div className="relative">
-                          <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            type="number"
-                            value={productCosts[product.productName] || ""}
-                            onChange={(e) => handleCostChange(product.productName, e.target.value)}
-                            placeholder="0.00"
-                            className="pl-8 w-full border border-b border-b-black dark:border-b-white"
-                          />
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="relative">
-                          <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            type="number"
-                            value={productAvgCosts[product.productName] || ""}
-                            onChange={(e) => handleAvgCostChange(product.productName, e.target.value)}
-                            placeholder="0.00"
-                            className="pl-8 w-full border border-b border-b-black dark:border-b-white"
-                          />
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">{formatNumber(totalCost)}</TableCell>
-                    </TableRow>
-                  )
-                })
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={9} className="h-24 text-center">
-                    {processedData.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center">
-                        <p className="text-muted-foreground">No products found</p>
-                        {(searchTerm ||
-                          Object.values(localFilters).some((v) => v) ||
-                          filters.startDate ||
-                          filters.endDate ||
-                          filters.product ||
-                          filters.city ||
-                          filters.country) && (
-                          <Button variant="ghost" size="sm" onClick={handleResetAllFilters} className="mt-2">
-                            Clear all filters
-                          </Button>
+          {deliveredOrders.length === 0 ? (
+            <Alert className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="ml-1">
+                No delivered orders found. This page only shows data for delivered orders.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <>
+              {/* Wrap table in a div with overflow-x-auto to make it horizontally scrollable */}
+              <div className="overflow-x-auto">
+                <Table className="bg-gray-100 dark:bg-gray-900 w-full">
+                  <TableHeader>
+                    <TableRow className="cursor-pointer text-center">
+                      <TableHead
+                        className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center sticky left-0 bg-gray-100 dark:bg-gray-900 z-10 min-w-[180px]"
+                        onClick={() => handleSort("productName")}
+                      >
+                        Product Name
+                        {sortField === "productName" && (
+                          <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
                         )}
-                      </div>
+                      </TableHead>
+                      <TableHead
+                        className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center min-w-[100px]"
+                        onClick={() => handleSort("totalOrders")}
+                      >
+                        Orders
+                        {sortField === "totalOrders" && (
+                          <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                        )}
+                      </TableHead>
+                      <TableHead
+                        className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center min-w-[100px]"
+                        onClick={() => handleSort("totalQuantity")}
+                      >
+                        Total Qty
+                        {sortField === "totalQuantity" && (
+                          <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                        )}
+                      </TableHead>
+                      <TableHead
+                        className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]"
+                        onClick={() => handleSort("sellingPrice")}
+                      >
+                        Avg Selling Price
+                        {sortField === "sellingPrice" && (
+                          <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                        )}
+                      </TableHead>
+                      <TableHead
+                        className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]"
+                        onClick={() => handleSort("totalAmount")}
+                      >
+                        Total Amount
+                        {sortField === "totalAmount" && (
+                          <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                        )}
+                      </TableHead>
+                      <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
+                        AD FB
+                      </TableHead>
+                      <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
+                        AD TT
+                      </TableHead>
+                      <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
+                        AD GOOGLE
+                      </TableHead>
+                      <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
+                        AD X
+                      </TableHead>
+                      <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
+                        AD SNAP
+                      </TableHead>
+                      <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
+                        Cost Price
+                      </TableHead>
+                      <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
+                        Average Cost
+                      </TableHead>
+                      <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
+                        Total Cost
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentItems.length > 0 ? (
+                      currentItems.map((product) => {
+                        const fbCost = Number.parseFloat(adFbCosts[product.productName] || 0)
+                        const ttCost = Number.parseFloat(adTtCosts[product.productName] || 0)
+                        const googleCost = Number.parseFloat(adGoogleCosts[product.productName] || 0)
+                        const xCost = Number.parseFloat(adXCosts[product.productName] || 0)
+                        const snapCost = Number.parseFloat(adSnapCosts[product.productName] || 0)
+                        const costPrice = Number.parseFloat(productCosts[product.productName] || 0)
+                        const avgCost = calculateAverageCost(product)
+                        const totalCost = calculateTotalCost(product)
+
+                        return (
+                          <TableRow key={product.productName}>
+                            <TableCell className="font-medium sticky left-0 bg-gray-100 dark:bg-gray-900 z-10">
+                              {product.productName}
+                            </TableCell>
+                            <TableCell className="text-right">{product.totalOrders}</TableCell>
+                            <TableCell className="text-right">{product.totalQuantity}</TableCell>
+                            <TableCell className="text-right">{formatNumber(product.sellingPrice)}</TableCell>
+                            <TableCell className="text-right">{formatNumber(product.totalAmount)}</TableCell>
+                            <TableCell>
+                              <div className="relative">
+                                <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  type="number"
+                                  value={adFbCosts[product.productName] || ""}
+                                  onChange={(e) => handleAdCostChange("fb", product.productName, e.target.value)}
+                                  placeholder="0.00"
+                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white"
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="relative">
+                                <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  type="number"
+                                  value={adTtCosts[product.productName] || ""}
+                                  onChange={(e) => handleAdCostChange("tt", product.productName, e.target.value)}
+                                  placeholder="0.00"
+                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white"
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="relative">
+                                <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  type="number"
+                                  value={adGoogleCosts[product.productName] || ""}
+                                  onChange={(e) => handleAdCostChange("google", product.productName, e.target.value)}
+                                  placeholder="0.00"
+                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white"
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="relative">
+                                <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  type="number"
+                                  value={adXCosts[product.productName] || ""}
+                                  onChange={(e) => handleAdCostChange("x", product.productName, e.target.value)}
+                                  placeholder="0.00"
+                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white"
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="relative">
+                                <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  type="number"
+                                  value={adSnapCosts[product.productName] || ""}
+                                  onChange={(e) => handleAdCostChange("snap", product.productName, e.target.value)}
+                                  placeholder="0.00"
+                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white"
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="relative">
+                                <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  type="number"
+                                  value={productCosts[product.productName] || ""}
+                                  onChange={(e) => handleCostChange(product.productName, e.target.value)}
+                                  placeholder="0.00"
+                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white"
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">{formatNumber(avgCost)}</TableCell>
+                            <TableCell className="text-right">{formatNumber(totalCost)}</TableCell>
+                          </TableRow>
+                        )
+                      })
                     ) : (
-                      <div className="flex justify-center">
-                        <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
-                      </div>
+                      <TableRow>
+                        <TableCell colSpan={14} className="h-24 text-center">
+                          {processedData.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center">
+                              <p className="text-muted-foreground">No delivered products found</p>
+                              {(searchTerm ||
+                                Object.values(localFilters).some((v) => v) ||
+                                filters.startDate ||
+                                filters.endDate ||
+                                filters.product ||
+                                filters.city ||
+                                filters.country) && (
+                                <Button variant="ghost" size="sm" onClick={handleResetAllFilters} className="mt-2">
+                                  Clear all filters
+                                </Button>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex justify-center">
+                              <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
                     )}
-                  </TableCell>
-                </TableRow>
-              )}
 
-              {/* Totals row */}
-              {currentItems.length > 0 && (
-                <TableRow className="bg-muted/50 font-medium">
-                  <TableCell className="text-mainColor font-bold">TOTALS</TableCell>
-                  <TableCell className="text-right">{totals.totalOrders}</TableCell>
-                  <TableCell className="text-right">{totals.totalQuantity}</TableCell>
-                  <TableCell className="text-right">-</TableCell>
-                  <TableCell className="text-right">{formatNumber(totals.totalAmount)}</TableCell>
-                  <TableCell>{formatNumber(totals.totalAdCost)}</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="text-right">{formatNumber(totals.totalCost)}</TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                    {/* Totals row */}
+                    {currentItems.length > 0 && (
+                      <TableRow className="bg-muted/50 font-medium">
+                        <TableCell className="text-mainColor font-bold sticky left-0 bg-muted/50 z-10">
+                          TOTALS
+                        </TableCell>
+                        <TableCell className="text-right">{totals.totalOrders}</TableCell>
+                        <TableCell className="text-right">{totals.totalQuantity}</TableCell>
+                        <TableCell className="text-right">-</TableCell>
+                        <TableCell className="text-right">{formatNumber(totals.totalAmount)}</TableCell>
+                        <TableCell>{formatNumber(totals.totalFbCost)}</TableCell>
+                        <TableCell>{formatNumber(totals.totalTtCost)}</TableCell>
+                        <TableCell>{formatNumber(totals.totalGoogleCost)}</TableCell>
+                        <TableCell>{formatNumber(totals.totalXCost)}</TableCell>
+                        <TableCell>{formatNumber(totals.totalSnapCost)}</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell className="text-right">{formatNumber(totals.totalCost)}</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
 
-          {/* Pagination */}
-          {processedData.length > rowsPerPage && (
-            <div className="flex items-center justify-between space-x-1 py-2">
-              <div className="text-sm text-muted-foreground">
-                Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, processedData.length)} of{" "}
-                {processedData.length} entries
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
-                  First
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="text-sm px-3 py-1 border rounded">
-                  {currentPage} of {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(totalPages)}
-                  disabled={currentPage === totalPages}
-                >
-                  Last
-                </Button>
-              </div>
-            </div>
+              {/* Pagination */}
+              {processedData.length > rowsPerPage && (
+                <div className="flex items-center justify-between space-x-1 py-2 mt-4">
+                  <div className="text-sm text-muted-foreground">
+                    Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, processedData.length)} of{" "}
+                    {processedData.length} entries
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
+                      First
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm px-3 py-1 border rounded">
+                      {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                    >
+                      Last
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

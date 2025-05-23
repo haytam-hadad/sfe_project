@@ -32,12 +32,23 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CalendarIcon, FilterIcon, RefreshCwIcon, XCircleIcon, BarChart3Icon, LineChartIcon, MapPinIcon, PackageIcon, DownloadIcon, AlertCircle } from 'lucide-react'
+import {
+  CalendarIcon,
+  FilterIcon,
+  RefreshCwIcon,
+  XCircleIcon,
+  BarChart3Icon,
+  LineChartIcon,
+  MapPinIcon,
+  PackageIcon,
+  DownloadIcon,
+  AlertCircle,
+} from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
 import { useStatusConfig } from "@/contexts/app-context"
 import { useAuth } from "@/contexts/auth-context"
 import { useFilters } from "@/contexts/app-context"
-import { matchesStatus } from "@/lib/status-config"
+import { matchesStatus } from "@/lib/constants"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { fetchMySheetData } from "@/lib/api-client"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -51,6 +62,9 @@ export default function Page() {
   const { statusConfig } = useStatusConfig()
   const { filters, updateFilter, resetFilters } = useFilters()
   const { sheetData: orders, loading, error, refreshSheetData } = useSheetData()
+  const [loadingState, setLoading] = useState(false)
+  const [errorState, setError] = useState(null)
+  const [ordersState, setOrders] = useState([])
 
   // Refresh data when token changes
   useEffect(() => {
@@ -67,7 +81,8 @@ export default function Page() {
 
   // Extract unique values for filters
   const uniqueValues = useMemo(() => {
-    if (!orders || !Array.isArray(orders) || !orders.length) return { statuses: [], products: [], cities: [], countries: [] }
+    if (!orders || !Array.isArray(orders) || !orders.length)
+      return { statuses: [], products: [], cities: [], countries: [] }
     const statuses = [...new Set(orders.map((order) => order["STATUS"]).filter(Boolean))].sort()
     const products = [...new Set(orders.map((order) => order["sku number"]).filter(Boolean))].sort()
     const cities = [...new Set(orders.map((order) => order["City"]).filter(Boolean))].sort()
@@ -108,7 +123,7 @@ export default function Page() {
       updateFilter("startDate", startDate)
       updateFilter("endDate", endDate)
     },
-    [filters.startDate, filters.endDate, updateFilter]
+    [filters.startDate, filters.endDate, updateFilter],
   )
 
   // Apply filters to orders
@@ -152,21 +167,23 @@ export default function Page() {
   const metrics = useMemo(() => {
     if (!filteredOrders.length)
       return {
-      totalLeads: 0,
-      confirmation: 0,
-      confirmationRate: 0,
-      delivery: 0,
-      deliveryRate: 0,
-      returned: 0,
-      returnRate: 0,
-      inProcess: 0,
-      inProcessRate: 0,
-      totalRevenue: 0,
-      avgOrderValue: 0,
-      totalQuantity: 0,
+        totalLeads: 0,
+        confirmation: 0,
+        confirmationRate: 0,
+        delivery: 0,
+        deliveryRate: 0,
+        returned: 0,
+        returnRate: 0,
+        inProcess: 0,
+        inProcessRate: 0,
+        totalRevenue: 0,
+        avgOrderValue: 0,
+        totalQuantity: 0,
       }
     const totalLeads = filteredOrders.length
-    const confirmation = filteredOrders.filter((order) => matchesStatus(order["STATUS"], statusConfig.confirmation)).length
+    const confirmation = filteredOrders.filter((order) =>
+      matchesStatus(order["STATUS"], statusConfig.confirmation),
+    ).length
     const delivery = filteredOrders.filter((order) => matchesStatus(order["STATUS"], statusConfig.delivery)).length
     const returned = filteredOrders.filter((order) => matchesStatus(order["STATUS"], statusConfig.returned)).length
     const inProcess = filteredOrders.filter((order) => matchesStatus(order["STATUS"], statusConfig.inProcess)).length
@@ -522,7 +539,8 @@ export default function Page() {
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">
-            Analyzing {filteredOrders.length} orders from {filters.startDate ? format(filters.startDate, "MMM d, yyyy") : "all time"} to{" "}
+            Analyzing {filteredOrders.length} orders from{" "}
+            {filters.startDate ? format(filters.startDate, "MMM d, yyyy") : "all time"} to{" "}
             {filters.endDate ? format(filters.endDate, "MMM d, yyyy") : "present"}
           </p>
         </div>
@@ -613,7 +631,7 @@ export default function Page() {
               {/* Status Filter */}
               <div>
                 <label className="block text-sm font-medium mb-1">Status</label>
-                <Select value={filters.status} onValueChange={(v) => updateFilter("status", v === 'all' ? '' : v)}>
+                <Select value={filters.status} onValueChange={(v) => updateFilter("status", v === "all" ? "" : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
@@ -631,7 +649,7 @@ export default function Page() {
               {/* Product Filter */}
               <div>
                 <label className="block text-sm font-medium mb-1">Product</label>
-                <Select value={filters.product} onValueChange={(v) => updateFilter("product", v === 'all' ? '' : v)}>
+                <Select value={filters.product} onValueChange={(v) => updateFilter("product", v === "all" ? "" : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Products" />
                   </SelectTrigger>
@@ -649,7 +667,7 @@ export default function Page() {
               {/* City Filter */}
               <div>
                 <label className="block text-sm font-medium mb-1">City</label>
-                <Select value={filters.city} onValueChange={(v) => updateFilter("city", v === 'all' ? '' : v)}>
+                <Select value={filters.city} onValueChange={(v) => updateFilter("city", v === "all" ? "" : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Cities" />
                   </SelectTrigger>
@@ -667,7 +685,7 @@ export default function Page() {
               {/* Country Filter */}
               <div>
                 <label className="block text-sm font-medium mb-1">Country</label>
-                <Select value={filters.country} onValueChange={(v) => updateFilter("country", v === 'all' ? '' : v)}>
+                <Select value={filters.country} onValueChange={(v) => updateFilter("country", v === "all" ? "" : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Countries" />
                   </SelectTrigger>
@@ -1415,4 +1433,4 @@ export default function Page() {
       </div>
     </main>
   )
-} 
+}

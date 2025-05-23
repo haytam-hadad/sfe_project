@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 import { useStatusConfig, useSheetData, useApp } from "@/contexts/app-context"
-import { defaultStatusConfig } from "@/lib/status-config"
+import { DEFAULT_STATUS_CONFIG } from "@/lib/constants"
 import {
   LoaderCircle,
   CheckCircle,
@@ -25,7 +25,7 @@ import {
 export default function SettingsPage() {
   const { toast } = useToast()
   const { user, loading: authLoading, token } = useAuth()
-  const { statusConfig, setStatusConfig } = useStatusConfig()
+  const { statusConfig, setStatusConfig, resetStatusConfig } = useStatusConfig()
   const { sheetData, loadingSheetData, errorSheetData, refreshSheetData } = useSheetData()
   const { countryRates, updateCountryRate } = useApp()
 
@@ -37,6 +37,11 @@ export default function SettingsPage() {
   const [localConfig, setLocalConfig] = useState({ ...statusConfig })
   const [saveStatus, setSaveStatus] = useState(null)
   const [newStatus, setNewStatus] = useState("")
+
+  // Update local config when statusConfig changes
+  useEffect(() => {
+    setLocalConfig({ ...statusConfig })
+  }, [statusConfig])
 
   // Fetch data to get all possible statuses
   useEffect(() => {
@@ -168,34 +173,17 @@ export default function SettingsPage() {
 
   // Reset to defaults
   const resetToDefaults = () => {
-    setLocalConfig({ ...defaultStatusConfig })
-    setSaveStatus("unsaved")
+    // Use the resetStatusConfig function from context
+    resetStatusConfig()
+    // Update local state
+    setLocalConfig({ ...DEFAULT_STATUS_CONFIG })
+    setSaveStatus("saved")
+
+    toast({
+      title: "Settings reset",
+      description: "Status configuration has been reset to defaults.",
+    })
   }
-
-  // Load custom statuses from localStorage
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedConfig = localStorage.getItem("statusConfig")
-      if (savedConfig) {
-        try {
-          setLocalConfig(JSON.parse(savedConfig))
-        } catch (error) {
-          console.error("Failed to parse saved status config:", error)
-        }
-      }
-
-      // Load custom statuses if any were saved
-      const savedCustomStatuses = localStorage.getItem("customStatuses")
-      if (savedCustomStatuses) {
-        try {
-          const parsedStatuses = JSON.parse(savedCustomStatuses)
-          // We'll use this when fetching orders to ensure we include custom statuses
-        } catch (error) {
-          console.error("Failed to parse saved custom statuses:", error)
-        }
-      }
-    }
-  }, [])
 
   // Handle country-specific rate update
   const handleCountryRateUpdate = (country) => {
