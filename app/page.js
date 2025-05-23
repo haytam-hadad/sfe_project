@@ -585,51 +585,35 @@ export default function Page() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
-              {/* Date Range */}
+              {/* Date Range (single input for range) */}
               {filters.timeRange === "custom" && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Start Date</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start">
-                          <CalendarIcon className="mr-1 h-4 w-4" />
-                          {filters.startDate ? format(filters.startDate, "PPP") : "Select date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={filters.startDate}
-                          onSelect={(date) => updateFilter("startDate", date)}
-                          initialFocus
-                          disabled={(date) => (filters.endDate ? date > filters.endDate : false)}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">End Date</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start">
-                          <CalendarIcon className="mr-1 h-4 w-4" />
-                          {filters.endDate ? format(filters.endDate, "PPP") : "Select date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={filters.endDate}
-                          onSelect={(date) => updateFilter("endDate", date)}
-                          initialFocus
-                          disabled={(date) => (filters.startDate ? date < filters.startDate : false)}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium mb-1">Date Range</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start">
+                        <CalendarIcon className="mr-1 h-4 w-4" />
+                        {filters.startDate || filters.endDate
+                          ? `${filters.startDate ? format(filters.startDate, "PPP") : "Start"} - ${filters.endDate ? format(filters.endDate, "PPP") : "End"}`
+                          : "Select date range"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="range"
+                        selected={{
+                          from: filters.startDate || undefined,
+                          to: filters.endDate || undefined,
+                        }}
+                        onSelect={(range) => {
+                          updateFilter("startDate", range?.from ?? null)
+                          updateFilter("endDate", range?.to ?? null)
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               )}
 
               {/* Status Filter */}
@@ -790,7 +774,7 @@ export default function Page() {
         </Card>
 
         {/* Source Traffic Card */}
-        <Card className="overflow-hidden border-gray-600">
+        <Card className="overflow-hidden border-grey-100">
           <div className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-600 text-white p-2 py-2.5">
             <h3 className="text-md font-bold uppercase">Source Traffic</h3>
           </div>

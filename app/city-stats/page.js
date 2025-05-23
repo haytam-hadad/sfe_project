@@ -417,43 +417,30 @@ export default function CityStatsPage() {
                 </select>
               </div>
 
+              {/* Date Range Filter (single input for range) */}
               <div>
-                <label className="block text-sm font-medium mb-1">Start Date</label>
+                <label className="block text-sm font-medium mb-1">Date Range</label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="justify-start dark:bg-black text-left font-normal w-full">
                       <CalendarIcon className="mr-1 h-4 w-4" />
-                      {filters.startDate ? format(new Date(filters.startDate), "PPP") : "Select date"}
+                      {filters.startDate || filters.endDate
+                        ? `${filters.startDate ? format(new Date(filters.startDate), "PPP") : "Start"} - ${filters.endDate ? format(new Date(filters.endDate), "PPP") : "End"}`
+                        : "Select date range"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
                     <Calendar
-                      mode="single"
-                      selected={filters.startDate ? new Date(filters.startDate) : undefined}
-                      onSelect={(date) => updateFilter("startDate", date?.toISOString())}
+                      mode="range"
+                      selected={{
+                        from: filters.startDate ? new Date(filters.startDate) : undefined,
+                        to: filters.endDate ? new Date(filters.endDate) : undefined,
+                      }}
+                      onSelect={(range) => {
+                        updateFilter("startDate", range?.from ? range.from.toISOString() : null)
+                        updateFilter("endDate", range?.to ? range.to.toISOString() : null)
+                      }}
                       initialFocus
-                      disabled={(date) => (filters.endDate ? date > new Date(filters.endDate) : false)}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">End Date</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="justify-start dark:bg-black text-left font-normal w-full">
-                      <CalendarIcon className="mr-1 h-4 w-4" />
-                      {filters.endDate ? format(new Date(filters.endDate), "PPP") : "Select date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={filters.endDate ? new Date(filters.endDate) : undefined}
-                      onSelect={(date) => updateFilter("endDate", date?.toISOString())}
-                      initialFocus
-                      disabled={(date) => (filters.startDate ? date < new Date(filters.startDate) : false)}
                     />
                   </PopoverContent>
                 </Popover>

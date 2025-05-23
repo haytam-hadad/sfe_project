@@ -222,9 +222,13 @@ export default function OrdersDashboard() {
   const orderStats = useMemo(() => {
     if (!filteredOrders.length) return { totalAmount: 0, totalQuantity: 0, statusCounts: {} }
 
+    // Only include delivered orders for revenue calculation
     const totalAmount = filteredOrders.reduce((sum, order) => {
-      const amount = Number.parseFloat(order["Cod Amount"]) || 0
-      return sum + amount
+      if (order["STATUS"] === "Delivered") {
+        const amount = Number.parseFloat(order["Cod Amount"]) || 0
+        return sum + amount
+      }
+      return sum
     }, 0)
 
     const totalQuantity = filteredOrders.reduce((sum, order) => {
@@ -508,48 +512,6 @@ export default function OrdersDashboard() {
               {filteredOrders.length} orders
             </Badge>
 
-            {Object.keys(orderStats).length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-9">
-                    <SlidersIcon className="mr-1 h-4 w-4" />
-                    Stats
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-full sm:w-56">
-                  <div className="p-2">
-                    <h4 className="font-medium text-sm mb-2">Order Summary</h4>
-                    <div className="text-xs sm:text-sm space-y-1">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Total Amount:</span>
-                        <span className="font-medium">{formatOrderCurrency(orderStats.totalAmount)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Total Quantity:</span>
-                        <span className="font-medium">{orderStats.totalQuantity.toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <div className="p-2">
-                    <h4 className="font-medium text-sm mb-2">Status Breakdown</h4>
-                    <div className="text-xs sm:text-sm space-y-1">
-                      {Object.entries(orderStats.statusCounts || {}).map(([status, count]) => {
-                        const percentage = (count / filteredOrders.length) * 100
-                        return (
-                          <div key={status} className="flex justify-between items-center">
-                            <span className="text-muted-foreground">{status}:</span>
-                            <Badge variant="outline" className="font-medium">
-                              {count} ({percentage.toFixed(1)}%)
-                            </Badge>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

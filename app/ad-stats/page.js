@@ -639,112 +639,93 @@ export default function AdsStatsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            {/* All filters in one row */}
+            <div className="flex flex-col md:flex-row gap-4 mb-4">
               {/* Country Filter */}
-              <div>
+              <div className="flex-1 min-w-[180px]">
                 <label className="text-sm font-medium flex items-center mb-1">
                   <Globe className="h-4 w-4 mr-1" /> Country
                 </label>
-                <Select value={filters.country || ""} onValueChange={(value) => updateFilter("country", value)}>
+                <Select
+                  value={filters.country || ""}
+                  onValueChange={(value) => updateFilter("country", value === "all" ? "" : value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select country" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Countries</SelectItem>
-                    {availableCountries.map((country) => (
-                      <SelectItem key={country} value={country}>
-                        {country}
-                      </SelectItem>
-                    ))}
+                    {[...new Set(
+                      (sheetData || [])
+                        .map((order) => order["Receiver Country"] || order["Receier Country"] || order["Country"])
+                        .filter(Boolean)
+                    )]
+                      .sort((a, b) => a.localeCompare(b))
+                      .map((country) => (
+                        <SelectItem key={country} value={country}>
+                          {country}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
 
               {/* City Filter */}
-              <div>
+              <div className="flex-1 min-w-[180px]">
                 <label className="text-sm font-medium flex items-center mb-1">
                   <MapPin className="h-4 w-4 mr-1" /> City
                 </label>
-                <Select value={filters.city || ""} onValueChange={(value) => updateFilter("city", value)}>
+                <Select
+                  value={filters.city || ""}
+                  onValueChange={(value) => updateFilter("city", value === "all" ? "" : value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select city" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Cities</SelectItem>
-                    {availableCities.map((city) => (
-                      <SelectItem key={city} value={city}>
-                        {city}
-                      </SelectItem>
-                    ))}
+                    {[...new Set(
+                      (sheetData || [])
+                        .map((order) => order["City"])
+                        .filter(Boolean)
+                    )]
+                      .sort((a, b) => a.localeCompare(b))
+                      .map((city) => (
+                        <SelectItem key={city} value={city}>
+                          {city}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-sm font-medium">Min Amount</label>
-                    <Input
-                      type="number"
-                      placeholder="Min $"
-                      value={localFilters.minAmount}
-                      onChange={(e) => setLocalFilters({ ...localFilters, minAmount: e.target.value })}
+              {/* Date Range Filter (single input for range) */}
+              <div className="flex-1 min-w-[220px]">
+                <label className="text-sm font-medium">Date Range</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <CalendarIcon className="mr-1 h-4 w-4" />
+                      {filters.startDate || filters.endDate
+                        ? `${filters.startDate ? format(new Date(filters.startDate), "PPP") : "Start"} - ${filters.endDate ? format(new Date(filters.endDate), "PPP") : "End"}`
+                        : "Select date range"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="range"
+                      selected={{
+                        from: filters.startDate ? new Date(filters.startDate) : undefined,
+                        to: filters.endDate ? new Date(filters.endDate) : undefined,
+                      }}
+                      onSelect={(range) => {
+                        updateFilter("startDate", range?.from ? range.from.toISOString() : null)
+                        updateFilter("endDate", range?.to ? range.to.toISOString() : null)
+                      }}
+                      initialFocus
                     />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Max Amount</label>
-                    <Input
-                      type="number"
-                      placeholder="Max $"
-                      value={localFilters.maxAmount}
-                      onChange={(e) => setLocalFilters({ ...localFilters, maxAmount: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-sm font-medium">Start Date</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal">
-                          <CalendarIcon className="mr-1 h-4 w-4" />
-                          {filters.startDate ? format(new Date(filters.startDate), "PPP") : "Pick date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={filters.startDate ? new Date(filters.startDate) : undefined}
-                          onSelect={(date) => updateFilter("startDate", date?.toISOString())}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">End Date</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal">
-                          <CalendarIcon className="mr-1 h-4 w-4" />
-                          {filters.endDate ? format(new Date(filters.endDate), "PPP") : "Pick date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={filters.endDate ? new Date(filters.endDate) : undefined}
-                          onSelect={(date) => updateFilter("endDate", date?.toISOString())}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           </CardContent>
