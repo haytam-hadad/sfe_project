@@ -82,12 +82,14 @@ export default function Page() {
   // Extract unique values for filters
   const uniqueValues = useMemo(() => {
     if (!orders || !Array.isArray(orders) || !orders.length)
-      return { statuses: [], products: [], cities: [], countries: [] }
+      return { statuses: [], products: [], cities: [], countries: [], sources: [] }
     const statuses = [...new Set(orders.map((order) => order["STATUS"]).filter(Boolean))].sort()
     const products = [...new Set(orders.map((order) => order["sku number"]).filter(Boolean))].sort()
     const cities = [...new Set(orders.map((order) => order["City"]).filter(Boolean))].sort()
     const countries = [...new Set(orders.map((order) => order["Receier Country"]).filter(Boolean))].sort()
-    return { statuses, products, cities, countries }
+    // Make Source Traffic options dynamic
+    const sources = [...new Set(orders.map((order) => order["Source Traffic"]).filter(Boolean))].sort()
+    return { statuses, products, cities, countries, sources }
   }, [orders])
 
   // Apply time range filter
@@ -148,6 +150,8 @@ export default function Page() {
       if (filters.city && order["City"] !== filters.city) return false
       // Country filter
       if (filters.country && order["Receier Country"] !== filters.country) return false
+      // Source Traffic filter
+      if (filters.source && order["Source Traffic"] !== filters.source) return false
       return true
     })
   }, [orders, filters])
@@ -580,7 +584,7 @@ export default function Page() {
             <CardDescription>Refine your dashboard view</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
               {/* Date Range */}
               {filters.timeRange === "custom" && (
                 <>
@@ -699,6 +703,24 @@ export default function Page() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Source Traffic Filter */}
+              <div>
+                <label className="block text-sm font-medium mb-1">Source Traffic</label>
+                <Select value={filters.source} onValueChange={(v) => updateFilter("source", v === "all" ? "" : v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Sources" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sources</SelectItem>
+                    {uniqueValues.sources.map((src) => (
+                      <SelectItem key={src} value={src}>
+                        {src}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="mt-4 flex justify-end">
@@ -712,10 +734,10 @@ export default function Page() {
       )}
 
       {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 mb-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3  gap-3 mb-5">
         {/* Total Leads Card */}
         <Card className="overflow-hidden border-orange-500">
-          <div className="bg-orange-500 text-white p-2 pt-3">
+          <div className="bg-orange-500 text-white p-2 py-2.5 ">
             <h3 className="text-md font-bold uppercase">Total Leads</h3>
           </div>
           <CardContent className="p-4 pt-6 flex justify-center items-center">
@@ -725,7 +747,7 @@ export default function Page() {
 
         {/* Confirmation Rate Card */}
         <Card className="overflow-hidden border-blue-600 ">
-          <div className="bg-blue-600 text-white p-2 pt-3">
+          <div className="bg-blue-600 text-white p-2 py-2.5">
             <h3 className="text-md font-bold uppercase">Confirmation Rate</h3>
           </div>
           <CardContent className="p-4 pt-6 flex justify-center items-center gap-4">
@@ -736,7 +758,7 @@ export default function Page() {
 
         {/* Delivery Rate Card */}
         <Card className="overflow-hidden border-green-500">
-          <div className="bg-green-500 text-white p-2 pt-3">
+          <div className="bg-green-500 text-white p-2 py-2.5 ">
             <h3 className="text-md font-bold uppercase">Delivery Rate</h3>
           </div>
           <CardContent className="p-4 pt-6 flex justify-center items-center gap-4">
@@ -747,7 +769,7 @@ export default function Page() {
 
         {/* Return Rate Card */}
         <Card className="overflow-hidden border-red-600">
-          <div className="bg-red-600 text-white p-2 pt-3">
+          <div className="bg-red-600 text-white p-2 py-2.5 ">
             <h3 className="text-md font-bold uppercase">Return Rate</h3>
           </div>
           <CardContent className="p-4 pt-6 flex justify-center items-center gap-4">
@@ -758,12 +780,30 @@ export default function Page() {
 
         {/* In Process Rate Card */}
         <Card className="overflow-hidden border-purple-600 ">
-          <div className="bg-purple-600 text-white p-2 pt-3">
+          <div className="bg-purple-600 text-white p-2 py-2.5 ">
             <h3 className="text-md font-bold uppercase">In Process Rate</h3>
           </div>
           <CardContent className="p-4 pt-6 flex justify-center items-center gap-4">
             <p className="text-2xl font-bold">{metrics.inProcess}</p>
             <p className="text-xl font-bold">{metrics.inProcessRate}%</p>
+          </CardContent>
+        </Card>
+
+        {/* Source Traffic Card */}
+        <Card className="overflow-hidden border-gray-600">
+          <div className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-600 text-white p-2 py-2.5">
+            <h3 className="text-md font-bold uppercase">Source Traffic</h3>
+          </div>
+          <CardContent className="p-1 px-[10%] space-y-1">
+            <div className="grid grid-cols-2 gap-2">
+              {uniqueValues.sources.map((src) => {
+                const count = filteredOrders.filter((order) => order["Source Traffic"] === src).length;
+                return (
+                  <div key={src} className="flex flex-col items-start justify-center text-sm">
+                    <span> {src} : <b>{count}</b></span>                  </div>
+                );
+              })}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -1391,6 +1431,9 @@ export default function Page() {
           </li>
           <li>
             <strong>In Process:</strong> Orders with status {statusConfig.inProcess.join(", ")}
+          </li>
+          <li>
+            <strong>Source Traffic:</strong> X(twitter), Tiktok, Facebook, Snapshat, Google
           </li>
         </ul>
         {filteredOrders.length !== orders.length && (

@@ -59,6 +59,7 @@ export default function OrdersDashboard() {
     Quantity: true,
     City: true,
     "Receier Country": true,
+    "Source Traffic": true, // <-- Ensure this is present and true
     STATUS: true,
   })
 
@@ -75,6 +76,18 @@ export default function OrdersDashboard() {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(20)
+
+  // Dynamically extract unique Source Traffic options from orders
+  const sourceTrafficOptions = useMemo(() => {
+    if (!orders.length) return []
+    return [
+      ...new Set(
+        orders
+          .map((order) => order["Source Traffic"])
+          .filter(Boolean)
+      ),
+    ].sort()
+  }, [orders])
 
   // Effect to show filters when any filter is active
   useEffect(() => {
@@ -116,6 +129,12 @@ export default function OrdersDashboard() {
       .map(([city, count]) => ({ city, count })) // Return city and count as objects
   }, [orders])
 
+  // Memoized unique sources (for future use if needed)
+  const sources = useMemo(() => {
+    if (!orders.length) return []
+    return [...new Set(orders.map((order) => order["Source Traffic"]).filter((src) => sourceTrafficOptions.includes(src)))]
+  }, [orders])
+
   // Filter orders based on current criteria
   const filteredOrders = useMemo(() => {
     if (!orders.length) return []
@@ -139,6 +158,7 @@ export default function OrdersDashboard() {
         const matchesStatus = !filters.status || order["STATUS"] === filters.status
         const matchesCountry = !filters.country || order["Receier Country"] === filters.country
         const matchesCity = !filters.city || order["City"] === filters.city
+        const matchesSource = !filters.source || order["Source Traffic"] === filters.source
 
         let matchesDateRange = true
         if (filters.startDate || filters.endDate) {
@@ -155,7 +175,7 @@ export default function OrdersDashboard() {
           }
         }
 
-        return matchesStatus && matchesCountry && matchesCity && matchesDateRange
+        return matchesStatus && matchesCountry && matchesCity && matchesSource && matchesDateRange
       })
       .sort((a, b) => {
         const fieldA = a[sortField]
@@ -184,6 +204,7 @@ export default function OrdersDashboard() {
     filters.status,
     filters.country,
     filters.city,
+    filters.source, // <-- add this
     filters.startDate,
     filters.endDate,
     sortField,
@@ -293,14 +314,6 @@ export default function OrdersDashboard() {
     updateFilter("city", value)
   }
 
-  const handleDateRangeChange = useCallback(
-    (start, end) => {
-      updateFilter("startDate", start?.toISOString())
-      updateFilter("endDate", end?.toISOString())
-    },
-    [updateFilter],
-  )
-
   // UI Helper Functions
   const getStatusBadge = useCallback((status) => {
     if (!status) return <Badge variant="outline">Unknown</Badge>
@@ -321,22 +334,19 @@ export default function OrdersDashboard() {
     }
   }, [])
 
+  // Remove conversion from formatOrderCurrency
   const formatOrderCurrency = useCallback(
-    (amount, country) => {
+    (amount /*, country*/) => {
       if (amount === undefined || amount === null || amount === "") return "—"
-
-      // Apply country-specific conversion rate
-      const rate = getCountryRate(country)
-      const convertedAmount = amount * rate
-
+      // No conversion, just show the raw amount as USD
       return new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
-      }).format(convertedAmount)
+      }).format(amount)
     },
-    [getCountryRate],
+    [],
   )
 
   // Pagination rendering
@@ -693,6 +703,27 @@ export default function OrdersDashboard() {
                 </select>
               </div>
 
+              {/* Source Traffic filter */}
+              <div className="relative">
+                <label htmlFor="source-filter" className="sr-only">
+                  Filter by source traffic
+                </label>
+                <select
+                  id="source-filter"
+                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
+                  value={filters.source || ""}
+                  onChange={(e) => updateFilter("source", e.target.value)}
+                  aria-label="Filter by source traffic"
+                >
+                  <option value="">All Sources</option>
+                  {sourceTrafficOptions.map((src) => (
+                    <option key={src} value={src}>
+                      {src}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Date range */}
               <div className="relative">
                 <label className="sr-only">Date range</label>
@@ -877,6 +908,27 @@ export default function OrdersDashboard() {
                   </div>
                 </TableHead>
               )}
+              {visibleColumns["Source Traffic"] && (
+                <TableHead
+                  className="cursor-pointer text-center select-none"
+                  onClick={() => handleSort("Source Traffic")}
+                  role="columnheader"
+                  aria-sort={sortField === "Source Traffic" ? sortDirection : "none"}
+                >
+                  <div className="flex justify-center items-center">
+                    <span className={sortField === "Source Traffic" ? "text-green-600 font-medium" : ""}>
+                      Source Traffic
+                    </span>
+                    {sortField === "Source Traffic" ? (
+                      sortDirection === "asc" ? (
+                        <ArrowUpIcon className="ml-1 h-4 w-4" />
+                      ) : (
+                        <ArrowDownIcon className="ml-1 h-4 w-4" />
+                      )
+                    ) : null}
+                  </div>
+                </TableHead>
+              )}
               {visibleColumns["STATUS"] && (
                 <TableHead
                   className="cursor-pointer select-none"
@@ -903,7 +955,7 @@ export default function OrdersDashboard() {
               renderSkeletonRows()
             ) : filteredOrders.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length} className="h-32 text-center">
+                <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length + 1} className="h-32 text-center">
                   <div className="flex flex-col items-center justify-center text-muted-foreground p-8">
                     <PackageIcon className="h-12 w-12 mb-4 opacity-40" />
                     <p className="text-lg font-medium mb-1">No orders found</p>
@@ -956,6 +1008,11 @@ export default function OrdersDashboard() {
                   )}
                   {visibleColumns["Receier Country"] && (
                     <TableCell className="text-center">{order["Receier Country"]}</TableCell>
+                  )}
+                  {visibleColumns["Source Traffic"] && (
+                    <TableCell className="text-center">
+                      {order["Source Traffic"] || "—"}
+                    </TableCell>
                   )}
                   {visibleColumns["STATUS"] && (
                     <TableCell className="text-center">{getStatusBadge(order["STATUS"])}</TableCell>
