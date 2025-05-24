@@ -4,7 +4,9 @@ import { useState, useEffect, useMemo, useCallback } from "react"
 import { format } from "date-fns"
 import {
   CalendarIcon,
+  Globe,
   SearchIcon,
+  Info ,
   FilterIcon,
   RefreshCwIcon,
   PackageIcon,
@@ -15,7 +17,7 @@ import {
   ArrowUpIcon,
   SlidersIcon,
 } from "lucide-react"
-import { Input } from "@/components/ui/input"
+
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -307,6 +309,12 @@ export default function OrdersDashboard() {
     setCurrentPage(1)
   }, [resetFilters])
 
+  // Date range handler
+  const handleDateRangeChange = (from, to) => {
+    updateFilter("startDate", from ? from.toISOString() : null)
+    updateFilter("endDate", to ? to.toISOString() : null)
+  }
+
   // UI Helper Functions
   const getStatusBadge = useCallback((status) => {
     if (!status) return <Badge variant="outline">Unknown</Badge>
@@ -541,8 +549,8 @@ export default function OrdersDashboard() {
 
         {/* Filters */}
         <div className="flex justify-between border-t items-center p-2 mb-1">
-          <h2 className="text-sm font-medium flex items-center">
-            <FilterIcon className="mr-1 h-4 w-4" />
+          <h2 className="text-md font-medium flex items-center">
+            <FilterIcon className="mr-2 h-5 w-5 text-mainColor" />
             Filters
           </h2>
           <div className="flex items-center gap-1">
@@ -580,8 +588,8 @@ export default function OrdersDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 max-w-[100vw] lg:grid-cols-4 p-1 gap-3">
               {/* Product filter */}
               <div className="relative">
-                <label htmlFor="product-filter" className="sr-only">
-                  Filter by product
+                <label htmlFor="product-filter" className="block text-sm font-medium mb-1 flex items-center">
+                  <PackageIcon className="h-4 w-4 mr-1" /> Product
                 </label>
                 <select
                   id="product-filter"
@@ -601,8 +609,8 @@ export default function OrdersDashboard() {
 
               {/* Status filter */}
               <div className="relative">
-                <label htmlFor="status-filter" className="sr-only">
-                  Filter by status
+                <label htmlFor="status-filter" className="text-sm font-medium mb-1 flex items-center">
+                  <Info className="h-4 w-4 mr-1" /> Status
                 </label>
                 <select
                   id="status-filter"
@@ -622,8 +630,8 @@ export default function OrdersDashboard() {
 
               {/* Country filter */}
               <div className="relative">
-                <label htmlFor="country-filter" className="sr-only">
-                  Filter by country
+                <label htmlFor="country-filter" className="block text-sm font-medium mb-1 flex items-center">
+                  <Globe className="h-4 w-4 mr-1" /> Country
                 </label>
                 <select
                   id="country-filter"
@@ -643,8 +651,8 @@ export default function OrdersDashboard() {
 
               {/* City filter */}
               <div className="relative">
-                <label htmlFor="city-filter" className="sr-only">
-                  Filter by city
+                <label htmlFor="city-filter" className="block text-sm font-medium mb-1 flex items-center">
+                  <SearchIcon className="h-4 w-4 mr-1" /> City
                 </label>
                 <select
                   id="city-filter"
@@ -664,8 +672,8 @@ export default function OrdersDashboard() {
 
               {/* Source Traffic filter */}
               <div className="relative">
-                <label htmlFor="source-filter" className="sr-only">
-                  Filter by source traffic
+                <label htmlFor="source-filter" className="block text-sm font-medium mb-1 flex items-center">
+                  <FilterIcon className="h-4 w-4 mr-1" /> Source Traffic
                 </label>
                 <select
                   id="source-filter"
@@ -685,7 +693,9 @@ export default function OrdersDashboard() {
 
               {/* Date range */}
               <div className="relative">
-                <label className="sr-only">Date range</label>
+                <label className="block text-sm font-medium mb-1 flex items-center">
+                  <CalendarIcon className="h-4 w-4 mr-1" /> Date Range
+                </label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start text-left font-normal">

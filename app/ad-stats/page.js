@@ -626,11 +626,11 @@ export default function AdsStatsPage() {
 
       {/* Filters */}
       {showFilters && (
-        <Card className="mb-6 border-t-4 border-t-gray-300">
+        <Card className="mb-">
           <CardHeader className="pb-3">
             <div className="flex justify-between items-center">
               <CardTitle className="text-md flex items-center">
-                <Filter className="h-4 w-4 mr-1" /> Filters
+                <Filter className="h-5 w-5 mr-1 text-mainColor" /> Filters
               </CardTitle>
               <Button variant="outline" size="sm" onClick={handleResetAllFilters}>
                 <X className="h-4 w-4 mr-1 text-mainColor" />
@@ -693,6 +693,35 @@ export default function AdsStatsPage() {
                       .map((city) => (
                         <SelectItem key={city} value={city}>
                           {city}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Product Filter */}
+              <div className="flex-1 min-w-[180px]">
+                <label className="text-sm font-medium flex items-center mb-1">
+                  <BarChart3 className="h-4 w-4 mr-1" /> Product
+                </label>
+                <Select
+                  value={filters.product || ""}
+                  onValueChange={(value) => updateFilter("product", value === "all" ? "" : value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select product" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Products</SelectItem>
+                    {[...new Set(
+                      (sheetData || [])
+                        .map((order) => order["Product Name"] || order["sku number"] || order["product"])
+                        .filter(Boolean)
+                    )]
+                      .sort((a, b) => a.localeCompare(b))
+                      .map((product) => (
+                        <SelectItem key={product} value={product}>
+                          {product}
                         </SelectItem>
                       ))}
                   </SelectContent>

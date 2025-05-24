@@ -33,6 +33,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
+  Globe,
   CalendarIcon,
   FilterIcon,
   RefreshCwIcon,
@@ -565,20 +566,22 @@ export default function Page() {
         <Card className="mb-6">
           <CardHeader className="pb-2">
             <div className="flex items-center">
-              <FilterIcon className="mr-1 h-4 w-4" />
+              <FilterIcon className="mr-1 h-5 w-5 text-mainColor" />
               <CardTitle className="text-lg">Filters</CardTitle>
             </div>
             <CardDescription>Refine your dashboard view</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
-              {/* Date Range (always visible) */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">Date Range</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {/* Date Range */}
+              <div>
+                <label className="block text-sm font-medium mb-1 flex items-center">
+                  <CalendarIcon className="h-4 w-4 mr-1 text-blue-600" /> Date Range
+                </label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start">
-                      <CalendarIcon className="mr-1 h-4 w-4" />
+                      <CalendarIcon className="mr-1 h-4 w-4 text-blue-600" />
                       {filters.startDate || filters.endDate
                         ? `${filters.startDate ? format(filters.startDate, "PPP") : "Start"} - ${filters.endDate ? format(filters.endDate, "PPP") : "End"}`
                         : "Select date range"}
@@ -603,7 +606,9 @@ export default function Page() {
 
               {/* Status Filter */}
               <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
+                <label className="block text-sm font-medium mb-1 flex items-center">
+                  <BarChart3Icon className="h-4 w-4 mr-1 text-blue-700" /> Status
+                </label>
                 <Select value={filters.status} onValueChange={(v) => updateFilter("status", v === "all" ? "" : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Statuses" />
@@ -621,7 +626,9 @@ export default function Page() {
 
               {/* Product Filter */}
               <div>
-                <label className="block text-sm font-medium mb-1">Product</label>
+                <label className="block text-sm font-medium mb-1 flex items-center">
+                  <PackageIcon className="h-4 w-4 mr-1 text-orange-500" /> Product
+                </label>
                 <Select value={filters.product} onValueChange={(v) => updateFilter("product", v === "all" ? "" : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Products" />
@@ -639,7 +646,9 @@ export default function Page() {
 
               {/* City Filter */}
               <div>
-                <label className="block text-sm font-medium mb-1">City</label>
+                <label className="block text-sm font-medium mb-1 flex items-center">
+                  <MapPinIcon className="h-4 w-4 mr-1 text-green-600" /> City
+                </label>
                 <Select value={filters.city} onValueChange={(v) => updateFilter("city", v === "all" ? "" : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Cities" />
@@ -657,7 +666,9 @@ export default function Page() {
 
               {/* Country Filter */}
               <div>
-                <label className="block text-sm font-medium mb-1">Country</label>
+                <label className="block text-sm font-medium mb-1 flex items-center">
+                  <Globe className="h-4 w-4 mr-1 text-purple-600" /> Country
+                </label>
                 <Select value={filters.country} onValueChange={(v) => updateFilter("country", v === "all" ? "" : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Countries" />
@@ -675,7 +686,9 @@ export default function Page() {
 
               {/* Source Traffic Filter */}
               <div>
-                <label className="block text-sm font-medium mb-1">Source Traffic</label>
+                <label className="block text-sm font-medium mb-1 flex items-center">
+                  <FilterIcon className="h-4 w-4 mr-1 text-pink-600" /> Source Traffic
+                </label>
                 <Select value={filters.source} onValueChange={(v) => updateFilter("source", v === "all" ? "" : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Sources" />
@@ -694,7 +707,7 @@ export default function Page() {
 
             <div className="mt-4 flex justify-end">
               <Button variant="outline" onClick={resetFilters} className="mr-1">
-                <XCircleIcon className="mr-1 h-4 w-4" />
+                <XCircleIcon className="mr-1 h-4 w-4 text-mainColor" />
                 Reset Filters
               </Button>
             </div>

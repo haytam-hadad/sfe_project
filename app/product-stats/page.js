@@ -8,6 +8,9 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import {
   LoaderCircle,
+  BarChart3,
+  MapPin ,
+  Globe ,
   RefreshCwIcon,
   DownloadIcon,
   FilterIcon,
@@ -401,8 +404,8 @@ export default function ProductStatsPage() {
         <Card className="mb-6 shadow-sm dark:bg-zinc-900">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
-              <FilterIcon className="mr-1 h-4 w-4" />
-              Filter Options
+              <FilterIcon className="mr-2 h-5 w-5 text-mainColor" />
+              Filters
               <Button
                 variant="ghost"
                 size="sm"
@@ -421,8 +424,8 @@ export default function ProductStatsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2">
               {/* Product Filter */}
               <div>
-                <label htmlFor="product-filter" className="block text-sm font-medium mb-1">
-                  Product
+                <label htmlFor="product-filter" className="block text-sm font-medium mb-1 flex items-center">
+                  <BarChart3 className="h-4 w-4 mr-1" /> Product
                 </label>
                 <select
                   id="product-filter"
@@ -441,8 +444,8 @@ export default function ProductStatsPage() {
 
               {/* City Filter */}
               <div>
-                <label htmlFor="city-filter" className="block text-sm font-medium mb-1">
-                  City
+                <label htmlFor="city-filter" className="block text-sm font-medium mb-1 flex items-center">
+                  <MapPin className="h-4 w-4 mr-1" /> City
                 </label>
                 <select
                   id="city-filter"
@@ -461,8 +464,8 @@ export default function ProductStatsPage() {
 
               {/* Country Filter */}
               <div>
-                <label htmlFor="country-filter" className="block text-sm font-medium mb-1">
-                  Country
+                <label htmlFor="country-filter" className="block text-sm font-medium mb-1 flex items-center">
+                  <Globe className="h-4 w-4 mr-1" /> Country
                 </label>
                 <select
                   id="country-filter"
@@ -481,8 +484,8 @@ export default function ProductStatsPage() {
 
               {/* Source Traffic Filter */}
               <div>
-                <label htmlFor="source-filter" className="block text-sm font-medium mb-1">
-                  Source Traffic
+                <label htmlFor="source-filter" className="block text-sm font-medium mb-1 flex items-center">
+                  <FilterIcon className="h-4 w-4 mr-1" /> Source Traffic
                 </label>
                 <select
                   id="source-filter"
@@ -499,9 +502,11 @@ export default function ProductStatsPage() {
                 </select>
               </div>
 
-              {/* Date Range Filter (single input for range) */}
+              {/* Date Range Filter */}
               <div>
-                <label className="block text-sm font-medium mb-1">Date Range</label>
+                <label className="block text-sm font-medium mb-1 flex items-center">
+                  <CalendarIcon className="h-4 w-4 mr-1" /> Date Range
+                </label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="justify-start dark:bg-black text-left font-normal w-full">
