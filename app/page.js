@@ -719,7 +719,7 @@ export default function Page() {
           <div className="bg-blue-600 text-white p-2 py-2.5">
             <h3 className="text-md font-bold uppercase">Confirmation Rate</h3>
           </div>
-          <CardContent className="p-4 pt-6 flex justify-center items-center gap-4">
+          <CardContent className="p-4 pt-6 flex justify-center items-center gap-5">
             <p className="text-2xl font-bold">{metrics.confirmation}</p>
             <p className="text-xl font-bold">{metrics.confirmationRate}%</p>
           </CardContent>
@@ -730,7 +730,7 @@ export default function Page() {
           <div className="bg-green-500 text-white p-2 py-2.5 ">
             <h3 className="text-md font-bold uppercase">Delivery Rate</h3>
           </div>
-          <CardContent className="p-4 pt-6 flex justify-center items-center gap-4">
+          <CardContent className="p-4 pt-6 flex justify-center items-center gap-5">
             <p className="text-2xl font-bold">{metrics.delivery}</p>
             <p className="text-xl font-bold">{metrics.deliveryRate}%</p>
           </CardContent>
@@ -741,7 +741,7 @@ export default function Page() {
           <div className="bg-red-600 text-white p-2 py-2.5 ">
             <h3 className="text-md font-bold uppercase">Return Rate</h3>
           </div>
-          <CardContent className="p-4 pt-6 flex justify-center items-center gap-4">
+          <CardContent className="p-4 pt-6 flex justify-center items-center gap-5">
             <p className="text-2xl font-bold">{metrics.returned}</p>
             <p className="text-xl font-bold">{metrics.returnRate}%</p>
           </CardContent>
@@ -752,7 +752,7 @@ export default function Page() {
           <div className="bg-purple-600 text-white p-2 py-2.5 ">
             <h3 className="text-md font-bold uppercase">In Process Rate</h3>
           </div>
-          <CardContent className="p-4 pt-6 flex justify-center items-center gap-4">
+          <CardContent className="p-4 pt-6 flex justify-center items-center gap-5">
             <p className="text-2xl font-bold">{metrics.inProcess}</p>
             <p className="text-xl font-bold">{metrics.inProcessRate}%</p>
           </CardContent>

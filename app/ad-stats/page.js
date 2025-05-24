@@ -55,7 +55,7 @@ export default function AdsStatsPage() {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
-  const [rowsPerPage, setRowsPerPage] = useState(20)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
 
   // Local filters for this page
   const [localFilters, setLocalFilters] = useState({
@@ -778,12 +778,12 @@ export default function AdsStatsPage() {
           ) : (
             <>
               {/* Wrap table in a div with overflow-x-auto to make it horizontally scrollable */}
-              <div className="overflow-x-auto">
-                <Table className="bg-gray-100 dark:bg-gray-900 w-full">
-                  <TableHeader>
+              <div className="max-w-full md:max-w-[65vw] lg:max-w-[70vw] m-auto shadow-sm border rounded-sm overflow-x-auto">
+                <Table className="bg-gray-100 dark:bg-gray-900 w-full text-center">
+                  <TableHeader className="sticky top-0 z-30 bg-gray-100 dark:bg-gray-900">
                     <TableRow className="cursor-pointer text-center">
                       <TableHead
-                        className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center sticky left-0 bg-gray-100 dark:bg-gray-900 z-10 min-w-[180px]"
+                        className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 text-center min-w-[110px] border-r border-gray-300 dark:border-zinc-800 sticky left-0 z-20 bg-gray-100 dark:bg-gray-900"
                         onClick={() => handleSort("productName")}
                       >
                         Product Name
@@ -866,27 +866,27 @@ export default function AdsStatsPage() {
                         const totalCost = calculateTotalCost(product)
 
                         return (
-                          <TableRow key={product.productName}>
-                            <TableCell className="font-medium sticky left-0 bg-gray-100 dark:bg-gray-900 z-10">
+                          <TableRow key={product.productName} className="text-center">
+                            <TableCell className="font-medium min-w-[110px] border-r border-gray-300 dark:border-zinc-800 text-center sticky left-0 z-10 bg-gray-100 dark:bg-gray-900">
                               {product.productName}
                             </TableCell>
-                            <TableCell className="text-right">{product.totalOrders}</TableCell>
-                            <TableCell className="text-right">{product.totalQuantity}</TableCell>
-                            <TableCell className="text-right">{formatNumber(product.sellingPrice)}</TableCell>
-                            <TableCell className="text-right">{formatNumber(product.totalAmount)}</TableCell>
-                            <TableCell>
-                              <div className="relative">
+                            <TableCell className="text-center">{product.totalOrders}</TableCell>
+                            <TableCell className="text-center">{product.totalQuantity}</TableCell>
+                            <TableCell className="text-center">{formatNumber(product.sellingPrice)}</TableCell>
+                            <TableCell className="text-center">{formatNumber(product.totalAmount)}</TableCell>
+                            <TableCell className="text-center">
+                              <div className="relative flex justify-center">
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                   type="number"
                                   value={adFbCosts[product.productName] || ""}
                                   onChange={(e) => handleAdCostChange("fb", product.productName, e.target.value)}
                                   placeholder="0.00"
-                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white"
+                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white text-center"
                                 />
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="text-center">
                               <div className="relative">
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
@@ -894,11 +894,11 @@ export default function AdsStatsPage() {
                                   value={adTtCosts[product.productName] || ""}
                                   onChange={(e) => handleAdCostChange("tt", product.productName, e.target.value)}
                                   placeholder="0.00"
-                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white"
+                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white text-center"
                                 />
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="text-center">
                               <div className="relative">
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
@@ -906,11 +906,11 @@ export default function AdsStatsPage() {
                                   value={adGoogleCosts[product.productName] || ""}
                                   onChange={(e) => handleAdCostChange("google", product.productName, e.target.value)}
                                   placeholder="0.00"
-                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white"
+                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white text-center"
                                 />
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="text-center">
                               <div className="relative">
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
@@ -918,11 +918,11 @@ export default function AdsStatsPage() {
                                   value={adXCosts[product.productName] || ""}
                                   onChange={(e) => handleAdCostChange("x", product.productName, e.target.value)}
                                   placeholder="0.00"
-                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white"
+                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white text-center"
                                 />
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="text-center">
                               <div className="relative">
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
@@ -930,11 +930,11 @@ export default function AdsStatsPage() {
                                   value={adSnapCosts[product.productName] || ""}
                                   onChange={(e) => handleAdCostChange("snap", product.productName, e.target.value)}
                                   placeholder="0.00"
-                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white"
+                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white text-center"
                                 />
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="text-center">
                               <div className="relative">
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
@@ -942,12 +942,12 @@ export default function AdsStatsPage() {
                                   value={productCosts[product.productName] || ""}
                                   onChange={(e) => handleCostChange(product.productName, e.target.value)}
                                   placeholder="0.00"
-                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white"
+                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white text-center"
                                 />
                               </div>
                             </TableCell>
-                            <TableCell className="text-right">{formatNumber(avgCost)}</TableCell>
-                            <TableCell className="text-right">{formatNumber(totalCost)}</TableCell>
+                            <TableCell className="text-center">{formatNumber(avgCost)}</TableCell>
+                            <TableCell className="text-center">{formatNumber(totalCost)}</TableCell>
                           </TableRow>
                         )
                       })
@@ -980,22 +980,22 @@ export default function AdsStatsPage() {
 
                     {/* Totals row */}
                     {currentItems.length > 0 && (
-                      <TableRow className="bg-muted/50 font-medium">
-                        <TableCell className="text-mainColor font-bold sticky left-0 bg-muted/50 z-10">
+                      <TableRow className="bg-muted/50 font-medium text-center">
+                        <TableCell className="text-mainColor font-bold min-w-[110px] border-r border-gray-300 dark:border-zinc-800 text-center sticky left-0 z-10 bg-muted/50">
                           TOTALS
                         </TableCell>
-                        <TableCell className="text-right">{totals.totalOrders}</TableCell>
-                        <TableCell className="text-right">{totals.totalQuantity}</TableCell>
-                        <TableCell className="text-right">-</TableCell>
-                        <TableCell className="text-right">{formatNumber(totals.totalAmount)}</TableCell>
-                        <TableCell>{formatNumber(totals.totalFbCost)}</TableCell>
-                        <TableCell>{formatNumber(totals.totalTtCost)}</TableCell>
-                        <TableCell>{formatNumber(totals.totalGoogleCost)}</TableCell>
-                        <TableCell>{formatNumber(totals.totalXCost)}</TableCell>
-                        <TableCell>{formatNumber(totals.totalSnapCost)}</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell className="text-right">{formatNumber(totals.totalCost)}</TableCell>
+                        <TableCell className="text-center">{totals.totalOrders}</TableCell>
+                        <TableCell className="text-center">{totals.totalQuantity}</TableCell>
+                        <TableCell className="text-center">-</TableCell>
+                        <TableCell className="text-center">{formatNumber(totals.totalAmount)}</TableCell>
+                        <TableCell className="text-center">{formatNumber(totals.totalFbCost)}</TableCell>
+                        <TableCell className="text-center">{formatNumber(totals.totalTtCost)}</TableCell>
+                        <TableCell className="text-center">{formatNumber(totals.totalGoogleCost)}</TableCell>
+                        <TableCell className="text-center">{formatNumber(totals.totalXCost)}</TableCell>
+                        <TableCell className="text-center">{formatNumber(totals.totalSnapCost)}</TableCell>
+                        <TableCell className="text-center">-</TableCell>
+                        <TableCell className="text-center">-</TableCell>
+                        <TableCell className="text-center">{formatNumber(totals.totalCost)}</TableCell>
                       </TableRow>
                     )}
                   </TableBody>

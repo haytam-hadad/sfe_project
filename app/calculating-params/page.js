@@ -92,31 +92,34 @@ export default function SettingsPage() {
     return uniqueCountries.sort()
   }, [sheetData])
 
-  // Initialize default rates for all countries
+  // Always sync localCountryRates with countryRates when the page is loaded or when countryRates change
+  useEffect(() => {
+    setLocalCountryRates({ ...countryRates })
+  }, [countryRates])
+
+  // Remove the effect that tries to set missing countries to 1.0 in localCountryRates
+  // Instead, ensure allCountries are present in countryRates with a default of 1.0
   useEffect(() => {
     if (allCountries.length > 0) {
-      const newRates = { ...localCountryRates }
-      let hasChanges = false
-
+      let updated = false
+      const newRates = { ...countryRates }
       allCountries.forEach((country) => {
-        if (!newRates[country]) {
-          newRates[country] = 1.0 // Set default value to 1.0
-          hasChanges = true
+        if (newRates[country] === undefined) {
+          newRates[country] = 1.0
+          updated = true
         }
       })
-
-      if (hasChanges) {
-        setLocalCountryRates(newRates)
-
-        // Also update in context and localStorage
+      if (updated) {
+        // Update context and local storage
         allCountries.forEach((country) => {
-          if (!countryRates[country]) {
+          if (countryRates[country] === undefined) {
             updateCountryRate(country, 1.0)
           }
         })
       }
     }
-  }, [allCountries, localCountryRates, countryRates, updateCountryRate])
+    // Only depend on allCountries and countryRates, not localCountryRates
+  }, [allCountries, countryRates, updateCountryRate])
 
   // Add custom status
   const addCustomStatus = () => {
@@ -575,7 +578,15 @@ export default function SettingsPage() {
                             type="number"
                             step="0.000001"
                             min="0.000001"
-                            value={localCountryRates[country] || ""}
+                            // Always show the value from localCountryRates if user is editing,
+                            // otherwise fall back to countryRates (context, source of truth)
+                            value={
+                              localCountryRates[country] !== undefined
+                                ? localCountryRates[country]
+                                : countryRates[country] !== undefined
+                                ? countryRates[country]
+                                : ""
+                            }
                             onChange={(e) => handleCountryRateChange(country, e.target.value)}
                             placeholder="Enter rate"
                           />
