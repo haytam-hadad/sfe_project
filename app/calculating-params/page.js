@@ -20,7 +20,9 @@ import {
   AlertTriangleIcon,
   Globe,
   Search,
+  BarChart3Icon,
 } from "lucide-react"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
 export default function SettingsPage() {
   const { toast } = useToast()
@@ -296,198 +298,223 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-6xl">
-      <div className="w-full">
+    <div className="container mx-auto py-8 px-4 max-w-4xl">
+      {/* Common Title */}
+      <div className="mb-2">
+        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <BarChart3Icon className="h-7 w-7" />
+          Calculating Parameters & Conversion Rates
+        </h1>
+      </div>
+      <div className="mb-6" />
+
+      <Tabs defaultValue="statuses" className="w-full">
+        <TabsList className="mb-6 w-full flex">
+          <TabsTrigger
+            value="statuses"
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-b-mainColor"
+          >
+            <BarChart3Icon className="h-5 w-5 mr-1" />
+            Status Configuration
+          </TabsTrigger>
+          <TabsTrigger
+            value="rates"
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-b-mainColor"
+          >
+            <Globe className="h-5 w-5 mr-1" />
+            Country Conversion Rates
+          </TabsTrigger>
+        </TabsList>
+
         {/* Status Configuration Section */}
-        <div>
-          <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-            <div className="mb-4 md:mb-0">
-              <h2 className="text-2xl font-bold">Calculating Parameters</h2>
-              <p className="text-muted-foreground">
-                Configure how order statuses are calculated and categorized for metrics and statistics
-              </p>
-            </div>
-            <div className="flex gap-2 md:gap-4">
-              <Button
-                className="flex-1 md:flex-none"
-                variant="outline"
-                onClick={resetToDefaults}
-                disabled={loadingSheetData}
-              >
-                <RefreshCwIcon className="mr-1 h-4 w-4" />
-                Reset to Defaults
-              </Button>
-              <Button
-                className="flex-1 md:flex-none"
-                onClick={saveConfig}
-                disabled={saveStatus === "saved" || loadingSheetData}
-              >
-                <SaveIcon className="mr-1 h-4 w-4" />
-                Save Changes
-              </Button>
-            </div>
+        <TabsContent value="statuses">
+          {/* Subtitle outside the card */}
+          <div className="mb-6">
+            <p className="text-muted-foreground text-base">
+              Configure how order statuses are calculated and categorized for metrics and statistics.
+            </p>
           </div>
+          <Card className="shadow-lg border border-mainColor/20">
+            <CardHeader className="pb-2">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <BarChart3Icon className="h-5 w-5 text-mainColor" />
+                    Status Configuration
+                  </CardTitle>
+                  <CardDescription>
+                    Choose which statuses count as Confirmed, Delivered, Returned, or In Process.
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={resetToDefaults}
+                    disabled={loadingSheetData}
+                    className="flex items-center"
+                  >
+                    <RefreshCwIcon className="mr-1 h-4 w-4" />
+                    Reset to Defaults
+                  </Button>
+                  <Button
+                    onClick={saveConfig}
+                    disabled={saveStatus === "saved" || loadingSheetData}
+                    className="flex items-center"
+                  >
+                    <SaveIcon className="mr-1 h-4 w-4" />
+                    Save Changes
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {saveStatus === "unsaved" && (
+                <Alert className="mb-6 bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800">
+                  <AlertTriangleIcon className="h-4 w-4" />
+                  <AlertTitle>Unsaved changes</AlertTitle>
+                  <AlertDescription>
+                    You have unsaved changes. Click &quot;Save Changes&quot; to apply them.
+                  </AlertDescription>
+                </Alert>
+              )}
 
-          {saveStatus === "unsaved" && (
-            <Alert className="mb-6 bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800">
-              <AlertTriangleIcon className="h-4 w-4" />
-              <AlertTitle>Unsaved changes</AlertTitle>
-              <AlertDescription>
-                You have unsaved changes. Click &quot;Save Changes&quot; to apply them.
-              </AlertDescription>
-            </Alert>
-          )}
+              {saveStatus === "saved" && (
+                <Alert className="mb-6 bg-green-50 text-green-800 border-green-300 dark:bg-green-950 dark:text-green-300 dark:border-green-800">
+                  <CheckCircle className="h-4 w-4" />
+                  <AlertTitle>Settings saved</AlertTitle>
+                  <AlertDescription>Your status configuration has been updated successfully.</AlertDescription>
+                </Alert>
+              )}
 
-          {saveStatus === "saved" && (
-            <Alert className="mb-6 bg-green-50 text-green-800 border-green-300 dark:bg-green-950 dark:text-green-300 dark:border-green-800">
-              <CheckCircle className="h-4 w-4" />
-              <AlertTitle>Settings saved</AlertTitle>
-              <AlertDescription>Your status configuration has been updated successfully.</AlertDescription>
-            </Alert>
-          )}
-
-          {loadingSheetData ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Loading status options...</CardTitle>
-              </CardHeader>
-              <CardContent>
+              {loadingSheetData ? (
                 <div className="flex items-center justify-center h-[200px]">
                   <RefreshCwIcon className="animate-spin h-10 w-10 text-primary" />
                 </div>
-              </CardContent>
-            </Card>
-          ) : allStatuses.length === 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>No statuses found</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  No order statuses were found in the data. Please check your data source or try refreshing the page.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Confirmation Status Settings */}
-                <Card>
-                  <CardHeader className="bg-blue-50 dark:bg-blue-950/30 border-b">
-                    <CardTitle className="text-blue-700 dark:text-blue-400">Confirmation Statuses</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Select which order statuses should be counted as confirmed orders.
-                    </p>
-                    <div className="grid grid-cols-1 gap-3">
-                      {allStatuses.map((status) => (
-                        <div key={`confirmation-${status}`} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`confirmation-${status}`}
-                            checked={localConfig.confirmation.includes(status)}
-                            onCheckedChange={(checked) => handleStatusChange("confirmation", status, checked)}
-                          />
-                          <Label
-                            htmlFor={`confirmation-${status}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {status}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+              ) : allStatuses.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">
+                    No order statuses were found in the data. Please check your data source or try refreshing the page.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Confirmation Status Settings */}
+                  <Card className="border-blue-200 dark:border-blue-900">
+                    <CardHeader className="bg-blue-50 dark:bg-blue-950/30 border-b">
+                      <CardTitle className="text-blue-700 dark:text-blue-400">Confirmation Statuses</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Select which order statuses should be counted as confirmed orders.
+                      </p>
+                      <div className="grid grid-cols-1 gap-3">
+                        {allStatuses.map((status) => (
+                          <div key={`confirmation-${status}`} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`confirmation-${status}`}
+                              checked={localConfig.confirmation.includes(status)}
+                              onCheckedChange={(checked) => handleStatusChange("confirmation", status, checked)}
+                            />
+                            <Label
+                              htmlFor={`confirmation-${status}`}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              {status}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                {/* Delivery Status Settings */}
-                <Card>
-                  <CardHeader className="bg-green-50 dark:bg-green-950/30 border-b">
-                    <CardTitle className="text-green-700 dark:text-green-400">Delivery Statuses</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Select which order statuses should be counted as delivered orders.
-                    </p>
-                    <div className="grid grid-cols-1 gap-3">
-                      {allStatuses.map((status) => (
-                        <div key={`delivery-${status}`} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`delivery-${status}`}
-                            checked={localConfig.delivery.includes(status)}
-                            onCheckedChange={(checked) => handleStatusChange("delivery", status, checked)}
-                          />
-                          <Label
-                            htmlFor={`delivery-${status}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {status}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                  {/* Delivery Status Settings */}
+                  <Card className="border-green-200 dark:border-green-900">
+                    <CardHeader className="bg-green-50 dark:bg-green-950/30 border-b">
+                      <CardTitle className="text-green-700 dark:text-green-400">Delivery Statuses</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Select which order statuses should be counted as delivered orders.
+                      </p>
+                      <div className="grid grid-cols-1 gap-3">
+                        {allStatuses.map((status) => (
+                          <div key={`delivery-${status}`} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`delivery-${status}`}
+                              checked={localConfig.delivery.includes(status)}
+                              onCheckedChange={(checked) => handleStatusChange("delivery", status, checked)}
+                            />
+                            <Label
+                              htmlFor={`delivery-${status}`}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              {status}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                {/* Returned Status Settings */}
-                <Card>
-                  <CardHeader className="bg-red-50 dark:bg-red-950/30 border-b">
-                    <CardTitle className="text-red-700 dark:text-red-400">Returned Statuses</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Select which order statuses should be counted as returned orders.
-                    </p>
-                    <div className="grid grid-cols-1 gap-3">
-                      {allStatuses.map((status) => (
-                        <div key={`returned-${status}`} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`returned-${status}`}
-                            checked={localConfig.returned.includes(status)}
-                            onCheckedChange={(checked) => handleStatusChange("returned", status, checked)}
-                          />
-                          <Label
-                            htmlFor={`returned-${status}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {status}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                  {/* Returned Status Settings */}
+                  <Card className="border-red-200 dark:border-red-900">
+                    <CardHeader className="bg-red-50 dark:bg-red-950/30 border-b">
+                      <CardTitle className="text-red-700 dark:text-red-400">Returned Statuses</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Select which order statuses should be counted as returned orders.
+                      </p>
+                      <div className="grid grid-cols-1 gap-3">
+                        {allStatuses.map((status) => (
+                          <div key={`returned-${status}`} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`returned-${status}`}
+                              checked={localConfig.returned.includes(status)}
+                              onCheckedChange={(checked) => handleStatusChange("returned", status, checked)}
+                            />
+                            <Label
+                              htmlFor={`returned-${status}`}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              {status}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                {/* In Process Status Settings */}
-                <Card>
-                  <CardHeader className="bg-purple-50 dark:bg-purple-950/30 border-b">
-                    <CardTitle className="text-purple-700 dark:text-purple-400">In Process Statuses</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Select which order statuses should be counted as in-process orders.
-                    </p>
-                    <div className="grid grid-cols-1 gap-3">
-                      {allStatuses.map((status) => (
-                        <div key={`inProcess-${status}`} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`inProcess-${status}`}
-                            checked={localConfig.inProcess.includes(status)}
-                            onCheckedChange={(checked) => handleStatusChange("inProcess", status, checked)}
-                          />
-                          <Label
-                            htmlFor={`inProcess-${status}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {status}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
+                  {/* In Process Status Settings */}
+                  <Card className="border-purple-200 dark:border-purple-900">
+                    <CardHeader className="bg-purple-50 dark:bg-purple-950/30 border-b">
+                      <CardTitle className="text-purple-700 dark:text-purple-400">In Process Statuses</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Select which order statuses should be counted as in-process orders.
+                      </p>
+                      <div className="grid grid-cols-1 gap-3">
+                        {allStatuses.map((status) => (
+                          <div key={`inProcess-${status}`} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`inProcess-${status}`}
+                              checked={localConfig.inProcess.includes(status)}
+                              onCheckedChange={(checked) => handleStatusChange("inProcess", status, checked)}
+                            />
+                            <Label
+                              htmlFor={`inProcess-${status}`}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              {status}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
               <div className="mt-6 flex justify-end">
                 <Button
                   onClick={saveConfig}
@@ -498,119 +525,127 @@ export default function SettingsPage() {
                   Save Changes
                 </Button>
               </div>
-            </>
-          )}
-        </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* Country-specific Currency Conversion Section */}
-        <Card className="mt-10 mb-10">
-          <CardHeader>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="h-5 w-5" />
-                  Country-Specific Conversion Rates
-                </CardTitle>
-                <CardDescription>Set different conversion rates for each country in your data</CardDescription>
-              </div>
-              <div className="flex gap-2 mt-4 md:mt-0">
-                <Button variant="outline" onClick={resetAllCountryRates}>
-                  <RefreshCwIcon className="mr-1 h-4 w-4" />
-                  Reset All to 1.0
-                </Button>
-                <Button onClick={saveAllCountryRates} disabled={saveRatesStatus === "saved"}>
-                  <SaveIcon className="mr-1 h-4 w-4" />
-                  Save All Rates
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {saveRatesStatus === "unsaved" && (
-              <Alert className="mb-6 bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800">
-                <AlertTriangleIcon className="h-4 w-4" />
-                <AlertTitle>Unsaved changes</AlertTitle>
-                <AlertDescription>
-                  You have unsaved changes to country rates. Click &quot;Save All Rates&quot; to apply them.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {saveRatesStatus === "saved" && (
-              <Alert className="mb-6 bg-green-50 text-green-800 border-green-300 dark:bg-green-950 dark:text-green-300 dark:border-green-800">
-                <CheckCircle className="h-4 w-4" />
-                <AlertTitle>Rates saved</AlertTitle>
-                <AlertDescription>
-                  Your country-specific conversion rates have been updated successfully.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {allCountries.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">No countries found in your data.</p>
-              </div>
-            ) : (
-              <>
-                {/* Search input */}
-                <div className="relative mb-6">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search countries..."
-                    className="pl-10"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
+        <TabsContent value="rates">
+          {/* Subtitle outside the card */}
+          <div className="mb-6">
+            <p className="text-muted-foreground text-base">
+              Set different conversion rates for each country in your data.
+            </p>
+          </div>
+          <Card className="shadow-lg border border-mainColor/20">
+            <CardHeader>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Globe className="h-5 w-5 text-mainColor" />
+                    Country-Specific Conversion Rates
+                  </CardTitle>
+                  <CardDescription>
+                    Adjust the conversion rate for each country to reflect your business needs.
+                  </CardDescription>
                 </div>
-
-                <div className="border rounded-md">
-                  <div className="grid grid-cols-12 gap-4 p-4 font-medium border-b bg-muted/50">
-                    <div className="col-span-6">Country</div>
-                    <div className="col-span-4">Conversion Rate</div>
-                    <div className="col-span-2">Action</div>
-                  </div>
-                  <div className="divide-y max-h-[60vh] overflow-y-auto">
-                    {filteredCountries.map((country) => (
-                      <div key={country} className="grid grid-cols-12 gap-4 p-4 items-center">
-                        <div className="col-span-6">{country}</div>
-                        <div className="col-span-4">
-                          <Input
-                            type="number"
-                            step="0.000001"
-                            min="0.000001"
-                            // Always show the value from localCountryRates if user is editing,
-                            // otherwise fall back to countryRates (context, source of truth)
-                            value={
-                              localCountryRates[country] !== undefined
-                                ? localCountryRates[country]
-                                : countryRates[country] !== undefined
-                                ? countryRates[country]
-                                : ""
-                            }
-                            onChange={(e) => handleCountryRateChange(country, e.target.value)}
-                            placeholder="Enter rate"
-                          />
-                        </div>
-                        <div className="col-span-2">
-                          <Button
-                            size="sm"
-                            onClick={() => handleCountryRateUpdate(country)}
-                            disabled={
-                              !localCountryRates[country] || isNaN(Number.parseFloat(localCountryRates[country]))
-                            }
-                          >
-                            Save
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                <div className="flex gap-2 mt-4 md:mt-0">
+                  <Button variant="outline" onClick={resetAllCountryRates}>
+                    <RefreshCwIcon className="mr-1 h-4 w-4" />
+                    Reset All to 1.0
+                  </Button>
+                  <Button onClick={saveAllCountryRates} disabled={saveRatesStatus === "saved"}>
+                    <SaveIcon className="mr-1 h-4 w-4" />
+                    Save All Rates
+                  </Button>
                 </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {saveRatesStatus === "unsaved" && (
+                <Alert className="mb-6 bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800">
+                  <AlertTriangleIcon className="h-4 w-4" />
+                  <AlertTitle>Unsaved changes</AlertTitle>
+                  <AlertDescription>
+                    You have unsaved changes to country rates. Click &quot;Save All Rates&quot; to apply them.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {saveRatesStatus === "saved" && (
+                <Alert className="mb-6 bg-green-50 text-green-800 border-green-300 dark:bg-green-950 dark:text-green-300 dark:border-green-800">
+                  <CheckCircle className="h-4 w-4" />
+                  <AlertTitle>Rates saved</AlertTitle>
+                  <AlertDescription>
+                    Your country-specific conversion rates have been updated successfully.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {allCountries.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No countries found in your data.</p>
+                </div>
+              ) : (
+                <>
+                  {/* Search input */}
+                  <div className="relative mb-6 max-w-md">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search countries..."
+                      className="pl-10"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="border rounded-md overflow-x-auto">
+                    <div className="grid grid-cols-12 gap-4 p-4 font-medium border-b bg-muted/50">
+                      <div className="col-span-6">Country</div>
+                      <div className="col-span-4">Conversion Rate</div>
+                      <div className="col-span-2">Action</div>
+                    </div>
+                    <div className="divide-y max-h-[60vh] overflow-y-auto">
+                      {filteredCountries.map((country) => (
+                        <div key={country} className="grid grid-cols-12 gap-4 p-4 items-center">
+                          <div className="col-span-6">{country}</div>
+                          <div className="col-span-4">
+                            <Input
+                              type="number"
+                              step="0.000001"
+                              min="0.000001"
+                              value={
+                                localCountryRates[country] !== undefined
+                                  ? localCountryRates[country]
+                                  : countryRates[country] !== undefined
+                                  ? countryRates[country]
+                                  : ""
+                              }
+                              onChange={(e) => handleCountryRateChange(country, e.target.value)}
+                              placeholder="Enter rate"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleCountryRateUpdate(country)}
+                              disabled={
+                                !localCountryRates[country] || isNaN(Number.parseFloat(localCountryRates[country]))
+                              }
+                            >
+                              Save
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

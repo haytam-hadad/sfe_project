@@ -555,7 +555,12 @@ export default function Page() {
             <FilterIcon className="mr-1 h-4 w-4" />
             {showFilters ? "Hide Filters" : "Show Filters"}
           </Button>
-          <Button variant="outline" size="sm" className="h-9" onClick={refreshData}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9"
+            onClick={() => window.location.reload()}
+          >
             <RefreshCwIcon className="mr-1 h-4 w-4" />
             Refresh
           </Button>

@@ -50,12 +50,7 @@ export default function ProfilePage() {
   // Get user initials for avatar fallback
   const getUserInitials = () => {
     if (!user?.username) return "U"
-    return user.username
-      .split(" ")
-      .map((name) => name[0])
-      .join("")
-      .toUpperCase()
-      .substring(0, 2)
+    return user.username[0].toUpperCase()
   }
 
   // Get role badge color
@@ -222,11 +217,14 @@ export default function ProfilePage() {
     <div className="container mx-auto py-8 px-4 max-w-4xl">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Profile Settings</h1>
+          <div className="flex items-center gap-2">
+            <User className="w-6 h-6" />
+            <h1 className="text-3xl font-bold">Profile Settings</h1>
+          </div>
           <p className="text-muted-foreground">Manage your account settings and preferences</p>
         </div>
         <div className="flex items-center gap-3">
-          <Avatar className="h-12 font-semibold w-12 border">
+          <Avatar className="h-12 text-xl font-semibold w-12 border">
             <AvatarImage src="/placeholder.svg?height=48&width=48" alt={user?.username || "User"} />
             <AvatarFallback>{getUserInitials()}</AvatarFallback>
           </Avatar>
@@ -241,15 +239,24 @@ export default function ProfilePage() {
 
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-8">
-          <TabsTrigger value="profile" className="flex items-center gap-2">
+          <TabsTrigger
+            value="profile"
+            className="flex items-center gap-2 data-[state=active]:border-b-2 data-[state=active]:border-b-mainColor"
+          >
             <User className="h-4 w-4" />
             <span>Profile</span>
           </TabsTrigger>
-          <TabsTrigger value="password" className="flex items-center gap-2">
+          <TabsTrigger
+            value="password"
+            className="flex items-center gap-2 data-[state=active]:border-b-2 data-[state=active]:border-b-mainColor"
+          >
             <Key className="h-4 w-4" />
             <span>Password</span>
           </TabsTrigger>
-          <TabsTrigger value="sheet" className="flex items-center gap-2">
+          <TabsTrigger
+            value="sheet"
+            className="flex items-center gap-2 data-[state=active]:border-b-2 data-[state=active]:border-b-mainColor"
+          >
             <FileSpreadsheet className="h-4 w-4" />
             <span>Sheet URL</span>
           </TabsTrigger>
