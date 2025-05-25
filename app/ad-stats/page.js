@@ -186,6 +186,22 @@ export default function AdsStatsPage() {
     }
   }, [deliveredOrders])
 
+  // Calculate total orders for each product (all orders, not just delivered)
+  const allOrdersByProduct = useMemo(() => {
+    if (!sheetData || !sheetData.length) return {}
+    const map = {}
+    sheetData.forEach((order) => {
+      const product =
+        order["Product Name"] ||
+        order["sku number"] ||
+        order["product"]
+      if (!product) return
+      if (!map[product]) map[product] = 0
+      map[product] += 1
+    })
+    return map
+  }, [sheetData])
+
   // Process data with only delivered orders
   const processedData = useMemo(() => {
     if (!deliveredOrders.length) return []
@@ -230,15 +246,15 @@ export default function AdsStatsPage() {
       if (!productMap.has(product)) {
         productMap.set(product, {
           productName: product,
-          totalOrders: 0,
+          totalOrders: 0, // will be replaced below
           totalAmount: 0,
-          orderAmounts: [], // Track all order amounts to calculate average
+          orderAmounts: [],
           totalQuantity: 0,
         })
       }
 
       const productData = productMap.get(product)
-      productData.totalOrders++
+      // productData.totalOrders++ // REMOVE this line, will set below
 
       // Get quantity
       const quantity = extractQuantity(order)
@@ -253,8 +269,10 @@ export default function AdsStatsPage() {
       }
     })
 
-    // Calculate average selling price for each product
-    productMap.forEach((product) => {
+    // Set totalOrders for each product to all orders (not just delivered)
+    productMap.forEach((product, productName) => {
+      product.totalOrders = allOrdersByProduct[productName] || 0
+      // Calculate average selling price for each product
       if (product.orderAmounts.length > 0) {
         // Calculate average selling price from delivered orders
         product.sellingPrice =
@@ -262,7 +280,6 @@ export default function AdsStatsPage() {
       } else {
         product.sellingPrice = 0
       }
-      // Remove the orderAmounts array as it's no longer needed
       delete product.orderAmounts
     })
 
@@ -300,7 +317,7 @@ export default function AdsStatsPage() {
     })
 
     return result
-  }, [deliveredOrders, searchTerm, filters, localFilters, sortField, sortDirection])
+  }, [deliveredOrders, searchTerm, filters, localFilters, sortField, sortDirection, allOrdersByProduct])
 
   // Save costs to localStorage when they change
   useEffect(() => {
@@ -449,16 +466,18 @@ export default function AdsStatsPage() {
 
   // Calculate totals with updated metrics
   const totals = useMemo(() => {
+    // Use all sheetData for totalOrders, not just delivered
+    const totalOrders = sheetData ? sheetData.length : 0
+
     if (!processedData.length)
       return {
-        totalOrders: 0,
+        totalOrders,
         totalAmount: 0,
         totalAdCost: 0,
         totalCost: 0,
         totalQuantity: 0,
       }
 
-    const totalOrders = processedData.reduce((sum, product) => sum + product.totalOrders, 0)
     const totalAmount = processedData.reduce((sum, product) => sum + product.totalAmount, 0)
     const totalQuantity = processedData.reduce((sum, product) => sum + product.totalQuantity, 0)
 
@@ -500,7 +519,7 @@ export default function AdsStatsPage() {
       totalCost,
       totalQuantity,
     }
-  }, [processedData, adFbCosts, adTtCosts, adGoogleCosts, adXCosts, adSnapCosts, productCosts])
+  }, [processedData, adFbCosts, adTtCosts, adGoogleCosts, adXCosts, adSnapCosts, productCosts, sheetData])
 
   // Handle refresh data
   const handleRefreshData = () => {
@@ -587,7 +606,7 @@ export default function AdsStatsPage() {
           <CardContent className="pt-6">
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm text-muted-foreground">Delivered Orders</p>
+                <p className="text-sm text-muted-foreground">Total Orders</p>
                 <h3 className="text-2xl font-bold">{totals.totalOrders}</h3>
               </div>
               <div className="bg-green-100 p-3 rounded-full dark:bg-green-900">
