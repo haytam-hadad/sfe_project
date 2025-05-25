@@ -891,7 +891,7 @@ export default function AdsStatsPage() {
                         AD SNAP
                       </TableHead>
                       <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
-                        Cost Price
+                        Sur Sell Price
                       </TableHead>
                       <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
                         Average Cost

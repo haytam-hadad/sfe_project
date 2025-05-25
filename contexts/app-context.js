@@ -9,6 +9,7 @@ import {
   DEFAULT_CONVERSION_RATES,
   matchesStatus,
 } from "@/lib/constants"
+import { usePathname } from "next/navigation"
 
 // Create App Context
 const AppContext = createContext({
@@ -91,6 +92,10 @@ export function AppProvider({ children }) {
     }
     return DEFAULT_CONVERSION_RATES
   })
+
+  const pathname = typeof window !== "undefined" ? window.location.pathname : ""
+  // If using Next.js 13+ App Router, use usePathname:
+  // const pathname = usePathname();
 
   // Function to fetch sheet data
   const refreshSheetData = useCallback(async (token) => {
