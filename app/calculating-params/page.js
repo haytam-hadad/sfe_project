@@ -85,7 +85,7 @@ export default function SettingsPage() {
       ...new Set(
         sheetData
           .map((order) => {
-            return order["Receier Country"] !== undefined ? String(order["Receier Country"]).trim() : null
+            return order["Country"] !== undefined ? String(order["Country"]).trim() : null
           })
           .filter(Boolean),
       ),

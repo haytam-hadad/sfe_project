@@ -43,7 +43,7 @@ import {
   MapPinIcon,
   PackageIcon,
   DownloadIcon,
-  AlertCircle,
+  LoaderCircle,
 } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
 import { useStatusConfig } from "@/contexts/app-context"
@@ -83,14 +83,14 @@ export default function Page() {
   // Extract unique values for filters
   const uniqueValues = useMemo(() => {
     if (!orders || !Array.isArray(orders) || !orders.length)
-      return { statuses: [], products: [], cities: [], countries: [], sources: [] }
+      return { statuses: [], products: [], cities: [], countries: [], sources: [], agents: [] }
     const statuses = [...new Set(orders.map((order) => order["STATUS"]).filter(Boolean))].sort()
     const products = [...new Set(orders.map((order) => order["sku number"]).filter(Boolean))].sort()
     const cities = [...new Set(orders.map((order) => order["City"]).filter(Boolean))].sort()
-    const countries = [...new Set(orders.map((order) => order["Receier Country"]).filter(Boolean))].sort()
-    // Make Source Traffic options dynamic
+    const countries = [...new Set(orders.map((order) => order["Country"]).filter(Boolean))].sort()
     const sources = [...new Set(orders.map((order) => order["Source Traffic"]).filter(Boolean))].sort()
-    return { statuses, products, cities, countries, sources }
+    const agents = [...new Set(orders.map((order) => order["Agent"]).filter(Boolean))].sort()
+    return { statuses, products, cities, countries, sources, agents }
   }, [orders])
 
   // Apply time range filter
@@ -150,9 +150,11 @@ export default function Page() {
       // City filter
       if (filters.city && order["City"] !== filters.city) return false
       // Country filter
-      if (filters.country && order["Receier Country"] !== filters.country) return false
+      if (filters.country && order["Country"] !== filters.country) return false
       // Source Traffic filter
       if (filters.source && order["Source Traffic"] !== filters.source) return false
+      // Agent filter
+      if (filters.agent && order["Agent"] !== filters.agent) return false
       return true
     })
   }, [orders, filters])
@@ -256,7 +258,7 @@ export default function Page() {
 
     // Country distribution data
     const countryCounts = filteredOrders.reduce((acc, order) => {
-      const country = order["Receier Country"] || "Unknown"
+      const country = order["Country"] || "Unknown"
       acc[country] = (acc[country] || 0) + 1
       return acc
     }, {})
@@ -307,16 +309,28 @@ export default function Page() {
       .filter((item) => item.date !== "Unknown")
       .sort((a, b) => new Date(a.date) - new Date(b.date))
 
-    // Calculate cumulative data
+    // Add delivered count to each day in timeSeriesData
+    const deliveredStatusList = statusConfig.delivery || []
+    const timeSeriesDataWithDelivered = timeSeriesData.map((item) => {
+      const delivered = filteredOrders.filter(
+        (order) =>
+          order["Order date"] &&
+          order["Order date"].split("T")[0] === item.date &&
+          deliveredStatusList.includes(order["STATUS"])
+      ).length
+      return { ...item, delivered }
+    })
+
+    // Calculate cumulative delivered
     let cumulativeOrders = 0
-    let cumulativeRevenue = 0
-    const cumulativeData = timeSeriesData.map((item) => {
+    let cumulativeDelivered = 0
+    const cumulativeData = timeSeriesDataWithDelivered.map((item) => {
       cumulativeOrders += item.count
-      cumulativeRevenue += item.revenue
+      cumulativeDelivered += item.delivered
       return {
         ...item,
         cumulativeOrders,
-        cumulativeRevenue,
+        cumulativeDelivered,
       }
     })
 
@@ -383,17 +397,43 @@ export default function Page() {
         avgValue: product.avgOrderValue,
       }))
 
+    // Source Traffic distribution data
+    const sourceCounts = filteredOrders.reduce((acc, order) => {
+      const source = order["Source Traffic"] || "Unknown"
+      acc[source] = (acc[source] || 0) + 1
+      return acc
+    }, {})
+    const sourceData = Object.entries(sourceCounts).map(([name, value]) => ({
+      name,
+      value,
+      percentage: (value / filteredOrders.length) * 100,
+    }))
+
+    // Agent distribution data
+    const agentCounts = filteredOrders.reduce((acc, order) => {
+      const agent = order["Agent"] || "Unknown"
+      acc[agent] = (acc[agent] || 0) + 1
+      return acc
+    }, {})
+    const agentData = Object.entries(agentCounts).map(([name, value]) => ({
+      name,
+      value,
+      percentage: (value / filteredOrders.length) * 100,
+    }))
+
     return {
       statusData,
       cityData,
       countryData,
       productData,
-      timeSeriesData,
+      timeSeriesData: timeSeriesDataWithDelivered,
       cumulativeData,
       productPerformance,
       statusOverTime,
       statusPercentageOverTime,
       topProducts,
+      sourceData,
+      agentData,
     }
   }, [filteredOrders, uniqueValues.statuses])
 
@@ -514,27 +554,9 @@ export default function Page() {
   // Render sheet configuration message if no sheet URL is configured
   if (!isSheetConfigured) {
     return (
-      <main className="p-4 flex items-center justify-center min-h-screen">
-        <Card className="w-full max-w-md bg-white dark:bg-zinc-900 p-6">
-          <CardHeader>
-            <CardTitle>Sheet Configuration Required</CardTitle>
-            <CardDescription>
-              You need to configure your Google Sheet URL before you can view your dashboard.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Alert className="mb-4">
-              <AlertCircle className="h-4 w-4 mr-2" />
-              <AlertDescription>
-                Please go to the Sheet Settings page to configure your Google Sheet URL.
-              </AlertDescription>
-            </Alert>
-            <Button className="w-full" onClick={() => (window.location.href = "/settings-sheet")}>
-              Go to Sheet Settings
-            </Button>
-          </CardContent>
-        </Card>
-      </main>
+        <div className="flex items-center justify-center min-h-screen">
+          <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
+        </div>
     )
   }
 
@@ -571,16 +593,15 @@ export default function Page() {
         <Card className="mb-6">
           <CardHeader className="pb-2">
             <div className="flex items-center">
-              <FilterIcon className="mr-1 h-5 w-5 text-mainColor" />
+              <FilterIcon className="mr-2 h-5 w-5 text-mainColor" />
               <CardTitle className="text-lg">Filters</CardTitle>
             </div>
-            <CardDescription>Refine your dashboard view</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1">
               {/* Date Range */}
               <div>
-                <label className="block text-sm font-medium mb-1 flex items-center">
+                <label className="text-sm font-medium mb-1 flex items-center">
                   <CalendarIcon className="h-4 w-4 mr-1 text-blue-600" /> Date Range
                 </label>
                 <Popover>
@@ -611,7 +632,7 @@ export default function Page() {
 
               {/* Status Filter */}
               <div>
-                <label className="block text-sm font-medium mb-1 flex items-center">
+                <label className="text-sm font-medium mb-1 flex items-center">
                   <BarChart3Icon className="h-4 w-4 mr-1 text-blue-700" /> Status
                 </label>
                 <Select value={filters.status} onValueChange={(v) => updateFilter("status", v === "all" ? "" : v)}>
@@ -631,7 +652,7 @@ export default function Page() {
 
               {/* Product Filter */}
               <div>
-                <label className="block text-sm font-medium mb-1 flex items-center">
+                <label className="text-sm font-medium mb-1 flex items-center">
                   <PackageIcon className="h-4 w-4 mr-1 text-orange-500" /> Product
                 </label>
                 <Select value={filters.product} onValueChange={(v) => updateFilter("product", v === "all" ? "" : v)}>
@@ -651,7 +672,7 @@ export default function Page() {
 
               {/* City Filter */}
               <div>
-                <label className="block text-sm font-medium mb-1 flex items-center">
+                <label className="text-sm font-medium mb-1 flex items-center">
                   <MapPinIcon className="h-4 w-4 mr-1 text-green-600" /> City
                 </label>
                 <Select value={filters.city} onValueChange={(v) => updateFilter("city", v === "all" ? "" : v)}>
@@ -671,7 +692,7 @@ export default function Page() {
 
               {/* Country Filter */}
               <div>
-                <label className="block text-sm font-medium mb-1 flex items-center">
+                <label className="text-sm font-medium mb-1 flex items-center">
                   <Globe className="h-4 w-4 mr-1 text-purple-600" /> Country
                 </label>
                 <Select value={filters.country} onValueChange={(v) => updateFilter("country", v === "all" ? "" : v)}>
@@ -691,7 +712,7 @@ export default function Page() {
 
               {/* Source Traffic Filter */}
               <div>
-                <label className="block text-sm font-medium mb-1 flex items-center">
+                <label className="text-sm font-medium mb-1 flex items-center">
                   <FilterIcon className="h-4 w-4 mr-1 text-pink-600" /> Source Traffic
                 </label>
                 <Select value={filters.source} onValueChange={(v) => updateFilter("source", v === "all" ? "" : v)}>
@@ -703,6 +724,25 @@ export default function Page() {
                     {uniqueValues.sources.map((src) => (
                       <SelectItem key={src} value={src}>
                         {src}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {/* Agent Filter */}
+              <div>
+                <label className="text-sm font-medium mb-1 flex items-center">
+                  <FilterIcon className="h-4 w-4 mr-1 text-gray-600" /> Agent
+                </label>
+                <Select value={filters.agent} onValueChange={(v) => updateFilter("agent", v === "all" ? "" : v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Agents" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Agents</SelectItem>
+                    {uniqueValues.agents.map((agent) => (
+                      <SelectItem key={agent} value={agent}>
+                        {agent}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -721,9 +761,9 @@ export default function Page() {
       )}
 
       {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3  gap-3 mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 mb-2">
         {/* Total Leads Card */}
-        <Card className="overflow-hidden border-orange-500">
+        <Card className="overflow-hidden border-orange-500 shadow">
           <div className="bg-orange-500 text-white p-2 py-2.5 ">
             <h3 className="text-md font-bold uppercase">Total Leads</h3>
           </div>
@@ -733,7 +773,7 @@ export default function Page() {
         </Card>
 
         {/* Confirmation Rate Card */}
-        <Card className="overflow-hidden border-blue-600 ">
+        <Card className="overflow-hidden border-blue-600 shadow">
           <div className="bg-blue-600 text-white p-2 py-2.5">
             <h3 className="text-md font-bold uppercase">Confirmation Rate</h3>
           </div>
@@ -744,7 +784,7 @@ export default function Page() {
         </Card>
 
         {/* Delivery Rate Card */}
-        <Card className="overflow-hidden border-green-500">
+        <Card className="overflow-hidden border-green-500 shadow">
           <div className="bg-green-500 text-white p-2 py-2.5 ">
             <h3 className="text-md font-bold uppercase">Delivery Rate</h3>
           </div>
@@ -755,7 +795,7 @@ export default function Page() {
         </Card>
 
         {/* Return Rate Card */}
-        <Card className="overflow-hidden border-red-600">
+        <Card className="overflow-hidden border-red-600 shadow">
           <div className="bg-red-600 text-white p-2 py-2.5 ">
             <h3 className="text-md font-bold uppercase">Return Rate</h3>
           </div>
@@ -766,31 +806,13 @@ export default function Page() {
         </Card>
 
         {/* In Process Rate Card */}
-        <Card className="overflow-hidden border-purple-600 ">
+        <Card className="overflow-hidden border-purple-600 shadow">
           <div className="bg-purple-600 text-white p-2 py-2.5 ">
             <h3 className="text-md font-bold uppercase">In Process Rate</h3>
           </div>
           <CardContent className="p-4 pt-6 flex justify-center items-center gap-5">
             <p className="text-2xl font-bold">{metrics.inProcess}</p>
             <p className="text-xl font-bold">{metrics.inProcessRate}%</p>
-          </CardContent>
-        </Card>
-
-        {/* Source Traffic Card */}
-        <Card className="overflow-hidden border-grey-100">
-          <div className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-600 text-white p-2 py-2.5">
-            <h3 className="text-md font-bold uppercase">Source Traffic</h3>
-          </div>
-          <CardContent className="p-1 px-[10%] space-y-1">
-            <div className="grid grid-cols-2 gap-2">
-              {uniqueValues.sources.map((src) => {
-                const count = filteredOrders.filter((order) => order["Source Traffic"] === src).length;
-                return (
-                  <div key={src} className="flex flex-col items-start justify-center text-sm">
-                    <span> {src} : <b>{count}</b></span>                  </div>
-                );
-              })}
-            </div>
           </CardContent>
         </Card>
       </div>
@@ -804,6 +826,7 @@ export default function Page() {
               { value: "trends", icon: LineChartIcon, label: "Trends" },
               { value: "products", icon: PackageIcon, label: "Products" },
               { value: "geography", icon: MapPinIcon, label: "Geography" },
+              { value: "agents", icon: FilterIcon, label: "Agents" }, // New tab for Agent Distribution
             ].map((tab) => (
               <TabsTrigger
                 key={tab.value}
@@ -819,8 +842,8 @@ export default function Page() {
           </TabsList>
         </div>
 
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-5">
+        {/* Overview Tab: Only key metrics and status distribution */}
+        <TabsContent value="overview" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Status Distribution */}
             <Card>
@@ -887,7 +910,7 @@ export default function Page() {
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
                   <CardTitle>Orders Over Time</CardTitle>
-                  <CardDescription>Daily order volume</CardDescription>
+                  <CardDescription>Daily orders</CardDescription>
                 </div>
                 <TooltipProvider>
                   <Tooltip>
@@ -908,8 +931,8 @@ export default function Page() {
               </CardHeader>
               <CardContent>
                 {chartData.timeSeriesData && chartData.timeSeriesData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={350}>
-                    <AreaChart data={chartData.timeSeriesData}>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <LineChart data={chartData.timeSeriesData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis
                         dataKey="date"
@@ -923,7 +946,7 @@ export default function Page() {
                       />
                       <YAxis />
                       <RechartsTooltip
-                        formatter={(value, name) => [value, name === "count" ? "Orders" : name]}
+                        formatter={(value, name) => [value, "Orders"]}
                         labelFormatter={(label) => {
                           try {
                             return format(new Date(label), "MMM d, yyyy")
@@ -932,18 +955,19 @@ export default function Page() {
                           }
                         }}
                       />
-                      <Area
+                      <Legend />
+                      <Line
                         type="monotone"
                         dataKey="count"
                         name="Orders"
                         stroke="#8884d8"
-                        fill="#8884d8"
-                        fillOpacity={0.3}
+                        strokeWidth={2}
+                        dot={false}
                       />
-                    </AreaChart>
+                    </LineChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="flex items-center justify-center h-[300px]">
+                  <div className="flex items-center justify-center h-[400px]">
                     <p className="text-muted-foreground">No data available</p>
                   </div>
                 )}
@@ -1005,15 +1029,15 @@ export default function Page() {
           </Card>
         </TabsContent>
 
-        {/* Trends Tab */}
-        <TabsContent value="trends" className="space-y-5">
+        {/* Trends Tab: Time series and cumulative growth */}
+        <TabsContent value="trends" className="space-y-4">
           <div className="grid grid-cols-1 gap-4">
-            {/* Revenue and Orders Over Time */}
+            {/* Improved Delivered & Orders Over Time */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
-                  <CardTitle>Revenue and Orders Over Time</CardTitle>
-                  <CardDescription>Daily revenue and order count</CardDescription>
+                  <CardTitle>Orders vs Delivered Over Time</CardTitle>
+                  <CardDescription>Compare daily orders and delivered orders</CardDescription>
                 </div>
                 <TooltipProvider>
                   <Tooltip>
@@ -1021,7 +1045,7 @@ export default function Page() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => exportChartData(chartData.timeSeriesData, "revenue-orders-time")}
+                        onClick={() => exportChartData(chartData.timeSeriesData, "orders-delivered-over-time")}
                       >
                         <DownloadIcon className="h-4 w-4" />
                       </Button>
@@ -1035,7 +1059,7 @@ export default function Page() {
               <CardContent>
                 {chartData.timeSeriesData && chartData.timeSeriesData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={400}>
-                    <ComposedChart data={chartData.timeSeriesData}>
+                    <LineChart data={chartData.timeSeriesData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis
                         dataKey="date"
@@ -1047,32 +1071,32 @@ export default function Page() {
                           }
                         }}
                       />
-                      <YAxis yAxisId="left" />
-                      <YAxis yAxisId="right" orientation="right" />
+                      <YAxis />
                       <RechartsTooltip
-                        formatter={(value, name) => [
-                          name === "revenue" ? formatCurrency(value) : value,
-                          name === "revenue" ? "Revenue" : "Orders",
-                        ]}
-                        labelFormatter={(label) => {
-                          try {
-                            return format(new Date(label), "MMM d, yyyy")
-                          } catch (e) {
-                            return label
-                          }
+                        formatter={(value, name) => {
+                          if (name === "count") return [value, "Orders"]
+                          if (name === "delivered") return [value, "Delivered Orders"]
+                          return [value, name]
                         }}
                       />
                       <Legend />
-                      <Bar dataKey="count" name="Orders" fill="#8884d8" yAxisId="left" barSize={20} fillOpacity={0.8} />
                       <Line
                         type="monotone"
-                        dataKey="revenue"
-                        name="Revenue"
-                        stroke="#ff7300"
-                        yAxisId="right"
+                        dataKey="count"
+                        name="Orders"
+                        stroke="#8884d8"
                         strokeWidth={2}
+                        dot={false}
                       />
-                    </ComposedChart>
+                      <Line
+                        type="monotone"
+                        dataKey="delivered"
+                        name="Delivered Orders"
+                        stroke="#4CAF50"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
                   </ResponsiveContainer>
                 ) : (
                   <div className="flex items-center justify-center h-[400px]">
@@ -1082,12 +1106,12 @@ export default function Page() {
               </CardContent>
             </Card>
 
-            {/* Cumulative Growth */}
+            {/* Improved Cumulative Growth */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
-                  <CardTitle>Cumulative Growth</CardTitle>
-                  <CardDescription>Total orders and revenue over time</CardDescription>
+                  <CardTitle>Cumulative Orders vs Delivered</CardTitle>
+                  <CardDescription>Cumulative totals over time</CardDescription>
                 </div>
                 <TooltipProvider>
                   <Tooltip>
@@ -1095,7 +1119,7 @@ export default function Page() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => exportChartData(chartData.cumulativeData, "cumulative-growth")}
+                        onClick={() => exportChartData(chartData.cumulativeData, "cumulative-orders-delivered")}
                       >
                         <DownloadIcon className="h-4 w-4" />
                       </Button>
@@ -1121,12 +1145,11 @@ export default function Page() {
                           }
                         }}
                       />
-                      <YAxis yAxisId="left" />
-                      <YAxis yAxisId="right" orientation="right" />
+                      <YAxis />
                       <RechartsTooltip
                         formatter={(value, name) => [
-                          name === "cumulativeRevenue" ? formatCurrency(value) : value,
-                          name === "cumulativeRevenue" ? "Total Revenue" : "Total Orders",
+                          value,
+                          name === "cumulativeOrders" ? "Total Orders" : "Total Delivered",
                         ]}
                         labelFormatter={(label) => {
                           try {
@@ -1142,16 +1165,16 @@ export default function Page() {
                         dataKey="cumulativeOrders"
                         name="Total Orders"
                         stroke="#8884d8"
-                        yAxisId="left"
                         strokeWidth={2}
+                        dot={false}
                       />
                       <Line
                         type="monotone"
-                        dataKey="cumulativeRevenue"
-                        name="Total Revenue"
-                        stroke="#ff7300"
-                        yAxisId="right"
+                        dataKey="cumulativeDelivered"
+                        name="Total Delivered"
+                        stroke="#4CAF50"
                         strokeWidth={2}
+                        dot={false}
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -1165,8 +1188,8 @@ export default function Page() {
           </div>
         </TabsContent>
 
-        {/* Products Tab */}
-        <TabsContent value="products" className="space-y-5">
+        {/* Products Tab: Product charts only */}
+        <TabsContent value="products" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Top Products */}
             <Card>
@@ -1272,9 +1295,9 @@ export default function Page() {
           </div>
         </TabsContent>
 
-        {/* Geography Tab */}
-        <TabsContent value="geography" className="space-y-5">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Geography Tab: Country and City charts only */}
+        <TabsContent value="geography" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {/* Country Distribution */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -1392,6 +1415,131 @@ export default function Page() {
                   </ResponsiveContainer>
                 ) : (
                   <div className="flex items-center justify-center h-[400px]">
+                    <p className="text-muted-foreground">No data available</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Agents Tab: Source Traffic and Agent Distribution */}
+        <TabsContent value="agents" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Source Traffic Distribution */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div>
+                  <CardTitle>Source Traffic Distribution</CardTitle>
+                  <CardDescription>Breakdown of orders by source traffic</CardDescription>
+                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => exportChartData(chartData.sourceData, "source-traffic-distribution")}
+                      >
+                        <DownloadIcon className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Export as CSV</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </CardHeader>
+              <CardContent>
+                {chartData.sourceData && chartData.sourceData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={400}>
+                    <PieChart>
+                      <Pie
+                        data={chartData.sourceData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        fill="#8884d8"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                      >
+                        {chartData.sourceData.map((entry, index) => (
+                          <Cell key={`cell-source-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip
+                        formatter={(value, name, props) => [
+                          `${value} orders (${props.payload.percentage.toFixed(1)}%)`,
+                          name,
+                        ]}
+                      />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px]">
+                    <p className="text-muted-foreground">No data available</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Agent Distribution */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div>
+                  <CardTitle>Agent Distribution</CardTitle>
+                  <CardDescription>Breakdown of orders by agent</CardDescription>
+                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => exportChartData(chartData.agentData, "agent-distribution")}
+                      >
+                        <DownloadIcon className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Export as CSV</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </CardHeader>
+              <CardContent>
+                {chartData.agentData && chartData.agentData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={400}>
+                    <PieChart>
+                      <Pie
+                        data={chartData.agentData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        fill="#8884d8"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                      >
+                        {chartData.agentData.map((entry, index) => (
+                          <Cell key={`cell-agent-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip
+                        formatter={(value, name, props) => [
+                          `${value} orders (${props.payload.percentage.toFixed(1)}%)`,
+                          name,
+                        ]}
+                      />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px]">
                     <p className="text-muted-foreground">No data available</p>
                   </div>
                 )}

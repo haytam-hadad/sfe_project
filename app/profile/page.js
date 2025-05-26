@@ -520,8 +520,7 @@ export default function ProfilePage() {
                     <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1 list-disc pl-5">
                       <li>Must be a Google Sheet with public access or shared with appropriate permissions</li>
                       <li>
-                        Should contain columns: Order date, Order ID, Cod Amount, Quantity, sku number, City, Phone,
-                        STATUS, Receiver Country
+                        Should contain columns: Order date, Order ID, Cod Amount, Quantity, sku number, City, STATUS, Country
                       </li>
                       <li>First row should be column headers</li>
                     </ul>

@@ -41,14 +41,13 @@ export default function AdsStatsPage() {
   const { statusConfig } = useStatusConfig()
 
   const [searchTerm, setSearchTerm] = useState("")
-  const [productCosts, setProductCosts] = useState({}) // Cost price - stored in localStorage
 
-  // Ad costs for different platforms
-  const [adFbCosts, setAdFbCosts] = useState({})
-  const [adTtCosts, setAdTtCosts] = useState({})
-  const [adGoogleCosts, setAdGoogleCosts] = useState({})
-  const [adXCosts, setAdXCosts] = useState({})
-  const [adSnapCosts, setAdSnapCosts] = useState({})
+  // Cost price - stored simply by product name (NOT date-dependent)
+  const [productCosts, setProductCosts] = useState({}) // Structure: { "ProductName": "50.00" }
+
+  // Ad costs for different platforms - stored by date and product (date-dependent)
+  // Structure: { "2024-01-15": { "ProductName": { fb: 100, tt: 50, google: 75, x: 25, snap: 30 } } }
+  const [adCostsByDate, setAdCostsByDate] = useState({})
 
   const [sortField, setSortField] = useState("totalOrders")
   const [sortDirection, setSortDirection] = useState("desc")
@@ -77,30 +76,10 @@ export default function AdsStatsPage() {
         setProductCosts(parsedCosts)
       }
 
-      // Load ad costs from localStorage
-      const savedAdFbCosts = localStorage.getItem("adFbCosts")
-      if (savedAdFbCosts) {
-        setAdFbCosts(JSON.parse(savedAdFbCosts))
-      }
-
-      const savedAdTtCosts = localStorage.getItem("adTtCosts")
-      if (savedAdTtCosts) {
-        setAdTtCosts(JSON.parse(savedAdTtCosts))
-      }
-
-      const savedAdGoogleCosts = localStorage.getItem("adGoogleCosts")
-      if (savedAdGoogleCosts) {
-        setAdGoogleCosts(JSON.parse(savedAdGoogleCosts))
-      }
-
-      const savedAdXCosts = localStorage.getItem("adXCosts")
-      if (savedAdXCosts) {
-        setAdXCosts(JSON.parse(savedAdXCosts))
-      }
-
-      const savedAdSnapCosts = localStorage.getItem("adSnapCosts")
-      if (savedAdSnapCosts) {
-        setAdSnapCosts(JSON.parse(savedAdSnapCosts))
+      // Load ad costs by date from localStorage
+      const savedAdCostsByDate = localStorage.getItem("adCostsByDate")
+      if (savedAdCostsByDate) {
+        setAdCostsByDate(JSON.parse(savedAdCostsByDate))
       }
     } catch (error) {
       console.error("Error loading saved costs:", error)
@@ -174,7 +153,7 @@ export default function AdsStatsPage() {
       const cities = new Set()
 
       deliveredOrders.forEach((order) => {
-        const country = order["Receiver Country"]
+        const country = order["Country"]
         const city = order["City"]
 
         if (country) countries.add(country)
@@ -191,16 +170,104 @@ export default function AdsStatsPage() {
     if (!sheetData || !sheetData.length) return {}
     const map = {}
     sheetData.forEach((order) => {
-      const product =
-        order["Product Name"] ||
-        order["sku number"] ||
-        order["product"]
+      const product = order["Product Name"] || order["sku number"] || order["product"]
       if (!product) return
       if (!map[product]) map[product] = 0
       map[product] += 1
     })
     return map
   }, [sheetData])
+
+  // Get current date for ad cost inputs (either specific date or today if no date filter)
+  const getCurrentDateKey = () => {
+    if (filters.startDate && filters.endDate) {
+      // If it's a range, we'll handle this differently in the input display
+      return null
+    } else if (filters.startDate) {
+      // Single date
+      return format(new Date(filters.startDate), "yyyy-MM-dd")
+    } else {
+      // No date filter, use today
+      return format(new Date(), "yyyy-MM-dd")
+    }
+  }
+
+  // Get ad cost for a specific product and platform, considering date filters (DATE-DEPENDENT)
+  const getAdCost = (productName, platform) => {
+    const currentDateKey = getCurrentDateKey()
+
+    if (filters.startDate && filters.endDate && !currentDateKey) {
+      // Date range - sum up all costs in the range
+      let total = 0
+      const startDate = new Date(filters.startDate)
+      const endDate = new Date(filters.endDate)
+
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateKey = format(d, "yyyy-MM-dd")
+        if (adCostsByDate[dateKey] && adCostsByDate[dateKey][productName]) {
+          total += Number.parseFloat(adCostsByDate[dateKey][productName][platform] || 0)
+        }
+      }
+      return total.toString()
+    } else {
+      // Single date or today
+      const dateKey = currentDateKey || format(new Date(), "yyyy-MM-dd")
+      if (adCostsByDate[dateKey] && adCostsByDate[dateKey][productName]) {
+        return adCostsByDate[dateKey][productName][platform] || ""
+      }
+      return ""
+    }
+  }
+
+  // Set ad cost for a specific product and platform on the current date (DATE-DEPENDENT)
+  const setAdCost = (productName, platform, value) => {
+    const currentDateKey = getCurrentDateKey()
+
+    if (filters.startDate && filters.endDate && !currentDateKey) {
+      // For date ranges, we'll set the value on the end date
+      const dateKey = format(new Date(filters.endDate), "yyyy-MM-dd")
+      updateAdCostForDate(dateKey, productName, platform, value)
+    } else {
+      // Single date or today
+      const dateKey = currentDateKey || format(new Date(), "yyyy-MM-dd")
+      updateAdCostForDate(dateKey, productName, platform, value)
+    }
+  }
+
+  // Update ad cost for a specific date, product, and platform
+  const updateAdCostForDate = (dateKey, productName, platform, value) => {
+    setAdCostsByDate((prev) => {
+      const newData = { ...prev }
+      if (!newData[dateKey]) {
+        newData[dateKey] = {}
+      }
+      if (!newData[dateKey][productName]) {
+        newData[dateKey][productName] = {}
+      }
+      newData[dateKey][productName][platform] = value
+      return newData
+    })
+  }
+
+  // Get cost price for a product (NOT date-dependent - always the same value)
+  const getCostPrice = (productName) => {
+    return productCosts[productName] || ""
+  }
+
+  // Set cost price for a product (NOT date-dependent - simple storage)
+  const setCostPrice = (productName, value) => {
+    setProductCosts((prev) => ({
+      ...prev,
+      [productName]: value,
+    }))
+  }
+
+  // Extract unique agents from deliveredOrders
+  const agents = useMemo(() => {
+    if (!deliveredOrders.length) return []
+    const uniqueAgents = [...new Set(deliveredOrders.map((order) => order["Agent"]).filter(Boolean))]
+    return uniqueAgents.sort()
+  }, [deliveredOrders])
 
   // Process data with only delivered orders
   const processedData = useMemo(() => {
@@ -213,8 +280,9 @@ export default function AdsStatsPage() {
       if (!product) return
 
       const orderDate = order["Order date"] ? new Date(order["Order date"]) : null
-      const country = order["Receiver Country"] || ""
+      const country = order["Country"] || ""
       const city = order["City"] || ""
+      const agent = order["Agent"] || ""
 
       // Apply date filters
       if (filters.startDate && orderDate && orderDate < new Date(filters.startDate)) {
@@ -243,6 +311,11 @@ export default function AdsStatsPage() {
         return
       }
 
+      // Apply agent filter
+      if (filters.agent && order["Agent"] !== filters.agent) {
+        return
+      }
+
       if (!productMap.has(product)) {
         productMap.set(product, {
           productName: product,
@@ -254,7 +327,6 @@ export default function AdsStatsPage() {
       }
 
       const productData = productMap.get(product)
-      // productData.totalOrders++ // REMOVE this line, will set below
 
       // Get quantity
       const quantity = extractQuantity(order)
@@ -323,50 +395,27 @@ export default function AdsStatsPage() {
   useEffect(() => {
     try {
       localStorage.setItem("productCosts", JSON.stringify(productCosts))
-      localStorage.setItem("adFbCosts", JSON.stringify(adFbCosts))
-      localStorage.setItem("adTtCosts", JSON.stringify(adTtCosts))
-      localStorage.setItem("adGoogleCosts", JSON.stringify(adGoogleCosts))
-      localStorage.setItem("adXCosts", JSON.stringify(adXCosts))
-      localStorage.setItem("adSnapCosts", JSON.stringify(adSnapCosts))
+      localStorage.setItem("adCostsByDate", JSON.stringify(adCostsByDate))
     } catch (error) {
       console.error("Error saving costs:", error)
     }
-  }, [productCosts, adFbCosts, adTtCosts, adGoogleCosts, adXCosts, adSnapCosts])
+  }, [productCosts, adCostsByDate])
 
   const handleCostChange = (productName, value) => {
-    setProductCosts((prev) => ({
-      ...prev,
-      [productName]: value,
-    }))
+    setCostPrice(productName, value)
   }
 
   const handleAdCostChange = (platform, productName, value) => {
-    switch (platform) {
-      case "fb":
-        setAdFbCosts((prev) => ({ ...prev, [productName]: value }))
-        break
-      case "tt":
-        setAdTtCosts((prev) => ({ ...prev, [productName]: value }))
-        break
-      case "google":
-        setAdGoogleCosts((prev) => ({ ...prev, [productName]: value }))
-        break
-      case "x":
-        setAdXCosts((prev) => ({ ...prev, [productName]: value }))
-        break
-      case "snap":
-        setAdSnapCosts((prev) => ({ ...prev, [productName]: value }))
-        break
-    }
+    setAdCost(productName, platform, value)
   }
 
-  // Calculate total ad cost for a product
+  // Calculate total ad cost for a product considering date filters
   const calculateTotalAdCost = (productName) => {
-    const fbCost = Number.parseFloat(adFbCosts[productName] || 0)
-    const ttCost = Number.parseFloat(adTtCosts[productName] || 0)
-    const googleCost = Number.parseFloat(adGoogleCosts[productName] || 0)
-    const xCost = Number.parseFloat(adXCosts[productName] || 0)
-    const snapCost = Number.parseFloat(adSnapCosts[productName] || 0)
+    const fbCost = Number.parseFloat(getAdCost(productName, "fb") || 0)
+    const ttCost = Number.parseFloat(getAdCost(productName, "tt") || 0)
+    const googleCost = Number.parseFloat(getAdCost(productName, "google") || 0)
+    const xCost = Number.parseFloat(getAdCost(productName, "x") || 0)
+    const snapCost = Number.parseFloat(getAdCost(productName, "snap") || 0)
 
     return fbCost + ttCost + googleCost + xCost + snapCost
   }
@@ -379,7 +428,7 @@ export default function AdsStatsPage() {
 
   // Calculate total cost with new formula
   const calculateTotalCost = (product) => {
-    const costPrice = Number.parseFloat(productCosts[product.productName] || 0)
+    const costPrice = Number.parseFloat(getCostPrice(product.productName) || 0)
     const avgCost = calculateAverageCost(product)
 
     // New formula: (avg cost * total orders) + (cost price * total qty)
@@ -399,12 +448,12 @@ export default function AdsStatsPage() {
 
     // Add data rows with new columns
     processedData.forEach((product) => {
-      const fbCost = Number.parseFloat(adFbCosts[product.productName] || 0)
-      const ttCost = Number.parseFloat(adTtCosts[product.productName] || 0)
-      const googleCost = Number.parseFloat(adGoogleCosts[product.productName] || 0)
-      const xCost = Number.parseFloat(adXCosts[product.productName] || 0)
-      const snapCost = Number.parseFloat(adSnapCosts[product.productName] || 0)
-      const costPrice = Number.parseFloat(productCosts[product.productName] || 0)
+      const fbCost = Number.parseFloat(getAdCost(product.productName, "fb") || 0)
+      const ttCost = Number.parseFloat(getAdCost(product.productName, "tt") || 0)
+      const googleCost = Number.parseFloat(getAdCost(product.productName, "google") || 0)
+      const xCost = Number.parseFloat(getAdCost(product.productName, "x") || 0)
+      const snapCost = Number.parseFloat(getAdCost(product.productName, "snap") || 0)
+      const costPrice = Number.parseFloat(getCostPrice(product.productName) || 0)
       const avgCost = calculateAverageCost(product)
       const totalCost = calculateTotalCost(product)
 
@@ -489,11 +538,11 @@ export default function AdsStatsPage() {
     let totalCost = 0
 
     processedData.forEach((product) => {
-      const fbCost = Number.parseFloat(adFbCosts[product.productName] || 0)
-      const ttCost = Number.parseFloat(adTtCosts[product.productName] || 0)
-      const googleCost = Number.parseFloat(adGoogleCosts[product.productName] || 0)
-      const xCost = Number.parseFloat(adXCosts[product.productName] || 0)
-      const snapCost = Number.parseFloat(adSnapCosts[product.productName] || 0)
+      const fbCost = Number.parseFloat(getAdCost(product.productName, "fb") || 0)
+      const ttCost = Number.parseFloat(getAdCost(product.productName, "tt") || 0)
+      const googleCost = Number.parseFloat(getAdCost(product.productName, "google") || 0)
+      const xCost = Number.parseFloat(getAdCost(product.productName, "x") || 0)
+      const snapCost = Number.parseFloat(getAdCost(product.productName, "snap") || 0)
 
       totalFbCost += fbCost
       totalTtCost += ttCost
@@ -501,8 +550,11 @@ export default function AdsStatsPage() {
       totalXCost += xCost
       totalSnapCost += snapCost
 
-      const cost = calculateTotalCost(product)
-      totalCost += cost
+      const costPrice = Number.parseFloat(getCostPrice(product.productName) || 0)
+      const avgCost = calculateAverageCost(product)
+      const productTotalCost = avgCost * product.totalOrders + costPrice * product.totalQuantity
+
+      totalCost += productTotalCost
     })
 
     const totalAdCost = totalFbCost + totalTtCost + totalGoogleCost + totalXCost + totalSnapCost
@@ -519,7 +571,7 @@ export default function AdsStatsPage() {
       totalCost,
       totalQuantity,
     }
-  }, [processedData, adFbCosts, adTtCosts, adGoogleCosts, adXCosts, adSnapCosts, productCosts, sheetData])
+  }, [processedData, adCostsByDate, productCosts, sheetData, filters])
 
   // Handle refresh data
   const handleRefreshData = () => {
@@ -534,6 +586,17 @@ export default function AdsStatsPage() {
 
   const formatNumber = (value) => {
     return `$${Number(value).toFixed(2)}`
+  }
+
+  // Get date range display text
+  const getDateRangeText = () => {
+    if (filters.startDate && filters.endDate) {
+      return `${format(new Date(filters.startDate), "MMM dd")} - ${format(new Date(filters.endDate), "MMM dd")}`
+    } else if (filters.startDate) {
+      return format(new Date(filters.startDate), "MMM dd, yyyy")
+    } else {
+      return "Today"
+    }
   }
 
   if (loadingSheetData) {
@@ -574,6 +637,10 @@ export default function AdsStatsPage() {
             {filters.country && <span> - {filters.country}</span>}
             {filters.city && <span> - {filters.city}</span>}
           </p>
+          <p className="text-sm text-blue-600 mt-1">
+            Ad costs for: {getDateRangeText()}
+            {filters.startDate && filters.endDate && " (cumulative)"}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
           <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
@@ -588,7 +655,7 @@ export default function AdsStatsPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
         <Card className="border-l-4 border-blue-500">
           <CardContent className="pt-6">
             <div className="flex justify-between items-center">
@@ -645,8 +712,8 @@ export default function AdsStatsPage() {
 
       {/* Filters */}
       {showFilters && (
-        <Card className="mb-">
-          <CardHeader className="pb-3">
+        <Card className="mb-6">
+          <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
               <CardTitle className="text-md flex items-center">
                 <Filter className="h-5 w-5 mr-1 text-mainColor" /> Filters
@@ -658,10 +725,10 @@ export default function AdsStatsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {/* All filters in one row */}
-            <div className="flex flex-col md:flex-row gap-4 mb-4">
+            {/* Responsive filter layout: grid on md+, stacked on mobile */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
               {/* Country Filter */}
-              <div className="flex-1 min-w-[180px]">
+              <div className="min-w-[180px]">
                 <label className="text-sm font-medium flex items-center mb-1">
                   <Globe className="h-4 w-4 mr-1" /> Country
                 </label>
@@ -674,11 +741,13 @@ export default function AdsStatsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Countries</SelectItem>
-                    {[...new Set(
-                      (sheetData || [])
-                        .map((order) => order["Receiver Country"] || order["Receier Country"] || order["Country"])
-                        .filter(Boolean)
-                    )]
+                    {[
+                      ...new Set(
+                        (sheetData || [])
+                          .map((order) => order["Country"] || order["Country"] || order["Country"])
+                          .filter(Boolean),
+                      ),
+                    ]
                       .sort((a, b) => a.localeCompare(b))
                       .map((country) => (
                         <SelectItem key={country} value={country}>
@@ -690,7 +759,7 @@ export default function AdsStatsPage() {
               </div>
 
               {/* City Filter */}
-              <div className="flex-1 min-w-[180px]">
+              <div className="min-w-[180px]">
                 <label className="text-sm font-medium flex items-center mb-1">
                   <MapPin className="h-4 w-4 mr-1" /> City
                 </label>
@@ -703,11 +772,7 @@ export default function AdsStatsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Cities</SelectItem>
-                    {[...new Set(
-                      (sheetData || [])
-                        .map((order) => order["City"])
-                        .filter(Boolean)
-                    )]
+                    {[...new Set((sheetData || []).map((order) => order["City"]).filter(Boolean))]
                       .sort((a, b) => a.localeCompare(b))
                       .map((city) => (
                         <SelectItem key={city} value={city}>
@@ -719,7 +784,7 @@ export default function AdsStatsPage() {
               </div>
 
               {/* Product Filter */}
-              <div className="flex-1 min-w-[180px]">
+              <div className="min-w-[180px]">
                 <label className="text-sm font-medium flex items-center mb-1">
                   <BarChart3 className="h-4 w-4 mr-1" /> Product
                 </label>
@@ -732,11 +797,13 @@ export default function AdsStatsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Products</SelectItem>
-                    {[...new Set(
-                      (sheetData || [])
-                        .map((order) => order["Product Name"] || order["sku number"] || order["product"])
-                        .filter(Boolean)
-                    )]
+                    {[
+                      ...new Set(
+                        (sheetData || [])
+                          .map((order) => order["Product Name"] || order["sku number"] || order["product"])
+                          .filter(Boolean),
+                      ),
+                    ]
                       .sort((a, b) => a.localeCompare(b))
                       .map((product) => (
                         <SelectItem key={product} value={product}>
@@ -747,8 +814,31 @@ export default function AdsStatsPage() {
                 </Select>
               </div>
 
+              {/* Agent Filter */}
+              <div className="min-w-[180px]">
+                <label className="text-sm font-medium flex items-center mb-1">
+                  <Filter className="h-4 w-4 mr-1" /> Agent
+                </label>
+                <Select
+                  value={filters.agent || ""}
+                  onValueChange={(value) => updateFilter("agent", value === "all" ? "" : value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select agent" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Agents</SelectItem>
+                    {agents.map((agent) => (
+                      <SelectItem key={agent} value={agent}>
+                        {agent}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Date Range Filter (single input for range) */}
-              <div className="flex-1 min-w-[220px]">
+              <div>
                 <label className="text-sm font-medium">Date Range</label>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -784,6 +874,11 @@ export default function AdsStatsPage() {
         <CardHeader>
           <CardDescription>
             Analysis of delivered products only. Enter product costs to calculate profitability.
+            <br />
+            {/* <span className="text-blue-600 font-medium">
+              Ad costs are stored by date and change with date filters. Cost Price is stored per product and never
+              changes with date filters.
+            </span> */}
           </CardDescription>
           <div className="flex items-center space-x-2 mt-2">
             <div className="relative flex-1 max-w-sm">
@@ -877,21 +972,33 @@ export default function AdsStatsPage() {
                       </TableHead>
                       <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
                         AD FB
+                        <br />
+                        <span className="text-xs text-blue-600">Date-based</span>
                       </TableHead>
                       <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
                         AD TT
+                        <br />
+                        <span className="text-xs text-blue-600">Date-based</span>
                       </TableHead>
                       <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
                         AD GOOGLE
+                        <br />
+                        <span className="text-xs text-blue-600">Date-based</span>
                       </TableHead>
                       <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
                         AD X
+                        <br />
+                        <span className="text-xs text-blue-600">Date-based</span>
                       </TableHead>
                       <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
                         AD SNAP
+                        <br />
+                        <span className="text-xs text-blue-600">Date-based</span>
                       </TableHead>
                       <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
-                        Sur Sell Price
+                        Sur sell Price
+                        <br />
+                        <span className="text-xs text-green-600">Fixed per product</span>
                       </TableHead>
                       <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
                         Average Cost
@@ -904,12 +1011,12 @@ export default function AdsStatsPage() {
                   <TableBody>
                     {currentItems.length > 0 ? (
                       currentItems.map((product) => {
-                        const fbCost = Number.parseFloat(adFbCosts[product.productName] || 0)
-                        const ttCost = Number.parseFloat(adTtCosts[product.productName] || 0)
-                        const googleCost = Number.parseFloat(adGoogleCosts[product.productName] || 0)
-                        const xCost = Number.parseFloat(adXCosts[product.productName] || 0)
-                        const snapCost = Number.parseFloat(adSnapCosts[product.productName] || 0)
-                        const costPrice = Number.parseFloat(productCosts[product.productName] || 0)
+                        const fbCost = getAdCost(product.productName, "fb")
+                        const ttCost = getAdCost(product.productName, "tt")
+                        const googleCost = getAdCost(product.productName, "google")
+                        const xCost = getAdCost(product.productName, "x")
+                        const snapCost = getAdCost(product.productName, "snap")
+                        const costPrice = getCostPrice(product.productName)
                         const avgCost = calculateAverageCost(product)
                         const totalCost = calculateTotalCost(product)
 
@@ -927,10 +1034,10 @@ export default function AdsStatsPage() {
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                   type="number"
-                                  value={adFbCosts[product.productName] || ""}
+                                  value={fbCost}
                                   onChange={(e) => handleAdCostChange("fb", product.productName, e.target.value)}
                                   placeholder="0.00"
-                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white text-center"
+                                  className="pl-8 w-full border border-b border-b-blue-500 text-center"
                                 />
                               </div>
                             </TableCell>
@@ -939,10 +1046,10 @@ export default function AdsStatsPage() {
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                   type="number"
-                                  value={adTtCosts[product.productName] || ""}
+                                  value={ttCost}
                                   onChange={(e) => handleAdCostChange("tt", product.productName, e.target.value)}
                                   placeholder="0.00"
-                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white text-center"
+                                  className="pl-8 w-full border border-b border-b-blue-500 text-center"
                                 />
                               </div>
                             </TableCell>
@@ -951,10 +1058,10 @@ export default function AdsStatsPage() {
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                   type="number"
-                                  value={adGoogleCosts[product.productName] || ""}
+                                  value={googleCost}
                                   onChange={(e) => handleAdCostChange("google", product.productName, e.target.value)}
                                   placeholder="0.00"
-                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white text-center"
+                                  className="pl-8 w-full border border-b border-b-blue-500 text-center"
                                 />
                               </div>
                             </TableCell>
@@ -963,10 +1070,10 @@ export default function AdsStatsPage() {
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                   type="number"
-                                  value={adXCosts[product.productName] || ""}
+                                  value={xCost}
                                   onChange={(e) => handleAdCostChange("x", product.productName, e.target.value)}
                                   placeholder="0.00"
-                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white text-center"
+                                  className="pl-8 w-full border border-b border-b-blue-500 text-center"
                                 />
                               </div>
                             </TableCell>
@@ -975,10 +1082,10 @@ export default function AdsStatsPage() {
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                   type="number"
-                                  value={adSnapCosts[product.productName] || ""}
+                                  value={snapCost}
                                   onChange={(e) => handleAdCostChange("snap", product.productName, e.target.value)}
                                   placeholder="0.00"
-                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white text-center"
+                                  className="pl-8 w-full border border-b border-b-blue-500 text-center"
                                 />
                               </div>
                             </TableCell>
@@ -987,10 +1094,10 @@ export default function AdsStatsPage() {
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                   type="number"
-                                  value={productCosts[product.productName] || ""}
+                                  value={costPrice}
                                   onChange={(e) => handleCostChange(product.productName, e.target.value)}
                                   placeholder="0.00"
-                                  className="pl-8 w-full border border-b border-b-black dark:border-b-white text-center"
+                                  className="pl-8 w-full border border-b border-b-green-500 text-center"
                                 />
                               </div>
                             </TableCell>

@@ -12,6 +12,7 @@ import {
   Settings, 
   UserPlus,
   User,
+  UserPen ,
   BarChart3
 } from "lucide-react"
 import Link from "next/link"
@@ -55,7 +56,7 @@ const settingsLinks = [
   {
     text: "Profile Settings",
     href: "/profile",
-    icon: User,
+    icon: UserPen ,
   },
   {
     text: "calculating parames",

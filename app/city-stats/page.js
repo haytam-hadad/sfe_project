@@ -47,7 +47,7 @@ export default function CityStatsPage() {
   // Extract unique countries (from all orders, not filtered)
   const countries = useMemo(() => {
     if (!orders.length) return []
-    const uniqueCountries = [...new Set(orders.map((order) => order["Receier Country"]).filter(Boolean))]
+    const uniqueCountries = [...new Set(orders.map((order) => order["Country"]).filter(Boolean))]
     return uniqueCountries.sort()
   }, [orders])
 
@@ -63,6 +63,13 @@ export default function CityStatsPage() {
     if (!orders.length) return []
     const uniqueSources = [...new Set(orders.map((order) => order["Source Traffic"]).filter(Boolean))]
     return uniqueSources.sort()
+  }, [orders])
+
+  // Extract unique agents (from all orders, not filtered)
+  const agents = useMemo(() => {
+    if (!orders.length) return []
+    const uniqueAgents = [...new Set(orders.map((order) => order["Agent"]).filter(Boolean))]
+    return uniqueAgents.sort()
   }, [orders])
 
   // Pagination states
@@ -87,12 +94,17 @@ export default function CityStatsPage() {
       }
 
       // Country filter
-      if (filters.country && order["Receier Country"] !== filters.country) {
+      if (filters.country && order["Country"] !== filters.country) {
         return false
       }
 
       // Source Traffic filter
       if (filters.source && order["Source Traffic"] !== filters.source) {
+        return false
+      }
+
+      // Agent filter
+      if (filters.agent && order["Agent"] !== filters.agent) {
         return false
       }
 
@@ -354,7 +366,7 @@ export default function CityStatsPage() {
                 className="ml-auto"
                 onClick={resetFilters} // <-- use resetFilters from context
                 disabled={
-                  !filters.city && !filters.product && !filters.startDate && !filters.endDate && !filters.country && !filters.source
+                  !filters.city && !filters.product && !filters.startDate && !filters.endDate && !filters.country && !filters.source && !filters.agent
                 }
               >
                 <XCircleIcon className="mr-1 text-mainColor h-4 w-4" />
@@ -439,6 +451,26 @@ export default function CityStatsPage() {
                   {sources.map((src) => (
                     <option key={src} value={src}>
                       {src}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Agent Filter */}
+              <div>
+                <label htmlFor="agent-filter" className="block text-sm font-medium mb-1 flex items-center">
+                  <FilterIcon className="h-4 w-4 mr-1" /> Agent
+                </label>
+                <select
+                  id="agent-filter"
+                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
+                  value={filters.agent || ""}
+                  onChange={(e) => updateFilter("agent", e.target.value)}
+                >
+                  <option value="">All Agents</option>
+                  {agents.map((agent) => (
+                    <option key={agent} value={agent}>
+                      {agent}
                     </option>
                   ))}
                 </select>

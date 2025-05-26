@@ -60,9 +60,10 @@ export default function OrdersDashboard() {
     "Cod Amount": true,
     Quantity: true,
     City: true,
-    "Receier Country": true,
-    "Source Traffic": true, // <-- Ensure this is present and true
+    "Country": true,
+    "Source Traffic": true,
     STATUS: true,
+    Agent: true,
   })
 
   // Filter states
@@ -100,7 +101,7 @@ export default function OrdersDashboard() {
   // Memoized derivations
   const countries = useMemo(() => {
     if (!orders.length) return []
-    const uniqueCountries = [...new Set(orders.map((order) => order["Receier Country"]).filter(Boolean))]
+    const uniqueCountries = [...new Set(orders.map((order) => order["Country"]).filter(Boolean))]
     return uniqueCountries.sort()
   }, [orders])
 
@@ -131,6 +132,13 @@ export default function OrdersDashboard() {
     return uniqueProducts.sort()
   }, [orders])
 
+  // Memoized unique agents
+  const agents = useMemo(() => {
+    if (!orders.length) return []
+    const uniqueAgents = [...new Set(orders.map((order) => order["Agent"]).filter(Boolean))]
+    return uniqueAgents.sort()
+  }, [orders])
+
   // Filter orders based on current criteria
   const filteredOrders = useMemo(() => {
     if (!orders.length) return []
@@ -139,9 +147,10 @@ export default function OrdersDashboard() {
       .filter((order) => {
         const matchesProduct = !filters.product || order["sku number"] === filters.product
         const matchesStatus = !filters.status || order["STATUS"] === filters.status
-        const matchesCountry = !filters.country || order["Receier Country"] === filters.country
+        const matchesCountry = !filters.country || order["Country"] === filters.country
         const matchesCity = !filters.city || order["City"] === filters.city
         const matchesSource = !filters.source || order["Source Traffic"] === filters.source
+        const matchesAgent = !filters.agent || order["Agent"] === filters.agent
 
         let matchesDateRange = true
         if (filters.startDate || filters.endDate) {
@@ -164,6 +173,7 @@ export default function OrdersDashboard() {
           matchesCountry &&
           matchesCity &&
           matchesSource &&
+          matchesAgent &&
           matchesDateRange
         )
       })
@@ -195,6 +205,7 @@ export default function OrdersDashboard() {
     filters.country,
     filters.city,
     filters.source,
+    filters.agent, // <-- add this dependency
     filters.startDate,
     filters.endDate,
     sortField,
@@ -588,7 +599,7 @@ export default function OrdersDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 max-w-[100vw] lg:grid-cols-4 p-1 gap-3">
               {/* Product filter */}
               <div className="relative">
-                <label htmlFor="product-filter" className="block text-sm font-medium mb-1 flex items-center">
+                <label htmlFor="product-filter" className="text-sm font-medium mb-1 flex items-center">
                   <PackageIcon className="h-4 w-4 mr-1" /> Product
                 </label>
                 <select
@@ -630,7 +641,7 @@ export default function OrdersDashboard() {
 
               {/* Country filter */}
               <div className="relative">
-                <label htmlFor="country-filter" className="block text-sm font-medium mb-1 flex items-center">
+                <label htmlFor="country-filter" className="text-sm font-medium mb-1 flex items-center">
                   <Globe className="h-4 w-4 mr-1" /> Country
                 </label>
                 <select
@@ -651,7 +662,7 @@ export default function OrdersDashboard() {
 
               {/* City filter */}
               <div className="relative">
-                <label htmlFor="city-filter" className="block text-sm font-medium mb-1 flex items-center">
+                <label htmlFor="city-filter" className="text-sm font-medium mb-1 flex items-center">
                   <SearchIcon className="h-4 w-4 mr-1" /> City
                 </label>
                 <select
@@ -672,7 +683,7 @@ export default function OrdersDashboard() {
 
               {/* Source Traffic filter */}
               <div className="relative">
-                <label htmlFor="source-filter" className="block text-sm font-medium mb-1 flex items-center">
+                <label htmlFor="source-filter" className="text-sm font-medium mb-1 flex items-center">
                   <FilterIcon className="h-4 w-4 mr-1" /> Source Traffic
                 </label>
                 <select
@@ -691,9 +702,30 @@ export default function OrdersDashboard() {
                 </select>
               </div>
 
+              {/* Agent filter */}
+              <div className="relative">
+                <label htmlFor="agent-filter" className="text-sm font-medium mb-1 flex items-center">
+                  <Info className="h-4 w-4 mr-1" /> Agent
+                </label>
+                <select
+                  id="agent-filter"
+                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
+                  value={filters.agent || ""}
+                  onChange={(e) => updateFilter("agent", e.target.value)}
+                  aria-label="Filter by agent"
+                >
+                  <option value="">All Agents</option>
+                  {agents.map((agent) => (
+                    <option key={agent} value={agent}>
+                      {agent}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Date range */}
               <div className="relative">
-                <label className="block text-sm font-medium mb-1 flex items-center">
+                <label className="text-sm font-medium mb-1 flex items-center">
                   <CalendarIcon className="h-4 w-4 mr-1" /> Date Range
                 </label>
                 <Popover>
@@ -740,7 +772,7 @@ export default function OrdersDashboard() {
       {/* Orders Table */}
       <div
         id="orders-table"
-        className="flex bg-white border m-auto max-h-[500px] max-w-[94vw] dark:bg-zinc-900 rounded-md overflow-auto shadow-sm"
+        className="flex bg-white border m-auto max-h-[500px] md:max-w-[75vw] dark:bg-zinc-900 rounded-md overflow-auto shadow-sm"
       >
         <Table>
           <TableHeader className="bg-zinc-100 w-full sticky top-0 z-20 dark:bg-zinc-950">
@@ -858,16 +890,16 @@ export default function OrdersDashboard() {
                   </div>
                 </TableHead>
               )}
-              {visibleColumns["Receier Country"] && (
+              {visibleColumns["Country"] && (
                 <TableHead
                   className="cursor-pointer select-none"
-                  onClick={() => handleSort("Receier Country")}
+                  onClick={() => handleSort("Country")}
                   role="columnheader"
-                  aria-sort={sortField === "Receier Country" ? sortDirection : "none"}
+                  aria-sort={sortField === "Country" ? sortDirection : "none"}
                 >
                   <div className="flex justify-center items-center">
-                    <span className={sortField === "Receier Country" ? "text-green-600 font-medium" : ""}>Country</span>
-                    {sortField === "Receier Country" ? (
+                    <span className={sortField === "Country" ? "text-green-600 font-medium" : ""}>Country</span>
+                    {sortField === "Country" ? (
                       sortDirection === "asc" ? (
                         <ArrowUpIcon className="ml-1 h-4 w-4" />
                       ) : (
@@ -908,6 +940,25 @@ export default function OrdersDashboard() {
                   <div className="flex justify-center items-center">
                     <span className={sortField === "STATUS" ? "text-green-600 font-medium" : ""}>Status</span>
                     {sortField === "STATUS" ? (
+                      sortDirection === "asc" ? (
+                        <ArrowUpIcon className="ml-1 h-4 w-4" />
+                      ) : (
+                        <ArrowDownIcon className="ml-1 h-4 w-4" />
+                      )
+                    ) : null}
+                  </div>
+                </TableHead>
+              )}
+              {visibleColumns["Agent"] && (
+                <TableHead
+                  className="cursor-pointer select-none"
+                  onClick={() => handleSort("Agent")}
+                  role="columnheader"
+                  aria-sort={sortField === "Agent" ? sortDirection : "none"}
+                >
+                  <div className="flex justify-center items-center">
+                    <span className={sortField === "Agent" ? "text-green-600 font-medium" : ""}>Agent</span>
+                    {sortField === "Agent" ? (
                       sortDirection === "asc" ? (
                         <ArrowUpIcon className="ml-1 h-4 w-4" />
                       ) : (
@@ -962,7 +1013,7 @@ export default function OrdersDashboard() {
                   )}
                   {visibleColumns["Cod Amount"] && (
                     <TableCell className="text-center">
-                      {formatOrderCurrency(order["Cod Amount"], order["Receier Country"])}
+                      {formatOrderCurrency(order["Cod Amount"], order["Country"])}
                     </TableCell>
                   )}
                   {visibleColumns["Quantity"] && (
@@ -975,8 +1026,8 @@ export default function OrdersDashboard() {
                       </div>
                     </TableCell>
                   )}
-                  {visibleColumns["Receier Country"] && (
-                    <TableCell className="text-center">{order["Receier Country"]}</TableCell>
+                  {visibleColumns["Country"] && (
+                    <TableCell className="text-center">{order["Country"]}</TableCell>
                   )}
                   {visibleColumns["Source Traffic"] && (
                     <TableCell className="text-center">
@@ -985,6 +1036,11 @@ export default function OrdersDashboard() {
                   )}
                   {visibleColumns["STATUS"] && (
                     <TableCell className="text-center">{getStatusBadge(order["STATUS"])}</TableCell>
+                  )}
+                  {visibleColumns["Agent"] && (
+                    <TableCell className="text-center">
+                      {order["Agent"] || "—"}
+                    </TableCell>
                   )}
                 </TableRow>
               ))
@@ -1052,7 +1108,7 @@ export default function OrdersDashboard() {
                     {key === "STATUS"
                       ? getStatusBadge(value)
                       : key === "Cod Amount"
-                        ? formatOrderCurrency(value, selectedOrder["Receier Country"])
+                        ? formatOrderCurrency(value, selectedOrder["Country"])
                         : value || "—"}
                   </div>
                 </div>

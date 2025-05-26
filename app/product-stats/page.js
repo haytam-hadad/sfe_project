@@ -60,7 +60,7 @@ export default function ProductStatsPage() {
   // Extract unique countries
   const countries = useMemo(() => {
     if (!orders.length) return []
-    const uniqueCountries = [...new Set(orders.map((order) => order["Receier Country"]).filter(Boolean))]
+    const uniqueCountries = [...new Set(orders.map((order) => order["Country"]).filter(Boolean))]
     return uniqueCountries.sort()
   }, [orders])
 
@@ -69,6 +69,13 @@ export default function ProductStatsPage() {
     if (!orders.length) return []
     const uniqueSources = [...new Set(orders.map((order) => order["Source Traffic"]).filter(Boolean))]
     return uniqueSources.sort()
+  }, [orders])
+
+  // Extract unique agents
+  const agents = useMemo(() => {
+    if (!orders.length) return []
+    const uniqueAgents = [...new Set(orders.map((order) => order["Agent"]).filter(Boolean))]
+    return uniqueAgents.sort()
   }, [orders])
 
   // Apply filters to the data (same logic as city-stats)
@@ -87,12 +94,17 @@ export default function ProductStatsPage() {
       }
 
       // Country filter
-      if (filters.country && order["Receier Country"] !== filters.country) {
+      if (filters.country && order["Country"] !== filters.country) {
         return false
       }
 
       // Source Traffic filter
       if (filters.source && order["Source Traffic"] !== filters.source) {
+        return false
+      }
+
+      // Agent filter
+      if (filters.agent && order["Agent"] !== filters.agent) {
         return false
       }
 
@@ -412,7 +424,7 @@ export default function ProductStatsPage() {
                 className="ml-auto"
                 onClick={resetFilters}
                 disabled={
-                  !filters.city && !filters.product && !filters.startDate && !filters.endDate && !filters.country && !filters.source
+                  !filters.city && !filters.product && !filters.startDate && !filters.endDate && !filters.country && !filters.source && !filters.agent
                 }
               >
                 <XCircleIcon className="mr-1 text-mainColor h-4 w-4" />
@@ -424,7 +436,7 @@ export default function ProductStatsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2">
               {/* Product Filter */}
               <div>
-                <label htmlFor="product-filter" className="block text-sm font-medium mb-1 flex items-center">
+                <label htmlFor="product-filter" className="text-sm font-medium mb-1 flex items-center">
                   <BarChart3 className="h-4 w-4 mr-1" /> Product
                 </label>
                 <select
@@ -444,7 +456,7 @@ export default function ProductStatsPage() {
 
               {/* City Filter */}
               <div>
-                <label htmlFor="city-filter" className="block text-sm font-medium mb-1 flex items-center">
+                <label htmlFor="city-filter" className="text-sm font-medium mb-1 flex items-center">
                   <MapPin className="h-4 w-4 mr-1" /> City
                 </label>
                 <select
@@ -464,7 +476,7 @@ export default function ProductStatsPage() {
 
               {/* Country Filter */}
               <div>
-                <label htmlFor="country-filter" className="block text-sm font-medium mb-1 flex items-center">
+                <label htmlFor="country-filter" className="text-sm font-medium mb-1 flex items-center">
                   <Globe className="h-4 w-4 mr-1" /> Country
                 </label>
                 <select
@@ -484,7 +496,7 @@ export default function ProductStatsPage() {
 
               {/* Source Traffic Filter */}
               <div>
-                <label htmlFor="source-filter" className="block text-sm font-medium mb-1 flex items-center">
+                <label htmlFor="source-filter" className="text-sm font-medium mb-1 flex items-center">
                   <FilterIcon className="h-4 w-4 mr-1" /> Source Traffic
                 </label>
                 <select
@@ -502,9 +514,29 @@ export default function ProductStatsPage() {
                 </select>
               </div>
 
+              {/* Agent Filter */}
+              <div>
+                <label htmlFor="agent-filter" className="text-sm font-medium mb-1 flex items-center">
+                  <FilterIcon className="h-4 w-4 mr-1" /> Agent
+                </label>
+                <select
+                  id="agent-filter"
+                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
+                  value={filters.agent || ""}
+                  onChange={(e) => updateFilter("agent", e.target.value)}
+                >
+                  <option value="">All Agents</option>
+                  {agents.map((agent) => (
+                    <option key={agent} value={agent}>
+                      {agent}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Date Range Filter */}
               <div>
-                <label className="block text-sm font-medium mb-1 flex items-center">
+                <label className="text-sm font-medium mb-1 flex items-center">
                   <CalendarIcon className="h-4 w-4 mr-1" /> Date Range
                 </label>
                 <Popover>
