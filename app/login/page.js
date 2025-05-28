@@ -57,7 +57,12 @@ export default function LoginPage() {
       const result = await login(email, password, rememberMe)
 
       if (result.success) {
-        router.push("/")
+        // Check if user is admin
+        if (result.user && result.user.role === "admin") {
+          router.push("/admin")
+        } else {
+          router.push("/")
+        }
       } else {
         setError(result.error || "Invalid email or password. Please try again.")
       }

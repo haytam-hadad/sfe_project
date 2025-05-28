@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { useApp, useSheetData, useFilters, useStatusConfig } from "@/contexts/app-context"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
@@ -26,11 +26,13 @@ import {
   AlertCircle,
   MapPin,
   Globe,
+  Trash2,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { matchesStatus } from "@/lib/constants"
+import { fetchCosts, updateProductCost, updateAdCost, deleteAllProductCosts, deleteAllAdCosts } from "@/lib/api-client"
 
 export default function AdsStatsPage() {
   const { toast } = useToast()
@@ -48,6 +50,11 @@ export default function AdsStatsPage() {
   // Ad costs for different platforms - stored by date and product (date-dependent)
   // Structure: { "2024-01-15": { "ProductName": { fb: 100, tt: 50, google: 75, x: 25, snap: 30 } } }
   const [adCostsByDate, setAdCostsByDate] = useState({})
+
+  // Loading states for API calls
+  const [loadingCosts, setLoadingCosts] = useState(false)
+  const [savingCosts, setSavingCosts] = useState(false)
+  const [deletingCosts, setDeletingCosts] = useState(false)
 
   const [sortField, setSortField] = useState("totalOrders")
   const [sortDirection, setSortDirection] = useState("desc")
@@ -67,24 +74,60 @@ export default function AdsStatsPage() {
   const [availableCountries, setAvailableCountries] = useState([])
   const [availableCities, setAvailableCities] = useState([])
 
-  // Load saved costs from localStorage on component mount
+  // Load costs from backend on component mount
   useEffect(() => {
-    try {
-      const savedCosts = localStorage.getItem("productCosts")
-      if (savedCosts) {
-        const parsedCosts = JSON.parse(savedCosts)
-        setProductCosts(parsedCosts)
-      }
-
-      // Load ad costs by date from localStorage
-      const savedAdCostsByDate = localStorage.getItem("adCostsByDate")
-      if (savedAdCostsByDate) {
-        setAdCostsByDate(JSON.parse(savedAdCostsByDate))
-      }
-    } catch (error) {
-      console.error("Error loading saved costs:", error)
+    if (token) {
+      loadCostsFromBackend()
     }
-  }, [])
+  }, [token])
+
+  // Load costs from backend
+  const loadCostsFromBackend = async () => {
+    if (!token) return
+
+    setLoadingCosts(true)
+    try {
+      const data = await fetchCosts(token)
+      setProductCosts(data.productCosts || {})
+      setAdCostsByDate(data.adCostsByDate || {})
+    } catch (error) {
+      console.error("Error loading costs:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load cost data from server",
+        variant: "destructive",
+      })
+    } finally {
+      setLoadingCosts(false)
+    }
+  }
+
+  // Debounced save function to avoid too many API calls
+  const [saveTimeouts, setSaveTimeouts] = useState({})
+
+  const debouncedSave = (key, saveFunction, delay = 1000) => {
+    // Clear existing timeout for this key
+    if (saveTimeouts[key]) {
+      clearTimeout(saveTimeouts[key])
+    }
+
+    // Set new timeout
+    const timeoutId = setTimeout(async () => {
+      setSavingCosts(true)
+      try {
+        await saveFunction()
+      } catch (error) {
+        // Error already handled in saveFunction
+      } finally {
+        setSavingCosts(false)
+      }
+    }, delay)
+
+    setSaveTimeouts((prev) => ({
+      ...prev,
+      [key]: timeoutId,
+    }))
+  }
 
   // Extract amount from an order with various possible field names
   const extractAmount = (order) => {
@@ -247,6 +290,10 @@ export default function AdsStatsPage() {
       newData[dateKey][productName][platform] = value
       return newData
     })
+
+    // Debounced save to backend
+    const saveKey = `ad_${dateKey}_${productName}_${platform}`
+    debouncedSave(saveKey, () => updateAdCost(token, dateKey, productName, platform, value))
   }
 
   // Get cost price for a product (NOT date-dependent - always the same value)
@@ -260,6 +307,86 @@ export default function AdsStatsPage() {
       ...prev,
       [productName]: value,
     }))
+
+    // Debounced save to backend
+    const saveKey = `product_${productName}`
+    debouncedSave(saveKey, () => updateProductCost(token, productName, value))
+  }
+
+  // Handle delete all product costs
+  const handleDeleteAllProductCosts = async () => {
+    const productCount = Object.keys(productCosts).length
+    if (productCount === 0) {
+      toast({
+        title: "No Data",
+        description: "No product costs to delete",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!confirm(`Are you sure you want to delete ALL product costs? This will remove ${productCount} items.`)) {
+      return
+    }
+
+    setDeletingCosts(true)
+    try {
+      await deleteAllProductCosts(token)
+      setProductCosts({})
+      toast({
+        title: "Success",
+        description: `All product costs deleted successfully. ${productCount} items removed.`,
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete all product costs",
+        variant: "destructive",
+      })
+    } finally {
+      setDeletingCosts(false)
+    }
+  }
+
+  // Handle delete all ad costs
+  const handleDeleteAllAdCosts = async () => {
+    let adCount = 0
+    Object.keys(adCostsByDate).forEach((date) => {
+      Object.keys(adCostsByDate[date]).forEach((product) => {
+        adCount += Object.keys(adCostsByDate[date][product]).length
+      })
+    })
+
+    if (adCount === 0) {
+      toast({
+        title: "No Data",
+        description: "No ad costs to delete",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!confirm(`Are you sure you want to delete ALL ad costs? This will remove ${adCount} items.`)) {
+      return
+    }
+
+    setDeletingCosts(true)
+    try {
+      await deleteAllAdCosts(token)
+      setAdCostsByDate({})
+      toast({
+        title: "Success",
+        description: `All ad costs deleted successfully. ${adCount} items removed.`,
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete all ad costs",
+        variant: "destructive",
+      })
+    } finally {
+      setDeletingCosts(false)
+    }
   }
 
   // Extract unique agents from deliveredOrders
@@ -391,16 +518,6 @@ export default function AdsStatsPage() {
     return result
   }, [deliveredOrders, searchTerm, filters, localFilters, sortField, sortDirection, allOrdersByProduct])
 
-  // Save costs to localStorage when they change
-  useEffect(() => {
-    try {
-      localStorage.setItem("productCosts", JSON.stringify(productCosts))
-      localStorage.setItem("adCostsByDate", JSON.stringify(adCostsByDate))
-    } catch (error) {
-      console.error("Error saving costs:", error)
-    }
-  }, [productCosts, adCostsByDate])
-
   const handleCostChange = (productName, value) => {
     setCostPrice(productName, value)
   }
@@ -478,11 +595,6 @@ export default function AdsStatsPage() {
       minAmount: "",
       maxAmount: "",
     })
-
-    // Save the reset state to localStorage
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("localFilters")
-    }
   }
 
   // Update the handleResetAllFilters function to use the shared resetAllFilters
@@ -490,11 +602,6 @@ export default function AdsStatsPage() {
     resetFilters()
     resetLocalFilters()
     setSearchTerm("")
-
-    // Save the reset state to localStorage
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("searchTerm")
-    }
   }
 
   // Handle sorting
@@ -577,9 +684,10 @@ export default function AdsStatsPage() {
   const handleRefreshData = () => {
     if (token) {
       refreshSheetData(token)
+      loadCostsFromBackend() // Also refresh cost data
       toast({
         title: "Refreshing data",
-        description: "Fetching the latest data from your sheet.",
+        description: "Fetching the latest data from your sheet and costs.",
       })
     }
   }
@@ -599,10 +707,25 @@ export default function AdsStatsPage() {
     }
   }
 
-  if (loadingSheetData) {
+  // Ref for Delete Actions card
+  const bulkDeleteRef = useRef(null)
+
+  // Scroll to Delete Actions card
+  const scrollToBulkDelete = () => {
+    if (bulkDeleteRef.current) {
+      bulkDeleteRef.current.scrollIntoView({ behavior: "smooth" })
+    }
+  }
+
+  if (loadingSheetData || loadingCosts) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
+        <div className="flex flex-col items-center space-y-2">
+          <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">
+            {loadingSheetData ? "Loading sheet data..." : "Loading cost data..."}
+          </p>
+        </div>
       </div>
     )
   }
@@ -641,11 +764,20 @@ export default function AdsStatsPage() {
             Ad costs for: {getDateRangeText()}
             {filters.startDate && filters.endDate && " (cumulative)"}
           </p>
+          {savingCosts && (
+            <p className="text-sm text-orange-600 mt-1 flex items-center">
+              <LoaderCircle className="h-3 w-3 animate-spin mr-1" />
+              Saving changes...
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
           <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
             <Filter className="mr-1 h-4 w-4" />
             {showFilters ? "Hide Filters" : "Show Filters"}
+          </Button>
+          <Button variant="outline" size="sm" onClick={scrollToBulkDelete}>
+            Go to Delete Actions
           </Button>
           <Button variant="outline" size="sm" onClick={handleExport} disabled={!processedData.length}>
             <Download className="mr-1 h-4 w-4" />
@@ -653,6 +785,7 @@ export default function AdsStatsPage() {
           </Button>
         </div>
       </div>
+
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
@@ -875,10 +1008,9 @@ export default function AdsStatsPage() {
           <CardDescription>
             Analysis of delivered products only. Enter product costs to calculate profitability.
             <br />
-            {/* <span className="text-blue-600 font-medium">
-              Ad costs are stored by date and change with date filters. Cost Price is stored per product and never
-              changes with date filters.
-            </span> */}
+            <span className="text-blue-600 font-medium">
+              Cost data is automatically saved to your account. Changes are synced in real-time.
+            </span>
           </CardDescription>
           <div className="flex items-center space-x-2 mt-2">
             <div className="relative flex-1 max-w-sm">
@@ -996,7 +1128,7 @@ export default function AdsStatsPage() {
                         <span className="text-xs text-blue-600">Date-based</span>
                       </TableHead>
                       <TableHead className="hover:bg-gray-200 transition-colors duration-200 text-center min-w-[140px]">
-                        Sur sell Price
+                        Sourcing price
                         <br />
                         <span className="text-xs text-green-600">Fixed per product</span>
                       </TableHead>
@@ -1108,7 +1240,7 @@ export default function AdsStatsPage() {
                       })
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={14} className="h-24 text-center">
+                        <TableCell colSpan={13} className="h-24 text-center">
                           {processedData.length === 0 ? (
                             <div className="flex flex-col items-center justify-center">
                               <p className="text-muted-foreground">No delivered products found</p>
@@ -1200,6 +1332,44 @@ export default function AdsStatsPage() {
               )}
             </>
           )}
+        </CardContent>
+      </Card>
+            {/* Bulk Delete Actions - moved to bottom */}
+      <Card className="mt-6 border-red-200mt-5" ref={bulkDeleteRef}>
+        <CardHeader className="p-3">
+          <CardTitle className="text-lg flex items-center text-red-700">
+            <Trash2 className="h-5 w-5 mr-2" />
+            Delete Actions
+          </CardTitle>
+          <CardDescription>Delete all cost data from the database at once. These actions cannot be undone.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDeleteAllProductCosts}
+            >
+              {deletingCosts ? (
+                <LoaderCircle className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Trash2 className="h-4 w-4 mr-2" />
+              )}
+              Delete All Product Costs
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDeleteAllAdCosts}
+            >
+              {deletingCosts ? (
+                <LoaderCircle className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Trash2 className="h-4 w-4 mr-2" />
+              )}
+              Delete All Ad Costs
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
