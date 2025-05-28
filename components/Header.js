@@ -19,7 +19,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 export default function AdminHeader({ onToggleMenu }) {
@@ -66,28 +65,28 @@ export default function AdminHeader({ onToggleMenu }) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className="flex items-center gap-1">
-                  <Avatar className="h-8 w-8 font-semibold border ">
+                  <Avatar className="h-8 w-8 font-semibold border">
                     <AvatarFallback>{getUserInitials()}</AvatarFallback>
                   </Avatar>
                   <span className="hidden md:block p-1 text-sm font-medium text-gray-700 dark:text-gray-300">{user?.username || "User"}</span>
                 </div>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuContent className="w-56 font-bold" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-xs leading-none text-muted-foreground">{user?.email || "No email provided"}</p>
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Link href="/profile" className="flex items-center gap-2">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+                <DropdownMenuSeparator/>
+                <DropdownMenuItem >
+                  <Link href="/profile" className="flex hover:text-white items-center gap-2">
+                    <User className="mr-2 h-4 w-4 "/>
+                    <span className=" hover:text-white">Profile</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={logout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
+                  <LogOut className="mr-2 text-mainColor h-4 w-4" />
+                  <span className="text-mainColor">Log out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -258,11 +258,11 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
         <Card className="border-l-4 border-blue-500">
           <CardContent className="pt-6">
             <div className="flex items-center">
-              <Users className="h-8 w-8 text-blue-600" />
+              <Users className="h-9 w-9 text-blue-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Total Users</p>
                 <p className="text-2xl font-bold">{users.length}</p>
@@ -273,7 +273,7 @@ export default function AdminDashboard() {
         <Card className="border-l-4 border-red-500">
           <CardContent className="pt-6">
             <div className="flex items-center">
-              <Shield className="h-8 w-8 text-red-600" />
+              <Shield className="h-9 w-9 text-red-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Admins</p>
                 <p className="text-2xl font-bold">{users.filter((u) => u.role === "admin").length}</p>
@@ -284,7 +284,7 @@ export default function AdminDashboard() {
         <Card className="border-l-4 border-green-500">
           <CardContent className="pt-6">
             <div className="flex items-center">
-              <User className="h-8 w-8 text-green-600" />
+              <User className="h-9 w-9 text-green-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Sub-Admins</p>
                 <p className="text-2xl font-bold">{users.filter((u) => u.role === "sub-admin").length}</p>
@@ -306,7 +306,7 @@ export default function AdminDashboard() {
                 placeholder="Search users..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
+                className="pl-8 my-1 border-b-2 border-b-mainColor"
               />
             </div>
           </div>
@@ -314,13 +314,13 @@ export default function AdminDashboard() {
         <CardContent>
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <LoaderCircle className="h-8 w-8 animate-spin" />
+              <LoaderCircle className="h-9 w-9 animate-spin" />
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="bg-gray-100 rounded-md dark:bg-zinc-900 ">
                     <TableHead>User</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Sheet URL</TableHead>
@@ -333,8 +333,8 @@ export default function AdminDashboard() {
                     filteredUsers.map((user) => (
                       <TableRow key={user._id}>
                         <TableCell>
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="h-8 w-8 bg-primary">
+                          <div className="flex items-center space-x-2">
+                            <Avatar className="h-9 w-9 bg-primary border">
                               <AvatarFallback>
                                 {user.username.charAt(0).toUpperCase()}
                               </AvatarFallback>
@@ -351,7 +351,7 @@ export default function AdminDashboard() {
                         <TableCell>
                           <div className="max-w-[200px] truncate">
                             {user.sheetUrl ? (
-                              <span className="text-sm text-blue-600">Has sheet URL</span>
+                              <span className="text-sm text-green-600">Has sheet URL</span>
                             ) : (
                               <span className="text-sm text-muted-foreground">No sheet URL</span>
                             )}
@@ -359,22 +359,26 @@ export default function AdminDashboard() {
                         </TableCell>
                         <TableCell>{formatDate(user.createdAt)}</TableCell>
                         <TableCell>
-                          <div className="flex space-x-2">
+                          <div className="flex space-x-1">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleViewUser(user._id)}
                               disabled={loadingUserData}
+                              className=" hover:text-mainColor"
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button variant="outline" size="sm" onClick={() => handleEditUser(user)}>
+                            <Button variant="outline" size="sm" className=" hover:text-mainColor"
+                              onClick={() => handleEditUser(user)}>
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleDeleteUser(user._id, user.username)}
+                              className=" hover:text-mainColor"
+
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -402,7 +406,7 @@ export default function AdminDashboard() {
           <DialogHeader>
             <DialogTitle>Create New User</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
               <label className="text-sm font-medium">Username</label>
               <Input
@@ -539,8 +543,8 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex justify-center mb-2">
-                      <Avatar className="h-20 w-20 bg-primary">
-                        <AvatarFallback className="text-2xl text-primary-foreground">
+                      <Avatar className="h-16 w-16 bg-primary">
+                        <AvatarFallback className="text-2xl">
                           {selectedUser.username.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
@@ -634,7 +638,7 @@ export default function AdminDashboard() {
                       <div className="text-center py-8">
                         {selectedUser.sheetUrl ? (
                           <div className="flex flex-col items-center">
-                            <LoaderCircle className="h-8 w-8 animate-spin mb-2" />
+                            <LoaderCircle className="h-9 w-9 animate-spin mb-2" />
                             <p className="text-muted-foreground">Loading sheet data...</p>
                           </div>
                         ) : (

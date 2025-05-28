@@ -831,7 +831,7 @@ export default function Page() {
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className={`flex items-center px-4 sm:px-7 ${
+                className={`flex items-center px-3 sm:px-4 md:px-5 lg:px-6 ${
                   activeTab === tab.value ? "border-b-2 border-b-mainColor" : ""
                 }`}
               >
