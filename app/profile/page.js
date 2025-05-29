@@ -61,7 +61,7 @@ export default function ProfilePage() {
       case "sub-admin":
         return "bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400"
       default:
-        return "bg-gray-100 text-gray-800 hover:bg-gray-100 dark:bg-gray-900/30 dark:text-gray-400"
+        return "bg-zinc-100 text-zinc-800 hover:bg-zinc-100 dark:bg-zinc-900/30 dark:text-zinc-400"
     }
   }
 

@@ -677,8 +677,8 @@ export default function ProductStatsPage() {
             {/* Table Body */}
             <tbody>
               {/* Total Row */}
-              <tr className="font-bold hover:bg-gray-100 dark:hover:bg-gray-800">
-                <td className="p-2 bg-gray-100 dark:bg-gray-800">TOTAL</td>
+              <tr className="font-bold hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                <td className="p-2 bg-zinc-100 dark:bg-zinc-800">TOTAL</td>
                 <td className="p-2 text-center bg-orange-100 dark:bg-orange-950">{totals.totalLeads}</td>
                 {!isMobile ? (
                   <>
@@ -730,10 +730,10 @@ export default function ProductStatsPage() {
                 currentItems.map((item, index) => (
                   <tr
                     key={index}
-                    className={`${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : ""} hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
+                    className={`${index % 2 === 0 ? "bg-zinc-50 dark:bg-zinc-900" : ""} hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors`}
                   >
                     <td
-                      className={`p-2 font-medium ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "bg-white dark:bg-gray-950"}`}
+                      className={`p-2 font-medium ${index % 2 === 0 ? "bg-zinc-50 dark:bg-zinc-900" : "bg-white dark:bg-zinc-950"}`}
                     >
                       {item.product}
                     </td>

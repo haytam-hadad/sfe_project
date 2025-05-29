@@ -35,12 +35,12 @@ export default function AdminHeader({ onToggleMenu }) {
   }
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-gray-800 shadow-sm">
+    <header className="fixed left-0 right-0 top-0 z-50 bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 shadow-sm">
       <div className="max-w-full mx-auto px-3 sm:px-5">
         <div className="flex items-center justify-between py-3">
           <Link href="/" className="flex items-center gap-1">
             <Image src="/images/logo.svg" alt="Logo" className="w-8 h-8 sm:w-9 sm:h-9" width={40} height={40} />
-            <span className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100">Ecomark</span>
+            <span className="text-xl sm:text-2xl font-bold text-zinc-800 dark:text-zinc-100">Ecomark</span>
           </Link>
 
           <div className="flex items-center gap-2">
@@ -60,7 +60,7 @@ export default function AdminHeader({ onToggleMenu }) {
               </span>
             </div>
 
-            <DropdownMenuSeparator className="h-5 m-0.5 w-px bg-gray-300 dark:bg-gray-600" />
+            <DropdownMenuSeparator className="h-5 m-0.5 w-px bg-zinc-300 dark:bg-zinc-600" />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -68,7 +68,7 @@ export default function AdminHeader({ onToggleMenu }) {
                   <Avatar className="h-8 w-8 font-semibold border">
                     <AvatarFallback>{getUserInitials()}</AvatarFallback>
                   </Avatar>
-                  <span className="hidden md:block p-1 text-sm font-medium text-gray-700 dark:text-gray-300">{user?.username || "User"}</span>
+                  <span className="hidden md:block p-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">{user?.username || "User"}</span>
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56 font-bold" align="end" forceMount>
@@ -91,11 +91,11 @@ export default function AdminHeader({ onToggleMenu }) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <DropdownMenuSeparator className=" md:hidden flex m-0.5 h-5 w-px bg-gray-300 dark:bg-gray-600" />
+            <DropdownMenuSeparator className=" md:hidden flex m-0.5 h-5 w-px bg-zinc-300 dark:bg-zinc-600" />
 
             <button
               onClick={onToggleMenu}
-              className="md:hidden flex items-center justify-center rounded-full border border-gray-300 dark:border-gray-600 p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="md:hidden flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-600 p-2 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
               aria-label="Toggle menu"
             >
               <AlignJustify className="w-5 h-5" />

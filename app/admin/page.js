@@ -382,7 +382,7 @@ export default function AdminDashboard() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-gray-100 rounded-md dark:bg-zinc-900 ">
+                  <TableRow className="bg-zinc-100 rounded-md dark:bg-zinc-900 ">
                     <TableHead className="text-center">User</TableHead>
                     <TableHead className="text-center">Role</TableHead>
                     <TableHead className="text-center">Sheet URL</TableHead>
@@ -638,7 +638,7 @@ export default function AdminDashboard() {
                     ) : (
                       <div className="mt-4">
                         <label className="text-sm font-medium text-muted-foreground">Sheet URL</label>
-                        <p className="text-sm text-gray-500">Not set</p>
+                        <p className="text-sm text-zinc-500">Not set</p>
                       </div>
                     )}
                   </CardContent>

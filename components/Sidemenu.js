@@ -89,7 +89,7 @@ const AdminSideMenu = ({ onClose }) => {
 
   return (
     <motion.div
-      className="bg-zinc-950 border-r h-full fixed top-0 md:pt-16 overflow-y-auto left-0 w-[250px] dark:bg-white dark:border-gray-800"
+      className="bg-zinc-950 border-r h-full fixed top-0 md:pt-16 overflow-y-auto left-0 w-[250px] dark:bg-white dark:border-zinc-800"
       initial={{ x: -260 }}
       animate={{ x: 0 }}
       exit={{ x: -260 }}
@@ -112,7 +112,7 @@ const AdminSideMenu = ({ onClose }) => {
                 <button
                   className={`flex border-2 items-center mt-1 w-full p-3 rounded-full transition-all duration-300 ${activePath === subLink.href
                       ? "bg-red-600 text-white font-medium dark:bg-red-600 dark:text-white"
-                      : "hover:bg-gray-100 hover:text-gray-900 text-white dark:hover:bg-gray-900 dark:hover:text-white dark:text-black"
+                      : "hover:bg-zinc-100 hover:text-zinc-900 text-white dark:hover:bg-zinc-900 dark:hover:text-white dark:text-black"
                     }`}
                 >
                   <subLink.icon
@@ -132,7 +132,7 @@ const AdminSideMenu = ({ onClose }) => {
             <button
               className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${activePath === link.href
                   ? "bg-mainColor text-white font-medium dark:bg-mainColor dark:text-white"
-                  : "hover:bg-gray-100 hover:text-gray-900 text-white dark:hover:bg-gray-900 dark:hover:text-white dark:text-black"
+                  : "hover:bg-zinc-100 hover:text-zinc-900 text-white dark:hover:bg-zinc-900 dark:hover:text-white dark:text-black"
                 }`}
             >
               <link.icon size={20} className={`mr-3 ${activePath === link.href ? "text-white" : ""}`} />
@@ -141,7 +141,7 @@ const AdminSideMenu = ({ onClose }) => {
           </Link>
         ))}
 
-        <div className="border-t border-gray-700 mx-3 dark:border-gray-600" />
+        <div className="border-t border-zinc-700 mx-3 dark:border-zinc-600" />
 
         {/* Statistics Section - Available to all users */}
         <div>
@@ -149,7 +149,7 @@ const AdminSideMenu = ({ onClose }) => {
             onClick={() => setStatisticsOpen((prev) => !prev)}
             className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${statisticsLinks.some((link) => activePath === link.href)
                 ? "bg-black text-white font-medium dark:bg-white dark:text-black"
-                : "hover:bg-gray-100 hover:text-gray-900 text-white dark:hover:bg-gray-900 dark:hover:text-white dark:text-black"
+                : "hover:bg-zinc-100 hover:text-zinc-900 text-white dark:hover:bg-zinc-900 dark:hover:text-white dark:text-black"
               }`}
           >
             <ChartBar size={20} className="mr-3" />
@@ -174,7 +174,7 @@ const AdminSideMenu = ({ onClose }) => {
                     <button
                       className={`flex items-center mt-1 w-full p-3 rounded-full transition-all duration-300 ${activePath === subLink.href
                           ? "bg-mainColor text-white font-medium dark:bg-mainColor dark:text-white"
-                          : "hover:bg-gray-100 hover:text-gray-900 text-white dark:hover:bg-gray-900 dark:hover:text-white dark:text-black"
+                          : "hover:bg-zinc-100 hover:text-zinc-900 text-white dark:hover:bg-zinc-900 dark:hover:text-white dark:text-black"
                         }`}
                     >
                       <subLink.icon size={20} className={`mr-3 ${activePath === subLink.href ? "text-white" : ""}`} />
@@ -187,7 +187,7 @@ const AdminSideMenu = ({ onClose }) => {
           </AnimatePresence>
         </div>
 
-        <div className="border-t border-gray-700 mx-3 dark:border-gray-600" />
+        <div className="border-t border-zinc-700 mx-3 dark:border-zinc-600" />
 
         {/* Settings Section - Available to all users */}
         <div>
@@ -195,7 +195,7 @@ const AdminSideMenu = ({ onClose }) => {
             onClick={() => setSettingsOpen((prev) => !prev)}
             className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${activePath.startsWith("/settings") || settingsLinks.some((link) => activePath === link.href)
                 ? "bg-black text-white font-medium dark:bg-white dark:text-black"
-                : "hover:bg-gray-100 hover:text-gray-900 text-white dark:hover:bg-gray-900 dark:hover:text-white dark:text-black"
+                : "hover:bg-zinc-100 hover:text-zinc-900 text-white dark:hover:bg-zinc-900 dark:hover:text-white dark:text-black"
               }`}
           >
             <Settings size={20} className="mr-3" />
@@ -216,7 +216,7 @@ const AdminSideMenu = ({ onClose }) => {
                     <button
                       className={`flex items-center mt-1 w-full p-3 rounded-full transition-all duration-300 ${activePath === subLink.href
                           ? "bg-mainColor text-white font-medium dark:bg-mainColor dark:text-white"
-                          : "hover:bg-gray-100 hover:text-gray-900 text-white dark:hover:bg-gray-900 dark:hover:text-white dark:text-black"
+                          : "hover:bg-zinc-100 hover:text-zinc-900 text-white dark:hover:bg-zinc-900 dark:hover:text-white dark:text-black"
                         }`}
                     >
                       <subLink.icon size={20} className={`mr-3 ${activePath === subLink.href ? "text-white" : ""}`} />

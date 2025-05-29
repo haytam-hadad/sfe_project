@@ -732,7 +732,7 @@ export default function Page() {
               {/* Agent Filter */}
               <div>
                 <label className="text-sm font-medium mb-1 flex items-center">
-                  <FilterIcon className="h-4 w-4 mr-1 text-gray-600" /> Agent
+                  <FilterIcon className="h-4 w-4 mr-1 text-zinc-600" /> Agent
                 </label>
                 <Select value={filters.agent} onValueChange={(v) => updateFilter("agent", v === "all" ? "" : v)}>
                   <SelectTrigger>
