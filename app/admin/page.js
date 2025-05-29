@@ -16,6 +16,8 @@ import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 import { format } from "date-fns"
 import { fetchAllUsers, fetchUser, updateUser, deleteUser, fetchUserSheetData } from "@/lib/api-admin"
+import Link from "next/link"
+
 
 export default function AdminDashboard() {
   const { toast } = useToast()
@@ -37,6 +39,8 @@ export default function AdminDashboard() {
     role: "sub-admin",
     sheetUrl: "",
   })
+  const [roleFilter, setRoleFilter] = useState("all"); // default to "all"
+  const [hasSheetFilter, setHasSheetFilter] = useState("all"); // "all" | "has" | "no"
 
   // Check if current user is admin
   const isAdmin = user?.role === "admin"
@@ -191,9 +195,15 @@ export default function AdminDashboard() {
 
   const filteredUsers = users.filter(
     (user) =>
-      user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      (user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (roleFilter === "all" ? true : user.role === roleFilter) &&
+      (hasSheetFilter === "all"
+        ? true
+        : hasSheetFilter === "has"
+        ? !!user.sheetUrl
+        : !user.sheetUrl)
+  );
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A"
@@ -299,7 +309,7 @@ export default function AdminDashboard() {
         <CardHeader>
           <CardTitle>Users Management</CardTitle>
           <CardDescription>View and manage all users in the system</CardDescription>
-          <div className="flex items-center space-x-2 mt-4">
+          <div className="flex flex-wrap items-center space-x-2 mt-4 gap-2">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -308,6 +318,58 @@ export default function AdminDashboard() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-8 my-1 border-b-2 border-b-mainColor"
               />
+            </div>
+            {/* Role Filter */}
+            <Select
+              value={roleFilter}
+              onValueChange={setRoleFilter}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="All Roles" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="sub-admin">Sub-Admin</SelectItem>
+              </SelectContent>
+            </Select>
+            {/* Has Sheet Filter */}
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="sheet-all"
+                  name="hasSheetFilter"
+                  value="all"
+                  checked={hasSheetFilter === "all"}
+                  onChange={() => setHasSheetFilter("all")}
+                />
+                <label htmlFor="sheet-all" className="text-sm text-muted-foreground select-none">
+                  All
+                </label>
+                <input
+                  type="radio"
+                  id="sheet-has"
+                  name="hasSheetFilter"
+                  value="has"
+                  checked={hasSheetFilter === "has"}
+                  onChange={() => setHasSheetFilter("has")}
+                />
+                <label htmlFor="sheet-has" className="text-sm text-muted-foreground select-none">
+                  Has Sheet
+                </label>
+                <input
+                  type="radio"
+                  id="sheet-no"
+                  name="hasSheetFilter"
+                  value="no"
+                  checked={hasSheetFilter === "no"}
+                  onChange={() => setHasSheetFilter("no")}
+                />
+                <label htmlFor="sheet-no" className="text-sm text-muted-foreground select-none">
+                  No Sheet
+                </label>
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -321,11 +383,11 @@ export default function AdminDashboard() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-100 rounded-md dark:bg-zinc-900 ">
-                    <TableHead>User</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Sheet URL</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead className="text-center">User</TableHead>
+                    <TableHead className="text-center">Role</TableHead>
+                    <TableHead className="text-center">Sheet URL</TableHead>
+                    <TableHead className="text-center">Created</TableHead>
+                    <TableHead className="text-center">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -346,7 +408,7 @@ export default function AdminDashboard() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={getRoleBadgeVariant(user.role)}>{user.role}</Badge>
+                          <Badge variant={getRoleBadgeVariant(user.role)} className={user.role === "admin" ? "bg-mainColor" : ""}>{user.role}</Badge>
                         </TableCell>
                         <TableCell>
                           <div className="max-w-[200px] truncate">
@@ -365,20 +427,26 @@ export default function AdminDashboard() {
                               size="sm"
                               onClick={() => handleViewUser(user._id)}
                               disabled={loadingUserData}
-                              className=" hover:text-mainColor"
+                              className="hover:text-white"
+                              title="View User"
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button variant="outline" size="sm" className=" hover:text-mainColor"
-                              onClick={() => handleEditUser(user)}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditUser(user)}
+                              className="hover:text-white"
+                              title="Edit User"
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleDeleteUser(user._id, user.username)}
-                              className=" hover:text-mainColor"
-
+                              className="hover:text-white"
+                              title="Delete User"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -541,36 +609,36 @@ export default function AdminDashboard() {
                       User Information
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-center mb-2">
-                      <Avatar className="h-16 w-16 bg-primary">
-                        <AvatarFallback className="text-2xl">
-                          {selectedUser.username.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4 p-4">
                       <div>
-                        <label className="text-sm font-medium text-muted-foreground">Username</label>
+                        <label className="text-md font-medium text-muted-foreground">Username</label>
                         <p className="text-sm">{selectedUser.username}</p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-muted-foreground">Email</label>
+                        <label className="text-md font-medium text-muted-foreground">Email</label>
                         <p className="text-sm">{selectedUser.email}</p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-muted-foreground">Role</label>
-                        <Badge variant={getRoleBadgeVariant(selectedUser.role)}>{selectedUser.role}</Badge>
+                        <label className="text-md font-medium text-muted-foreground">Role</label>
+                          <Badge variant={getRoleBadgeVariant(user.role)} className={user.role === "admin" ? "bg-mainColor block w-fit" : " w-fit block"}>{user.role}</Badge>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-muted-foreground">Created</label>
+                        <label className="text-md font-medium text-muted-foreground">Created</label>
                         <p className="text-sm">{formatDate(selectedUser.createdAt)}</p>
                       </div>
                     </div>
-                    {selectedUser.sheetUrl && (
-                      <div>
+                    {selectedUser.sheetUrl ? (
+                      <div className="mt-4">
+                        <label className="text-md font-medium text-muted-foreground">Sheet URL</label>
+                        <Link href={selectedUser.sheetUrl} target="_blank" rel="noopener noreferrer" className="text-sm block text-mainColor break-all underline">
+                          {selectedUser.sheetUrl}
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="mt-4">
                         <label className="text-sm font-medium text-muted-foreground">Sheet URL</label>
-                        <p className="text-sm break-all">{selectedUser.sheetUrl}</p>
+                        <p className="text-sm text-gray-500">Not set</p>
                       </div>
                     )}
                   </CardContent>
@@ -588,7 +656,7 @@ export default function AdminDashboard() {
                   <CardContent>
                     {userSheetData ? (
                       <div className="space-y-4">
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-3 p-1 border-b-2 border-mainColor gap-4">
                           <div>
                             <label className="text-sm font-medium text-muted-foreground">Total Rows</label>
                             <p className="text-2xl font-bold">{userSheetData.metadata?.totalRows || 0}</p>
