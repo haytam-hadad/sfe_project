@@ -1155,8 +1155,9 @@ export default function AdsStatsPage() {
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                   type="number"
+                                  min={0}
                                   value={fbCost}
-                                  onChange={(e) => handleAdCostChange("fb", product.productName, e.target.value)}
+                                  onChange={(e) => handleAdCostChange("fb", product.productName, Math.max(0, e.target.value))}
                                   placeholder="0.00"
                                   className="pl-8 w-full border border-b border-b-blue-500 text-center"
                                 />
@@ -1167,8 +1168,9 @@ export default function AdsStatsPage() {
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                   type="number"
+                                  min={0}
                                   value={ttCost}
-                                  onChange={(e) => handleAdCostChange("tt", product.productName, e.target.value)}
+                                  onChange={(e) => handleAdCostChange("tt", product.productName, Math.max(0, e.target.value))}
                                   placeholder="0.00"
                                   className="pl-8 w-full border border-b border-b-blue-500 text-center"
                                 />
@@ -1179,8 +1181,9 @@ export default function AdsStatsPage() {
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                   type="number"
+                                  min={0}
                                   value={googleCost}
-                                  onChange={(e) => handleAdCostChange("google", product.productName, e.target.value)}
+                                  onChange={(e) => handleAdCostChange("google", product.productName, Math.max(0, e.target.value))}
                                   placeholder="0.00"
                                   className="pl-8 w-full border border-b border-b-blue-500 text-center"
                                 />
@@ -1191,8 +1194,9 @@ export default function AdsStatsPage() {
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                   type="number"
+                                  min={0}
                                   value={xCost}
-                                  onChange={(e) => handleAdCostChange("x", product.productName, e.target.value)}
+                                  onChange={(e) => handleAdCostChange("x", product.productName, Math.max(0, e.target.value))}
                                   placeholder="0.00"
                                   className="pl-8 w-full border border-b border-b-blue-500 text-center"
                                 />
@@ -1203,8 +1207,9 @@ export default function AdsStatsPage() {
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                   type="number"
+                                  min={0}
                                   value={snapCost}
-                                  onChange={(e) => handleAdCostChange("snap", product.productName, e.target.value)}
+                                  onChange={(e) => handleAdCostChange("snap", product.productName, Math.max(0, e.target.value))}
                                   placeholder="0.00"
                                   className="pl-8 w-full border border-b border-b-blue-500 text-center"
                                 />
@@ -1215,8 +1220,9 @@ export default function AdsStatsPage() {
                                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                   type="number"
+                                  min={0}
                                   value={costPrice}
-                                  onChange={(e) => handleCostChange(product.productName, e.target.value)}
+                                  onChange={(e) => handleCostChange(product.productName, Math.max(0, e.target.value))}
                                   placeholder="0.00"
                                   className="pl-8 w-full border border-b border-b-green-500 text-center"
                                 />
@@ -1330,7 +1336,7 @@ export default function AdsStatsPage() {
             <Trash2 className="h-5 w-5 mr-2" />
             Delete Actions
           </CardTitle>
-          <CardDescription>Delete all cost data from the database at once. These actions cannot be undone.</CardDescription>
+          <CardDescription>Delete all cost data from your account at once. These actions cannot be undone.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
