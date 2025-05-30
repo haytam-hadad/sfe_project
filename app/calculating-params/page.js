@@ -593,7 +593,7 @@ export default function SettingsPage() {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="Search countries..."
-                      className="pl-10"
+                      className="pl-10 border-b-2 border-b-mainColor"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -623,6 +623,7 @@ export default function SettingsPage() {
                               }
                               onChange={(e) => handleCountryRateChange(country, e.target.value)}
                               placeholder="Enter rate"
+                              className="w-full border-b border-b-mainColor"
                             />
                           </div>
                           <div className="col-span-2">

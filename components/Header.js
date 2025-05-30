@@ -35,7 +35,7 @@ export default function AdminHeader({ onToggleMenu }) {
   }
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 shadow-md">
+    <header className="fixed left-0 right-0 top-0 z-50 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 shadow-sm">
       <div className="max-w-full mx-auto px-3 sm:px-5">
         <div className="flex items-center justify-between py-3">
          {/* Logo Section */}
