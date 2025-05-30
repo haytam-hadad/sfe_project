@@ -13,7 +13,6 @@ import {
   PenIcon as UserPen,
   BarChart3,
   Shield,
-  Users,
 } from "lucide-react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
@@ -78,7 +77,6 @@ const AdminSideMenu = ({ onClose }) => {
   const activePath = usePathname()
   const [statisticsOpen, setStatisticsOpen] = useState(true)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [adminOpen, setAdminOpen] = useState(true)
   const { user } = useAuth()
 
   const isAdmin = user?.role === "admin"
@@ -95,10 +93,9 @@ const AdminSideMenu = ({ onClose }) => {
       exit={{ x: -260 }}
       transition={{ duration: 0.2, ease: "easeInOut" }}
       style={{ bottom: 0 }}
-    > 
+    >
       <div className="flex flex-col p-3 space-y-2">
-
-                {/* Admin Section - Only visible to admin users */}
+        {/* Admin Section - Only visible to admin users - Moved to top */}
         {isAdmin && (
           <motion.div
             className="mt-1 space-y-2"
@@ -110,15 +107,13 @@ const AdminSideMenu = ({ onClose }) => {
             {adminLinks.map((subLink) => (
               <Link key={subLink.href} href={subLink.href} onClick={handleLinkClick}>
                 <button
-                  className={`flex border-2 items-center mt-1 w-full p-3 rounded-full transition-all duration-300 ${activePath === subLink.href
-                      ? "bg-red-600 text-white font-medium dark:bg-red-600 dark:text-white"
-                      : "hover:bg-zinc-100 hover:text-zinc-900 text-white dark:hover:bg-zinc-900 dark:hover:text-white dark:text-black"
-                    }`}
+                  className={`flex border-2 items-center mt-1 w-full p-3 rounded-full transition-all duration-300 ${
+                    activePath === subLink.href
+                      ? "bg-red-600 border-red-500 text-white font-medium dark:bg-red-600 dark:border-red-500 dark:text-white"
+                      : "border-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 hover:border-zinc-400 text-white dark:hover:bg-zinc-900 dark:hover:text-white dark:text-black dark:border-zinc-700"
+                  }`}
                 >
-                  <subLink.icon
-                    size={20}
-                    className={`mr-3 ${activePath === subLink.href ? "text-white" : ""}`}
-                  />
+                  <subLink.icon size={20} className={`mr-3 ${activePath === subLink.href ? "text-white" : ""}`} />
                   <span className="text-sm font-medium">{subLink.text}</span>
                 </button>
               </Link>
@@ -126,14 +121,18 @@ const AdminSideMenu = ({ onClose }) => {
           </motion.div>
         )}
 
+        {/* Add separator after admin section if admin */}
+        {isAdmin && <div className="border-t border-zinc-700 mx-3 dark:border-zinc-600" />}
+
         {/* Regular Links - Available to all users */}
         {links.map((link) => (
           <Link key={link.href} href={link.href} onClick={handleLinkClick}>
             <button
-              className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${activePath === link.href
+              className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${
+                activePath === link.href
                   ? "bg-mainColor text-white font-medium dark:bg-mainColor dark:text-white"
                   : "hover:bg-zinc-100 hover:text-zinc-900 text-white dark:hover:bg-zinc-900 dark:hover:text-white dark:text-black"
-                }`}
+              }`}
             >
               <link.icon size={20} className={`mr-3 ${activePath === link.href ? "text-white" : ""}`} />
               <span className="text-base font-medium">{link.text}</span>
@@ -147,10 +146,11 @@ const AdminSideMenu = ({ onClose }) => {
         <div>
           <button
             onClick={() => setStatisticsOpen((prev) => !prev)}
-            className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${statisticsLinks.some((link) => activePath === link.href)
+            className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${
+              statisticsLinks.some((link) => activePath === link.href)
                 ? "bg-black text-white font-medium dark:bg-white dark:text-black"
                 : "hover:bg-zinc-100 hover:text-zinc-900 text-white dark:hover:bg-zinc-900 dark:hover:text-white dark:text-black"
-              }`}
+            }`}
           >
             <ChartBar size={20} className="mr-3" />
             <span className="text-base font-medium">Statistics</span>
@@ -172,10 +172,11 @@ const AdminSideMenu = ({ onClose }) => {
                 {statisticsLinks.map((subLink) => (
                   <Link key={subLink.href} href={subLink.href} onClick={handleLinkClick}>
                     <button
-                      className={`flex items-center mt-1 w-full p-3 rounded-full transition-all duration-300 ${activePath === subLink.href
+                      className={`flex items-center mt-1 w-full p-3 rounded-full transition-all duration-300 ${
+                        activePath === subLink.href
                           ? "bg-mainColor text-white font-medium dark:bg-mainColor dark:text-white"
                           : "hover:bg-zinc-100 hover:text-zinc-900 text-white dark:hover:bg-zinc-900 dark:hover:text-white dark:text-black"
-                        }`}
+                      }`}
                     >
                       <subLink.icon size={20} className={`mr-3 ${activePath === subLink.href ? "text-white" : ""}`} />
                       <span className="text-sm font-medium">{subLink.text}</span>
@@ -193,10 +194,11 @@ const AdminSideMenu = ({ onClose }) => {
         <div>
           <button
             onClick={() => setSettingsOpen((prev) => !prev)}
-            className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${activePath.startsWith("/settings") || settingsLinks.some((link) => activePath === link.href)
+            className={`flex items-center w-full p-3 rounded-full transition-all duration-300 ${
+              activePath.startsWith("/settings") || settingsLinks.some((link) => activePath === link.href)
                 ? "bg-black text-white font-medium dark:bg-white dark:text-black"
                 : "hover:bg-zinc-100 hover:text-zinc-900 text-white dark:hover:bg-zinc-900 dark:hover:text-white dark:text-black"
-              }`}
+            }`}
           >
             <Settings size={20} className="mr-3" />
             <span className="text-base font-medium">Settings</span>
@@ -214,10 +216,11 @@ const AdminSideMenu = ({ onClose }) => {
                 {settingsLinks.map((subLink) => (
                   <Link key={subLink.href} href={subLink.href} onClick={handleLinkClick}>
                     <button
-                      className={`flex items-center mt-1 w-full p-3 rounded-full transition-all duration-300 ${activePath === subLink.href
+                      className={`flex items-center mt-1 w-full p-3 rounded-full transition-all duration-300 ${
+                        activePath === subLink.href
                           ? "bg-mainColor text-white font-medium dark:bg-mainColor dark:text-white"
                           : "hover:bg-zinc-100 hover:text-zinc-900 text-white dark:hover:bg-zinc-900 dark:hover:text-white dark:text-black"
-                        }`}
+                      }`}
                     >
                       <subLink.icon size={20} className={`mr-3 ${activePath === subLink.href ? "text-white" : ""}`} />
                       <span className="text-sm font-medium">{subLink.text}</span>
@@ -228,7 +231,6 @@ const AdminSideMenu = ({ onClose }) => {
             )}
           </AnimatePresence>
         </div>
-
       </div>
     </motion.div>
   )

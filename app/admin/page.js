@@ -596,9 +596,19 @@ export default function AdminDashboard() {
           </DialogHeader>
           {selectedUser && (
             <Tabs defaultValue="info" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="info">Info</TabsTrigger>
-                <TabsTrigger value="sheet">Sheet Data</TabsTrigger>
+              <TabsList className="grid m-auto w-full sm:w-[90%] grid-cols-2">
+                <TabsTrigger
+                  value="info"
+                  className="rounded-t-md border-b-2 border-transparent data-[state=active]:border-mainColor data-[state=active]:bg-zinc-50 dark:data-[state=active]:bg-zinc-900 transition"
+                >
+                  Info
+                </TabsTrigger>
+                <TabsTrigger
+                  value="sheet"
+                  className="rounded-t-md border-b-2 border-transparent data-[state=active]:border-mainColor data-[state=active]:bg-zinc-50 dark:data-[state=active]:bg-zinc-900 transition"
+                >
+                  Sheet Data
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="info" className="space-y-4">

@@ -730,7 +730,7 @@ export default function ProductStatsPage() {
                 currentItems.map((item, index) => (
                   <tr
                     key={index}
-                    className={`${index % 2 === 0 ? "bg-zinc-50 dark:bg-zinc-900" : ""} hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors`}
+                    className={`${index % 2 === 0 ? "bg-zinc-50 dark:bg-zinc-900" : ""} hover:bg-zinc-100 dark:hover:bg-zinc-800 `}
                   >
                     <td
                       className={`p-2 font-medium ${index % 2 === 0 ? "bg-zinc-50 dark:bg-zinc-900" : "bg-white dark:bg-zinc-950"}`}

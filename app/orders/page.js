@@ -997,7 +997,7 @@ export default function OrdersDashboard() {
               paginatedOrders.map((order, index) => (
                 <TableRow
                   key={`${order["Order ID"]}-${index}`}
-                  className="hover:bg-muted/50 cursor-pointer transition-colors"
+                  className="hover:bg-muted/50 cursor-pointer "
                   onClick={() => viewOrderDetails(order)}
                 >
                   {visibleColumns["Order date"] && (

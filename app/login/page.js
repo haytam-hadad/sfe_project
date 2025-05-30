@@ -88,7 +88,7 @@ export default function LoginPage() {
                 alt="Ecomark Logo"
                 width={56}
                 height={56}
-                className="transition-transform hover:scale-105 drop-shadow-md"
+                className=" hover:scale-105 drop-shadow-md"
                 priority
               />
             </Link>

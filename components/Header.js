@@ -35,15 +35,27 @@ export default function AdminHeader({ onToggleMenu }) {
   }
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 shadow-sm">
+    <header className="fixed left-0 right-0 top-0 z-50 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 shadow-md">
       <div className="max-w-full mx-auto px-3 sm:px-5">
         <div className="flex items-center justify-between py-3">
-          <Link href="/" className="flex items-center gap-1">
-            <Image src="/images/logo.svg" alt="Logo" className="w-8 h-8 sm:w-9 sm:h-9" width={40} height={40} />
-            <span className="text-xl sm:text-2xl font-bold text-zinc-800 dark:text-zinc-100">Ecomark</span>
+         {/* Logo Section */}
+          <Link href="/" className="flex items-center gap-2 group">
+              <Image
+                src="/images/logo.svg"
+                alt="Logo"
+                className="w-10 h-10"
+                width={24}
+                height={24}
+              />
+            <div className="flex flex-col">
+              <span className="text-xl font-bold">
+                Ecomark
+              </span>
+              <span className="text-xs text-zinc-500 dark:text-zinc-400 hidden sm:block">Analytics Dashboard</span>
+            </div>
           </Link>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <div title="Toggle Dark Mode" className="flex items-center max-md:scale-90 sm:gap-1">
               <Switch
                 id="dark-mode"
@@ -74,7 +86,7 @@ export default function AdminHeader({ onToggleMenu }) {
               <DropdownMenuContent className="w-56 font-bold" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-xs leading-none text-muted-foreground">{user?.email || "No email provided"}</p>
+                    <p className="text-xs p-1 leading-none text-muted-foreground">{user?.email || "No email provided"}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator/>

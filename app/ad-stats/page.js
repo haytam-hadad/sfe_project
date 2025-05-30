@@ -1058,7 +1058,7 @@ export default function AdsStatsPage() {
                   <TableHeader className="sticky top-0 z-30 bg-zinc-100 dark:bg-zinc-900">
                     <TableRow className="cursor-pointer text-center">
                       <TableHead
-                        className="cursor-pointer hover:bg-zinc-200 transition-colors duration-200 text-center min-w-[110px] border-r border-zinc-300 dark:border-zinc-800 sticky left-0 z-20 bg-zinc-100 dark:bg-zinc-900"
+                        className="cursor-pointer hover:bg-zinc-200  duration-200 text-center min-w-[110px] border-r border-zinc-300 dark:border-zinc-800 sticky left-0 z-20 bg-zinc-100 dark:bg-zinc-900"
                         onClick={() => handleSort("productName")}
                       >
                         Product Name
@@ -1067,7 +1067,7 @@ export default function AdsStatsPage() {
                         )}
                       </TableHead>
                       <TableHead
-                        className="cursor-pointer hover:bg-zinc-200 transition-colors duration-200 text-center min-w-[100px]"
+                        className="cursor-pointer hover:bg-zinc-200  duration-200 text-center min-w-[100px]"
                         onClick={() => handleSort("totalOrders")}
                       >
                         Orders
@@ -1076,7 +1076,7 @@ export default function AdsStatsPage() {
                         )}
                       </TableHead>
                       <TableHead
-                        className="cursor-pointer hover:bg-zinc-200 transition-colors duration-200 text-center min-w-[100px]"
+                        className="cursor-pointer hover:bg-zinc-200  duration-200 text-center min-w-[100px]"
                         onClick={() => handleSort("totalQuantity")}
                       >
                         Total Qty
@@ -1085,7 +1085,7 @@ export default function AdsStatsPage() {
                         )}
                       </TableHead>
                       <TableHead
-                        className="cursor-pointer hover:bg-zinc-200 transition-colors duration-200 text-center min-w-[140px]"
+                        className="cursor-pointer hover:bg-zinc-200  duration-200 text-center min-w-[140px]"
                         onClick={() => handleSort("sellingPrice")}
                       >
                         Avg Selling Price
@@ -1094,7 +1094,7 @@ export default function AdsStatsPage() {
                         )}
                       </TableHead>
                       <TableHead
-                        className="cursor-pointer hover:bg-zinc-200 transition-colors duration-200 text-center min-w-[140px]"
+                        className="cursor-pointer hover:bg-zinc-200  duration-200 text-center min-w-[140px]"
                         onClick={() => handleSort("totalAmount")}
                       >
                         Total Amount
@@ -1102,40 +1102,40 @@ export default function AdsStatsPage() {
                           <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
                         )}
                       </TableHead>
-                      <TableHead className="hover:bg-zinc-200 transition-colors duration-200 text-center min-w-[140px]">
+                      <TableHead className="hover:bg-zinc-200  duration-200 text-center min-w-[140px]">
                         AD FB
                         <br />
                         <span className="text-xs text-blue-600">Date-based</span>
                       </TableHead>
-                      <TableHead className="hover:bg-zinc-200 transition-colors duration-200 text-center min-w-[140px]">
+                      <TableHead className="hover:bg-zinc-200  duration-200 text-center min-w-[140px]">
                         AD TT
                         <br />
                         <span className="text-xs text-blue-600">Date-based</span>
                       </TableHead>
-                      <TableHead className="hover:bg-zinc-200 transition-colors duration-200 text-center min-w-[140px]">
+                      <TableHead className="hover:bg-zinc-200  duration-200 text-center min-w-[140px]">
                         AD GOOGLE
                         <br />
                         <span className="text-xs text-blue-600">Date-based</span>
                       </TableHead>
-                      <TableHead className="hover:bg-zinc-200 transition-colors duration-200 text-center min-w-[140px]">
+                      <TableHead className="hover:bg-zinc-200  duration-200 text-center min-w-[140px]">
                         AD X
                         <br />
                         <span className="text-xs text-blue-600">Date-based</span>
                       </TableHead>
-                      <TableHead className="hover:bg-zinc-200 transition-colors duration-200 text-center min-w-[140px]">
+                      <TableHead className="hover:bg-zinc-200  duration-200 text-center min-w-[140px]">
                         AD SNAP
                         <br />
                         <span className="text-xs text-blue-600">Date-based</span>
                       </TableHead>
-                      <TableHead className="hover:bg-zinc-200 transition-colors duration-200 text-center min-w-[140px]">
+                      <TableHead className="hover:bg-zinc-200  duration-200 text-center min-w-[140px]">
                         Sourcing price
                         <br />
                         <span className="text-xs text-green-600">Fixed per product</span>
                       </TableHead>
-                      <TableHead className="hover:bg-zinc-200 transition-colors duration-200 text-center min-w-[140px]">
+                      <TableHead className="hover:bg-zinc-200  duration-200 text-center min-w-[140px]">
                         Average Cost
                       </TableHead>
-                      <TableHead className="hover:bg-zinc-200 transition-colors duration-200 text-center min-w-[140px]">
+                      <TableHead className="hover:bg-zinc-200  duration-200 text-center min-w-[140px]">
                         Total Cost
                       </TableHead>
                     </TableRow>
