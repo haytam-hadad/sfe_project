@@ -858,12 +858,11 @@ export default function AdsStatsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {/* Responsive filter layout: grid on md+, stacked on mobile */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
               {/* Country Filter */}
               <div className="min-w-[180px]">
                 <label className="text-sm font-medium flex items-center mb-1">
-                  <Globe className="h-4 w-4 mr-1" /> Country
+                  <Globe className="h-4 w-4 mr-1 text-green-600" /> Country
                 </label>
                 <Select
                   value={filters.country || ""}
@@ -874,13 +873,7 @@ export default function AdsStatsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Countries</SelectItem>
-                    {[
-                      ...new Set(
-                        (sheetData || [])
-                          .map((order) => order["Country"] || order["Country"] || order["Country"])
-                          .filter(Boolean),
-                      ),
-                    ]
+                    {[...new Set((sheetData || []).map((order) => order["Country"]).filter(Boolean))]
                       .sort((a, b) => a.localeCompare(b))
                       .map((country) => (
                         <SelectItem key={country} value={country}>
@@ -894,7 +887,7 @@ export default function AdsStatsPage() {
               {/* City Filter */}
               <div className="min-w-[180px]">
                 <label className="text-sm font-medium flex items-center mb-1">
-                  <MapPin className="h-4 w-4 mr-1" /> City
+                  <MapPin className="h-4 w-4 mr-1 text-blue-600" /> City
                 </label>
                 <Select
                   value={filters.city || ""}
@@ -919,7 +912,7 @@ export default function AdsStatsPage() {
               {/* Product Filter */}
               <div className="min-w-[180px]">
                 <label className="text-sm font-medium flex items-center mb-1">
-                  <BarChart3 className="h-4 w-4 mr-1" /> Product
+                  <BarChart3 className="h-4 w-4 mr-1 text-yellow-500" /> Product
                 </label>
                 <Select
                   value={filters.product || ""}
@@ -930,13 +923,7 @@ export default function AdsStatsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Products</SelectItem>
-                    {[
-                      ...new Set(
-                        (sheetData || [])
-                          .map((order) => order["Product Name"] || order["sku number"] || order["product"])
-                          .filter(Boolean),
-                      ),
-                    ]
+                    {[...new Set((sheetData || []).map((order) => order["Product Name"] || order["sku number"] || order["product"]).filter(Boolean))]
                       .sort((a, b) => a.localeCompare(b))
                       .map((product) => (
                         <SelectItem key={product} value={product}>
@@ -950,7 +937,7 @@ export default function AdsStatsPage() {
               {/* Agent Filter */}
               <div className="min-w-[180px]">
                 <label className="text-sm font-medium flex items-center mb-1">
-                  <Filter className="h-4 w-4 mr-1" /> Agent
+                  <Filter className="h-4 w-4 mr-1 text-orange-500" /> Agent
                 </label>
                 <Select
                   value={filters.agent || ""}
@@ -970,13 +957,15 @@ export default function AdsStatsPage() {
                 </Select>
               </div>
 
-              {/* Date Range Filter (single input for range) */}
+              {/* Date Range Filter */}
               <div>
-                <label className="text-sm font-medium">Date Range</label>
+                <label className="text-sm font-medium flex items-center mb-1">
+                  <CalendarIcon className="h-4 w-4 mr-1 text-red-500" /> Date Range
+                </label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start text-left font-normal">
-                      <CalendarIcon className="mr-1 h-4 w-4" />
+                      <CalendarIcon className="mr-1 h-4 w-4 text-red-500" />
                       {filters.startDate || filters.endDate
                         ? `${filters.startDate ? format(new Date(filters.startDate), "PPP") : "Start"} - ${filters.endDate ? format(new Date(filters.endDate), "PPP") : "End"}`
                         : "Select date range"}

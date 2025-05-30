@@ -23,6 +23,13 @@ import { useMobile } from "@/hooks/use-mobile"
 import { useStatusConfig, useFilters, useSheetData } from "@/contexts/app-context"
 import { useAuth } from "@/contexts/auth-context"
 import { matchesStatus } from "@/lib/constants"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select"
 
 export default function ProductStatsPage() {
   const [showFilters, setShowFilters] = useState(false)
@@ -437,112 +444,127 @@ export default function ProductStatsPage() {
               {/* Product Filter */}
               <div>
                 <label htmlFor="product-filter" className="text-sm font-medium mb-1 flex items-center">
-                  <BarChart3 className="h-4 w-4 mr-1" /> Product
+                  <BarChart3 className="h-4 w-4 mr-1 text-yellow-500" /> Product
                 </label>
-                <select
-                  id="product-filter"
-                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
-                  value={filters.product || ""}
-                  onChange={(e) => updateFilter("product", e.target.value)}
+                <Select
+                  value={filters.product || "all"}
+                  onValueChange={value => updateFilter("product", value === "all" ? "" : value)}
                 >
-                  <option value="">All Products</option>
-                  {products.map((product) => (
-                    <option key={product} value={product}>
-                      {product}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full h-10 dark:bg-black">
+                    <SelectValue placeholder="All Products" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Products</SelectItem>
+                    {products.map((product) => (
+                      <SelectItem key={product} value={product}>
+                        {product}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* City Filter */}
               <div>
                 <label htmlFor="city-filter" className="text-sm font-medium mb-1 flex items-center">
-                  <MapPin className="h-4 w-4 mr-1" /> City
+                  <MapPin className="h-4 w-4 mr-1 text-blue-600" /> City
                 </label>
-                <select
-                  id="city-filter"
-                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
-                  value={filters.city || ""}
-                  onChange={(e) => updateFilter("city", e.target.value)}
+                <Select
+                  value={filters.city || "all"}
+                  onValueChange={value => updateFilter("city", value === "all" ? "" : value)}
                 >
-                  <option value="">All Cities</option>
-                  {cities.map((city) => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full h-10 dark:bg-black">
+                    <SelectValue placeholder="All Cities" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Cities</SelectItem>
+                    {cities.map((city) => (
+                      <SelectItem key={city} value={city}>
+                        {city}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Country Filter */}
               <div>
                 <label htmlFor="country-filter" className="text-sm font-medium mb-1 flex items-center">
-                  <Globe className="h-4 w-4 mr-1" /> Country
+                  <Globe className="h-4 w-4 mr-1 text-green-600" /> Country
                 </label>
-                <select
-                  id="country-filter"
-                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
-                  value={filters.country || ""}
-                  onChange={(e) => updateFilter("country", e.target.value)}
+                <Select
+                  value={filters.country || "all"}
+                  onValueChange={value => updateFilter("country", value === "all" ? "" : value)}
                 >
-                  <option value="">All Countries</option>
-                  {countries.map((country) => (
-                    <option key={country} value={country}>
-                      {country}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full h-10 dark:bg-black">
+                    <SelectValue placeholder="All Countries" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Countries</SelectItem>
+                    {countries.map((country) => (
+                      <SelectItem key={country} value={country}>
+                        {country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Source Traffic Filter */}
               <div>
                 <label htmlFor="source-filter" className="text-sm font-medium mb-1 flex items-center">
-                  <FilterIcon className="h-4 w-4 mr-1" /> Source Traffic
+                  <FilterIcon className="h-4 w-4 mr-1 text-purple-500" /> Source Traffic
                 </label>
-                <select
-                  id="source-filter"
-                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
-                  value={filters.source || ""}
-                  onChange={(e) => updateFilter("source", e.target.value)}
+                <Select
+                  value={filters.source || "all"}
+                  onValueChange={value => updateFilter("source", value === "all" ? "" : value)}
                 >
-                  <option value="">All Sources</option>
-                  {sources.map((src) => (
-                    <option key={src} value={src}>
-                      {src}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full h-10 dark:bg-black">
+                    <SelectValue placeholder="All Sources" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sources</SelectItem>
+                    {sources.map((src) => (
+                      <SelectItem key={src} value={src}>
+                        {src}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Agent Filter */}
               <div>
                 <label htmlFor="agent-filter" className="text-sm font-medium mb-1 flex items-center">
-                  <FilterIcon className="h-4 w-4 mr-1" /> Agent
+                  <FilterIcon className="h-4 w-4 mr-1 text-orange-500" /> Agent
                 </label>
-                <select
-                  id="agent-filter"
-                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
-                  value={filters.agent || ""}
-                  onChange={(e) => updateFilter("agent", e.target.value)}
+                <Select
+                  value={filters.agent || "all"}
+                  onValueChange={value => updateFilter("agent", value === "all" ? "" : value)}
                 >
-                  <option value="">All Agents</option>
-                  {agents.map((agent) => (
-                    <option key={agent} value={agent}>
-                      {agent}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full h-10 dark:bg-black">
+                    <SelectValue placeholder="All Agents" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Agents</SelectItem>
+                    {agents.map((agent) => (
+                      <SelectItem key={agent} value={agent}>
+                        {agent}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Date Range Filter */}
               <div>
                 <label className="text-sm font-medium mb-1 flex items-center">
-                  <CalendarIcon className="h-4 w-4 mr-1" /> Date Range
+                  <CalendarIcon className="h-4 w-4 mr-1 text-red-500" /> Date Range
                 </label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="justify-start dark:bg-black text-left font-normal w-full">
-                      <CalendarIcon className="mr-1 h-4 w-4" />
+                      <CalendarIcon className="mr-1 h-4 w-4 text-red-500" />
                       {filters.startDate || filters.endDate
                         ? `${filters.startDate ? format(new Date(filters.startDate), "PPP") : "Start"} - ${filters.endDate ? format(new Date(filters.endDate), "PPP") : "End"}`
                         : "Select date range"}
@@ -575,21 +597,26 @@ export default function ProductStatsPage() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <div className="text-md font-medium">Product Performance Statistics</div>
             <div className="flex items-center space-x-2 mt-2 sm:mt-0">
+              {/* Pagination Controls - Rows per page */}
               <span className="text-sm text-muted-foreground">Rows per page:</span>
-              <select
-                className="border rounded px-2 py-1 text-sm dark:bg-black"
-                value={rowsPerPage}
-                onChange={(e) => {
-                  setRowsPerPage(Number(e.target.value))
+              <Select
+                value={String(rowsPerPage)}
+                onValueChange={value => {
+                  setRowsPerPage(Number(value))
                   setCurrentPage(1)
                 }}
               >
-                {[5, 10, 20, 50, 100].map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-[100px] h-8 border dark:bg-black text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[5, 10, 20, 50, 100].map((value) => (
+                    <SelectItem key={value} value={String(value)}>
+                      {value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>

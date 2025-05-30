@@ -42,6 +42,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useMobile } from "@/hooks/use-mobile"
 import { useAuth } from "@/contexts/auth-context"
 import { useFilters, useSheetData, useApp } from "@/contexts/app-context"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select"
 
 export default function OrdersDashboard() {
   // State management
@@ -600,138 +607,150 @@ export default function OrdersDashboard() {
               {/* Product filter */}
               <div className="relative">
                 <label htmlFor="product-filter" className="text-sm font-medium mb-1 flex items-center">
-                  <PackageIcon className="h-4 w-4 mr-1" /> Product
+                  <PackageIcon className="h-4 w-4 mr-1 text-yellow-500" /> Product
                 </label>
-                <select
-                  id="product-filter"
-                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
-                  value={filters.product || ""}
-                  onChange={(e) => updateFilter("product", e.target.value)}
-                  aria-label="Filter by product"
+                <Select
+                  value={filters.product || "all"}
+                  onValueChange={(value) => updateFilter("product", value === "all" ? "" : value)}
                 >
-                  <option value="">All Products</option>
-                  {products.map((product) => (
-                    <option key={product} value={product}>
-                      {product}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full h-10 dark:bg-black">
+                    <SelectValue placeholder="All Products" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Products</SelectItem>
+                    {products.map((product) => (
+                      <SelectItem key={product} value={product}>
+                        {product}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Status filter */}
               <div className="relative">
                 <label htmlFor="status-filter" className="text-sm font-medium mb-1 flex items-center">
-                  <Info className="h-4 w-4 mr-1" /> Status
+                  <Info className="h-4 w-4 mr-1 text-blue-500" /> Status
                 </label>
-                <select
-                  id="status-filter"
-                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
-                  value={filters.status || ""}
-                  onChange={(e) => handleStatusFilterChange(e.target.value)}
-                  aria-label="Filter by status"
+                <Select
+                  value={filters.status || "all"}
+                  onValueChange={(value) => updateFilter("status", value === "all" ? "" : value)}
                 >
-                  <option value="">All Statuses</option>
-                  {statuses.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full h-10 dark:bg-black">
+                    <SelectValue placeholder="All Statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    {statuses.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {status}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Country filter */}
               <div className="relative">
                 <label htmlFor="country-filter" className="text-sm font-medium mb-1 flex items-center">
-                  <Globe className="h-4 w-4 mr-1" /> Country
+                  <Globe className="h-4 w-4 mr-1 text-green-600" /> Country
                 </label>
-                <select
-                  id="country-filter"
-                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
-                  value={filters.country || ""}
-                  onChange={(e) => handleCountryFilterChange(e.target.value)}
-                  aria-label="Filter by country"
+                <Select
+                  value={filters.country || "all"}
+                  onValueChange={(value) => updateFilter("country", value === "all" ? "" : value)}
                 >
-                  <option value="">All Countries</option>
-                  {countries.map((country) => (
-                    <option key={country} value={country}>
-                      {country}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full h-10 dark:bg-black">
+                    <SelectValue placeholder="All Countries" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Countries</SelectItem>
+                    {countries.map((country) => (
+                      <SelectItem key={country} value={country}>
+                        {country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* City filter */}
               <div className="relative">
                 <label htmlFor="city-filter" className="text-sm font-medium mb-1 flex items-center">
-                  <SearchIcon className="h-4 w-4 mr-1" /> City
+                  <SearchIcon className="h-4 w-4 mr-1 text-blue-600" /> City
                 </label>
-                <select
-                  id="city-filter"
-                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
-                  value={filters.city || ""}
-                  onChange={(e) => handleCityFilterChange(e.target.value)}
-                  aria-label="Filter by city"
+                <Select
+                  value={filters.city || "all"}
+                  onValueChange={(value) => updateFilter("city", value === "all" ? "" : value)}
                 >
-                  <option value="">All Cities</option>
-                  {cities.map(({ city, count }) => (
-                    <option key={city} value={city}>
-                      {city} ({count} orders)
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full h-10 dark:bg-black">
+                    <SelectValue placeholder="All Cities" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Cities</SelectItem>
+                    {cities.map(({ city, count }) => (
+                      <SelectItem key={city} value={city}>
+                        {city} ({count} orders)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Source Traffic filter */}
               <div className="relative">
                 <label htmlFor="source-filter" className="text-sm font-medium mb-1 flex items-center">
-                  <FilterIcon className="h-4 w-4 mr-1" /> Source Traffic
+                  <FilterIcon className="h-4 w-4 mr-1 text-purple-500" /> Source Traffic
                 </label>
-                <select
-                  id="source-filter"
-                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
-                  value={filters.source || ""}
-                  onChange={(e) => updateFilter("source", e.target.value)}
-                  aria-label="Filter by source traffic"
+                <Select
+                  value={filters.source || "all"}
+                  onValueChange={(value) => updateFilter("source", value === "all" ? "" : value)}
                 >
-                  <option value="">All Sources</option>
-                  {sourceTrafficOptions.map((src) => (
-                    <option key={src} value={src}>
-                      {src}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full h-10 dark:bg-black">
+                    <SelectValue placeholder="All Sources" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sources</SelectItem>
+                    {sourceTrafficOptions.map((src) => (
+                      <SelectItem key={src} value={src}>
+                        {src}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Agent filter */}
               <div className="relative">
                 <label htmlFor="agent-filter" className="text-sm font-medium mb-1 flex items-center">
-                  <Info className="h-4 w-4 mr-1" /> Agent
+                  <Info className="h-4 w-4 mr-1 text-orange-500" /> Agent
                 </label>
-                <select
-                  id="agent-filter"
-                  className="border rounded-md px-3 py-2 dark:bg-black w-full h-10"
-                  value={filters.agent || ""}
-                  onChange={(e) => updateFilter("agent", e.target.value)}
-                  aria-label="Filter by agent"
+                <Select
+                  value={filters.agent || "all"}
+                  onValueChange={(value) => updateFilter("agent", value === "all" ? "" : value)}
                 >
-                  <option value="">All Agents</option>
-                  {agents.map((agent) => (
-                    <option key={agent} value={agent}>
-                      {agent}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full h-10 dark:bg-black">
+                    <SelectValue placeholder="All Agents" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Agents</SelectItem>
+                    {agents.map((agent) => (
+                      <SelectItem key={agent} value={agent}>
+                        {agent}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Date range */}
               <div className="relative">
                 <label className="text-sm font-medium mb-1 flex items-center">
-                  <CalendarIcon className="h-4 w-4 mr-1" /> Date Range
+                  <CalendarIcon className="h-4 w-4 mr-1 text-red-500" /> Date Range
                 </label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start text-left font-normal">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      <CalendarIcon className="mr-2 h-4 w-4 text-red-500" />
                       {filters.startDate || filters.endDate ? (
                         <>
                           {filters.startDate ? format(new Date(filters.startDate), "PP") : "Start"} -{" "}
@@ -1075,20 +1094,23 @@ export default function OrdersDashboard() {
           <span className="text-sm text-muted-foreground">
             Page {currentPage} of {totalPages || 1}
           </span>
-          <select
-            className="border dark:bg-black rounded-md px-2 py-1 text-sm h-8"
-            value={itemsPerPage}
-            onChange={(e) => {
-              setItemsPerPage(Number(e.target.value))
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={(value) => {
+              setItemsPerPage(Number(value))
               setCurrentPage(1)
             }}
-            aria-label="Items per page"
           >
-            <option value={10}>10 per page</option>
-            <option value={20}>20 per page</option>
-            <option value={50}>50 per page</option>
-            <option value={100}>100 per page</option>
-          </select>
+            <SelectTrigger className="w-[130px] h-8 border dark:bg-black text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10 per page</SelectItem>
+              <SelectItem value="20">20 per page</SelectItem>
+              <SelectItem value="50">50 per page</SelectItem>
+              <SelectItem value="100">100 per page</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
