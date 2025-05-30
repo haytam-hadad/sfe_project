@@ -78,27 +78,27 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-mainColor/10 via-white to-blue-50 dark:from-zinc-900 dark:to-zinc-950 p-4">
+    <div className="flex min-h-screen items-center justify-center">
       <Card className="w-full max-w-md shadow-xl border border-mainColor/20">
-        <CardHeader className="space-y-4 pb-6">
+        <CardHeader className="space-y-3 pb-6">
           <div className="flex justify-center">
             <Link href="/" className="inline-block">
               <Image
                 src="/images/logo.svg"
                 alt="Ecomark Logo"
-                width={56}
-                height={56}
+                width={60}
+                height={60}
                 className=" hover:scale-105 drop-shadow-md"
                 priority
               />
             </Link>
           </div>
-          <CardTitle className="text-center text-3xl font-bold flex items-center justify-center gap-2">
+          <CardTitle className="text-center text-2xl font-bold flex items-center justify-center gap-2">
             <Lock className="h-6 w-6 text-mainColor" />
             Welcome Back
           </CardTitle>
           <CardDescription className="text-center text-base text-muted-foreground">
-            Sign in to access your{" "}
+            Log in to access your{" "}
             <span className="font-semibold text-mainColor">Ecomark Dashboard</span>
           </CardDescription>
         </CardHeader>
@@ -109,9 +109,9 @@ export default function LoginPage() {
               <AlertDescription className="ml-2">{error}</AlertDescription>
             </Alert>
           )}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-3">
+              <Label htmlFor="email" className="text-sm ml-1 font-medium">
                 Email Address
               </Label>
               <Input
@@ -126,9 +126,9 @@ export default function LoginPage() {
                 autoComplete="email"
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium">
+                <Label htmlFor="password" className="text-sm ml-2 font-medium">
                   Password
                 </Label>
                 <Link href="/forgot-password" className="hidden text-xs text-mainColor hover:underline">
@@ -160,7 +160,7 @@ export default function LoginPage() {
                 </Button>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center ml-2 space-x-3">
               <Checkbox
                 id="remember"
                 checked={rememberMe}
@@ -185,7 +185,7 @@ export default function LoginPage() {
                   Signing in...
                 </>
               ) : (
-                "Sign in"
+                "Log in"
               )}
             </Button>
           </form>
