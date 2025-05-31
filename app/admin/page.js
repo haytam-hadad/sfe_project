@@ -6,23 +6,27 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Users, Search, Edit, Trash2, Eye, RefreshCw, LoaderCircle, AlertCircle, FileSpreadsheet, User, Shield, UserPlus } from 'lucide-react'
+import { Users, Search, Edit, Trash2, Eye, RefreshCw, LoaderCircle, AlertCircle, FileSpreadsheet, User, Shield, UserPlus, Copy } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
 import { format } from "date-fns"
-import { fetchAllUsers, fetchUser, updateUser, deleteUser, fetchUserSheetData } from "@/lib/api-admin"
+import { fetchAllUsers, fetchUser, updateUser, deleteUser, fetchUserSheetData, copySheetUrl } from "@/lib/api-admin"
 import Link from "next/link"
 import { Switch } from "@/components/ui/switch"
+import { useRouter } from "next/navigation"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { MoreVertical } from "lucide-react"
 
 
 export default function AdminDashboard() {
   const { toast } = useToast()
   const { user, token, isAuthenticated, isLoading: authLoading, adminSignup } = useAuth()
+  const router = useRouter()
 
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(false)
@@ -44,6 +48,7 @@ export default function AdminDashboard() {
   const [roleFilter, setRoleFilter] = useState("all"); // default to "all"
   const [hasSheetFilter, setHasSheetFilter] = useState("all"); // "all" | "has" | "no"
   const [statusFilter, setStatusFilter] = useState("all"); // "all" | "active" | "inactive"
+  const [copyingSheetUrl, setCopyingSheetUrl] = useState(false)
 
   // Check if current user is admin
   const isAdmin = user?.role === "admin"
@@ -241,6 +246,34 @@ export default function AdminDashboard() {
       })
     }
   }
+
+  const handleCopySheetUrl = async (sourceUserId) => {
+    if (!confirm('Are you sure you want to copy this sheet URL?')) {
+      return;
+    }
+
+    setCopyingSheetUrl(true);
+    try {
+      const result = await copySheetUrl(token, sourceUserId, user._id);
+      
+      toast({
+        title: "Success",
+        description: "Sheet URL copied successfully",
+      });
+
+      // Refresh users list and redirect to home page
+      await loadUsers();
+      router.push('/');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to copy sheet URL",
+        variant: "destructive",
+      });
+    } finally {
+      setCopyingSheetUrl(false);
+    }
+  };
 
   const filteredUsers = users.filter(
     (user) =>
@@ -447,7 +480,7 @@ export default function AdminDashboard() {
               <LoaderCircle className="h-9 w-9 animate-spin" />
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto border rounded-md">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-zinc-100 rounded-md dark:bg-zinc-900">
@@ -494,52 +527,73 @@ export default function AdminDashboard() {
                         <TableCell>
                           <div className="max-w-[200px] truncate">
                             {user.sheetUrl ? (
-                              <Link
-                                href={user.sheetUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1 text-blue-500 hover:text-blue-600"
-                              >
-                                <FileSpreadsheet className="h-4 w-4" />
-                                View Sheet
-                              </Link>
+                              <div className="flex items-center gap-2">
+                                <Link
+                                  href={user.sheetUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1 text-blue-500 hover:text-blue-600"
+                                >
+                                  <FileSpreadsheet className="h-4 w-4" />
+                                  View Sheet
+                                </Link>
+                              </div>
                             ) : (
                               <span className="text-sm text-muted-foreground">No sheet</span>
                             )}
                           </div>
                         </TableCell>
                         <TableCell>{formatDate(user.createdAt)}</TableCell>
-                        <TableCell>
-                          <div className="flex space-x-1">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewUser(user._id)}
-                              disabled={loadingUserData}
-                              className="hover:text-white"
-                              title="View User"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditUser(user)}
-                              className="hover:text-white"
-                              title="Edit User"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDeleteUser(user._id, user.username)}
-                              className="hover:text-white hover:bg-red-500"
-                              title="Delete User"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                        <TableCell className="text-center">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 w-8 hover:bg-transparent"
+                              >
+                                <MoreVertical className="h-4 w-4 text-black dark:text-white" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-[200px] p-2">
+                              <DropdownMenuItem
+                                onClick={() => handleViewUser(user._id)}
+                                disabled={loadingUserData}
+                                className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-accent rounded-md"
+                              >
+                                <Eye className="h-4 w-4" />
+                                <span className="font-medium">View User</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleEditUser(user)}
+                                className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-accent rounded-md"
+                              >
+                                <Edit className="h-4 w-4" />
+                                <span className="font-medium">Edit User</span>
+                              </DropdownMenuItem>
+                              {user.sheetUrl && (
+                                <DropdownMenuItem
+                                  onClick={() => handleCopySheetUrl(user._id)}
+                                  disabled={copyingSheetUrl}
+                                  className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-accent rounded-md"
+                                >
+                                  {copyingSheetUrl ? (
+                                    <LoaderCircle className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Copy className="h-4 w-4" />
+                                  )}
+                                  <span className="font-medium">Copy Sheet URL</span>
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteUser(user._id, user.username)}
+                                className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-red-100 hover:text-red-600 rounded-md text-red-600 focus:text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                <span className="font-medium">Delete User</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))

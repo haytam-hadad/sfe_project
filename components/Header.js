@@ -83,7 +83,7 @@ export default function AdminHeader({ onToggleMenu }) {
                   <span className="hidden md:block p-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">{user?.username || "User"}</span>
                 </div>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 font-bold" align="end" forceMount>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-xs p-1 leading-none text-muted-foreground">{user?.email || "No email provided"}</p>
@@ -91,9 +91,9 @@ export default function AdminHeader({ onToggleMenu }) {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator/>
                 <DropdownMenuItem >
-                  <Link href="/profile" className="flex hover:text-white items-center gap-2">
+                  <Link href="/profile" className="flex items-center gap-2">
                     <User className="mr-2 h-4 w-4 "/>
-                    <span className=" hover:text-white">Profile</span>
+                    <span>Profile</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={logout}>
