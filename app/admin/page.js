@@ -638,6 +638,10 @@ export default function AdminDashboard() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create New User</DialogTitle>
+            <DialogDescription>
+              <br/>
+              <AlertCircle className="inline-block h-4 w-4 mr-1" /> Login credentials will be automatically sent to the new user's email address.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div>
