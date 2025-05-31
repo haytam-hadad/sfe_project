@@ -483,49 +483,64 @@ export default function AdminDashboard() {
             <div className="overflow-x-auto border rounded-md">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-zinc-100 rounded-md dark:bg-zinc-900">
-                    <TableHead className="text-center">User</TableHead>
-                    <TableHead className="text-center">Role</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead className="text-center">Sheet URL</TableHead>
-                    <TableHead className="text-center">Created</TableHead>
-                    <TableHead className="text-center">Last Activity</TableHead>
-                    <TableHead className="text-center">Actions</TableHead>
+                  <TableRow className="bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-900">
+                    <TableHead className="text-center font-semibold text-zinc-900 dark:text-zinc-100">User</TableHead>
+                    <TableHead className="text-center font-semibold text-zinc-900 dark:text-zinc-100">Role</TableHead>
+                    <TableHead className="text-center font-semibold text-zinc-900 dark:text-zinc-100">Status</TableHead>
+                    <TableHead className="text-center font-semibold text-zinc-900 dark:text-zinc-100">Sheet URL</TableHead>
+                    <TableHead className="text-center font-semibold text-zinc-900 dark:text-zinc-100">Created</TableHead>
+                    <TableHead className="text-center font-semibold text-zinc-900 dark:text-zinc-100">Last Activity</TableHead>
+                    <TableHead className="text-center font-semibold text-zinc-900 dark:text-zinc-100">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredUsers.length > 0 ? (
-                    filteredUsers.map((user) => (
-                      <TableRow key={user._id}>
-                        <TableCell>
+                    filteredUsers.map((user, index) => (
+                      <TableRow 
+                        key={user._id}
+                        className={`transition-colors ${
+                          index % 2 === 0 
+                            ? "bg-white dark:bg-zinc-950 hover:bg-zinc-50 dark:hover:bg-zinc-900" 
+                            : "bg-zinc-50/50 dark:bg-zinc-900/80 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        }`}
+                      >
+                        <TableCell className="py-2.5">
                           <div className="flex items-center space-x-2">
-                            <Avatar className="h-9 w-9 bg-primary border">
-                              <AvatarFallback>
+                            <Avatar className="h-9 w-9 border shadow-sm">
+                              <AvatarFallback className="text-md">
                                 {user.username.charAt(0).toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{user.username}</div>
+                              <div className="flex items-center gap-2">
+                                <span className="capitalize text-zinc-900 font-semibold dark:text-zinc-100">{user.username}</span>
+                              </div>
                               <div className="text-sm text-muted-foreground">{user.email}</div>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <Badge variant={getRoleBadgeVariant(user.role)} className={user.role === "admin" ? "bg-mainColor" : ""}>{user.role}</Badge>
+                        <TableCell className="py-2.5 text-center">
+                          <span className={`text-sm ${user.role === "admin" ? "text-mainColor" : "text-muted-foreground"}`}>
+                            {user.role === "admin" ? "Admin" : "Sub-Admin"}
+                          </span>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
+                        <TableCell className="py-2.5">
+                          <div className="flex items-center gap-2">
                             <Switch
                               checked={user.isActive}
                               onCheckedChange={() => handleToggleActive(user._id, user.isActive)}
                               className="data-[state=checked]:bg-green-600"
                             />
-                            <span className="text-sm text-muted-foreground">
+                            <span className={`text-sm font-medium ${
+                              user.isActive 
+                                ? "text-green-600 dark:text-green-500" 
+                                : "text-red-600 dark:text-red-500"
+                            }`}>
                               {user.isActive ? 'Active' : 'Inactive'}
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="py-2.5">
                           <div className="max-w-[200px] truncate">
                             {user.sheetUrl ? (
                               <div className="flex items-center gap-2">
@@ -533,63 +548,63 @@ export default function AdminDashboard() {
                                   href={user.sheetUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex items-center gap-1 text-blue-500 hover:text-blue-600"
+                                  className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 font-medium"
                                 >
                                   <FileSpreadsheet className="h-4 w-4" />
                                   View Sheet
                                 </Link>
                               </div>
                             ) : (
-                              <span className="text-sm text-muted-foreground">No sheet</span>
+                              <span className="text-sm text-muted-foreground italic">No sheet</span>
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>{formatDate(user.createdAt)}</TableCell>
-                        <TableCell>{formatDate(user.lastActivity)}</TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="py-2.5 text-sm text-muted-foreground">{formatDate(user.createdAt)}</TableCell>
+                        <TableCell className="py-2.5 text-sm text-muted-foreground">{formatDate(user.lastActivity)}</TableCell>
+                        <TableCell className="py-2.5">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
-                                className="h-8 w-8 hover:bg-transparent"
+                                className="h-8 w-8 p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                               >
-                                <MoreVertical className="h-4 w-4 text-black dark:text-white" />
+                                <MoreVertical className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-[200px] p-2">
                               <DropdownMenuItem
                                 onClick={() => handleViewUser(user._id)}
                                 disabled={loadingUserData}
-                                className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-accent rounded-md"
+                                className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md"
                               >
-                                <Eye className="h-4 w-4" />
+                                <Eye className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
                                 <span className="font-medium">View User</span>
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleEditUser(user)}
-                                className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-accent rounded-md"
+                                className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md"
                               >
-                                <Edit className="h-4 w-4" />
+                                <Edit className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
                                 <span className="font-medium">Edit User</span>
                               </DropdownMenuItem>
                               {user.sheetUrl && (
                                 <DropdownMenuItem
                                   onClick={() => handleCopySheetUrl(user._id)}
                                   disabled={copyingSheetUrl}
-                                  className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-accent rounded-md"
+                                  className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md"
                                 >
                                   {copyingSheetUrl ? (
-                                    <LoaderCircle className="h-4 w-4 animate-spin" />
+                                    <LoaderCircle className="h-4 w-4 animate-spin text-zinc-600 dark:text-zinc-400" />
                                   ) : (
-                                    <Copy className="h-4 w-4" />
+                                    <Copy className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
                                   )}
                                   <span className="font-medium">Copy Sheet URL</span>
                                 </DropdownMenuItem>
                               )}
                               <DropdownMenuItem
                                 onClick={() => handleDeleteUser(user._id, user.username)}
-                                className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-red-100 hover:text-red-600 rounded-md text-red-600 focus:text-red-600"
+                                className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/50 rounded-md text-red-600 dark:text-red-500 focus:text-red-600 dark:focus:text-red-500"
                               >
                                 <Trash2 className="h-4 w-4" />
                                 <span className="font-medium">Delete User</span>
@@ -601,8 +616,13 @@ export default function AdminDashboard() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8">
-                        {searchTerm ? "No users found matching your search" : "No users found"}
+                      <TableCell colSpan={7} className="text-center py-12">
+                        <div className="flex flex-col items-center gap-2">
+                          <Users className="h-8 w-8 text-muted-foreground" />
+                          <p className="text-muted-foreground font-medium">
+                            {searchTerm ? "No users found matching your search" : "No users found"}
+                          </p>
+                        </div>
                       </TableCell>
                     </TableRow>
                   )}

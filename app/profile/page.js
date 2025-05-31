@@ -229,7 +229,7 @@ export default function ProfilePage() {
             <AvatarFallback>{getUserInitials()}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="font-medium">{user?.username || "User"}</p>
+            <p className="font-medium capitalize">{user?.username || "User"}</p>
             <Badge variant="outline" className={getRoleBadgeColor(user?.role)}>
               {user?.role || "User"}
             </Badge>
@@ -274,14 +274,14 @@ export default function ProfilePage() {
                   <div className="flex flex-col sm:flex-row gap-6">
                     <div className="flex-1 space-y-1">
                       <Label className="text-sm text-muted-foreground">Email</Label>
-                      <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
+                      <div className="flex items-center border gap-2 p-3 bg-muted/50 rounded-md">
                         <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{user?.email || "No email set"}</span>
+                        <span className="font-medium ">{user?.email || "No email set"}</span>
                       </div>
                     </div>
                     <div className="flex-1 space-y-1">
                       <Label className="text-sm text-muted-foreground">Username</Label>
-                      <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
+                      <div className="flex items-center border gap-2 p-3 bg-muted/50 rounded-md">
                         <User className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">{user?.username || "No username set"}</span>
                       </div>
@@ -506,7 +506,7 @@ export default function ProfilePage() {
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <Label className="text-sm text-muted-foreground">Current Sheet URL</Label>
-                    <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
+                    <div className="flex items-center gap-2 p-3 border bg-muted/50 rounded-md">
                       <FileSpreadsheet className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <span className="font-medium break-all">{user?.sheetUrl || "No sheet URL set"}</span>
                     </div>

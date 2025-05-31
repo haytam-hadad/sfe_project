@@ -80,7 +80,7 @@ export default function AdminHeader({ onToggleMenu }) {
                   <Avatar className="h-8 w-8 font-semibold border">
                     <AvatarFallback>{getUserInitials()}</AvatarFallback>
                   </Avatar>
-                  <span className="hidden md:block p-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">{user?.username || "User"}</span>
+                  <span className="hidden md:block p-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">{(user?.username || "User").charAt(0).toUpperCase() + (user?.username || "").slice(1)}</span>
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
