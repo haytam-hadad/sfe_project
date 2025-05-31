@@ -36,125 +36,7 @@ import { fetchCosts, updateProductCost, updateAdCost, deleteAllProductCosts, del
 import Link from "next/link"
 
 export default function AdsStatsPage() {
-  const { toast } = useToast()
-  const { token } = useAuth()
-  const { user } = useAuth()
-  const { sheetData, loadingSheetData, errorSheetData, refreshSheetData } = useSheetData()
-  const { filters, updateFilter, resetFilters } = useFilters()
-  const { formatCurrency } = useApp()
-  const { statusConfig } = useStatusConfig()
-
-  // Check if sheet URL is configured
-  if (!user?.sheetUrl) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Card className="w-full max-w-md p-6">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold text-center">No Sheet URL Configured</CardTitle>
-            <CardDescription className="text-center">
-              Please configure your Google Sheet URL to view your ads statistics.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            <Button asChild>
-              <Link href="/profile?tab=sheet">
-                Configure Sheet URL
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  const [searchTerm, setSearchTerm] = useState("")
-
-  // Cost price - stored simply by product name (NOT date-dependent)
-  const [productCosts, setProductCosts] = useState({}) // Structure: { "ProductName": "50.00" }
-
-  // Ad costs for different platforms - stored by date and product (date-dependent)
-  // Structure: { "2024-01-15": { "ProductName": { fb: 100, tt: 50, google: 75, x: 25, snap: 30 } } }
-  const [adCostsByDate, setAdCostsByDate] = useState({})
-
-  // Loading states for API calls
-  const [loadingCosts, setLoadingCosts] = useState(false)
-  const [savingCosts, setSavingCosts] = useState(false)
-  const [deletingCosts, setDeletingCosts] = useState(false)
-
-  const [sortField, setSortField] = useState("totalOrders")
-  const [sortDirection, setSortDirection] = useState("desc")
-
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1)
-  const [rowsPerPage, setRowsPerPage] = useState(10)
-
-  // Local filters for this page
-  const [localFilters, setLocalFilters] = useState({
-    minAmount: "",
-    maxAmount: "",
-  })
-  const [showFilters, setShowFilters] = useState(false)
-
-  // Available countries and cities for filtering
-  const [availableCountries, setAvailableCountries] = useState([])
-  const [availableCities, setAvailableCities] = useState([])
-
-  // Load costs from backend on component mount
-  useEffect(() => {
-    if (token) {
-      loadCostsFromBackend()
-    }
-  }, [token])
-
-  // Load costs from backend
-  const loadCostsFromBackend = async () => {
-    if (!token) return
-
-    setLoadingCosts(true)
-    try {
-      const data = await fetchCosts(token)
-      setProductCosts(data.productCosts || {})
-      setAdCostsByDate(data.adCostsByDate || {})
-    } catch (error) {
-      console.error("Error loading costs:", error)
-      toast({
-        title: "Error",
-        description: "Failed to load cost data from server",
-        variant: "destructive",
-      })
-    } finally {
-      setLoadingCosts(false)
-    }
-  }
-
-  // Debounced save function to avoid too many API calls
-  const [saveTimeouts, setSaveTimeouts] = useState({})
-
-  const debouncedSave = (key, saveFunction, delay = 1000) => {
-    // Clear existing timeout for this key
-    if (saveTimeouts[key]) {
-      clearTimeout(saveTimeouts[key])
-    }
-
-    // Set new timeout
-    const timeoutId = setTimeout(async () => {
-      setSavingCosts(true)
-      try {
-        await saveFunction()
-      } catch (error) {
-        // Error already handled in saveFunction
-      } finally {
-        setSavingCosts(false)
-      }
-    }, delay)
-
-    setSaveTimeouts((prev) => ({
-      ...prev,
-      [key]: timeoutId,
-    }))
-  }
-
-  // Extract amount from an order with various possible field names
+  // Utility functions
   const extractAmount = (order) => {
     const amountFields = ["Cod Amount", "Order Value", "Price", "Total", "Amount", "Value", "Revenue"]
 
@@ -176,7 +58,6 @@ export default function AdsStatsPage() {
     return 0
   }
 
-  // Extract quantity from an order
   const extractQuantity = (order) => {
     const qtyFields = ["Quantity", "Qty", "Count", "Units"]
 
@@ -197,61 +78,12 @@ export default function AdsStatsPage() {
     return 1 // Default to 1 if no quantity found
   }
 
-  // Fetch data if not already loaded
-  useEffect(() => {
-    if (token && (!sheetData || sheetData.length === 0) && !loadingSheetData) {
-      refreshSheetData(token)
-    }
-  }, [token, sheetData, loadingSheetData, refreshSheetData])
-
-  // Extract only delivered orders from sheet data
-  const deliveredOrders = useMemo(() => {
-    if (!sheetData || !sheetData.length) return []
-
-    return sheetData.filter((order) => {
-      const status = order["STATUS"] || ""
-      return matchesStatus(status, statusConfig.delivery)
-    })
-  }, [sheetData, statusConfig])
-
-  // Extract available countries and cities from delivered orders
-  useEffect(() => {
-    if (deliveredOrders.length > 0) {
-      const countries = new Set()
-      const cities = new Set()
-
-      deliveredOrders.forEach((order) => {
-        const country = order["Country"]
-        const city = order["City"]
-
-        if (country) countries.add(country)
-        if (city) cities.add(city)
-      })
-
-      setAvailableCountries(Array.from(countries).sort())
-      setAvailableCities(Array.from(cities).sort())
-    }
-  }, [deliveredOrders])
-
-  // Calculate total orders for each product (all orders, not just delivered)
-  const allOrdersByProduct = useMemo(() => {
-    if (!sheetData || !sheetData.length) return {}
-    const map = {}
-    sheetData.forEach((order) => {
-      const product = order["Product Name"] || order["sku number"] || order["product"]
-      if (!product) return
-      if (!map[product]) map[product] = 0
-      map[product] += 1
-    })
-    return map
-  }, [sheetData])
-
-  // Get current date for ad cost inputs (either specific date or today if no date filter)
+  // Function declarations that are used in hooks or other functions
   const getCurrentDateKey = () => {
-    if (filters.startDate && filters.endDate) {
+    if (filters?.startDate && filters?.endDate) {
       // If it's a range, we'll handle this differently in the input display
       return null
-    } else if (filters.startDate) {
+    } else if (filters?.startDate) {
       // Single date
       return format(new Date(filters.startDate), "yyyy-MM-dd")
     } else {
@@ -260,11 +92,10 @@ export default function AdsStatsPage() {
     }
   }
 
-  // Get ad cost for a specific product and platform, considering date filters (DATE-DEPENDENT)
   const getAdCost = (productName, platform) => {
     const currentDateKey = getCurrentDateKey()
 
-    if (filters.startDate && filters.endDate && !currentDateKey) {
+    if (filters?.startDate && filters?.endDate && !currentDateKey) {
       // Date range - sum up all costs in the range
       let total = 0
       const startDate = new Date(filters.startDate)
@@ -272,7 +103,7 @@ export default function AdsStatsPage() {
 
       for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
         const dateKey = format(d, "yyyy-MM-dd")
-        if (adCostsByDate[dateKey] && adCostsByDate[dateKey][productName]) {
+        if (adCostsByDate?.[dateKey]?.[productName]) {
           total += Number.parseFloat(adCostsByDate[dateKey][productName][platform] || 0)
         }
       }
@@ -280,18 +111,44 @@ export default function AdsStatsPage() {
     } else {
       // Single date or today
       const dateKey = currentDateKey || format(new Date(), "yyyy-MM-dd")
-      if (adCostsByDate[dateKey] && adCostsByDate[dateKey][productName]) {
+      if (adCostsByDate?.[dateKey]?.[productName]) {
         return adCostsByDate[dateKey][productName][platform] || ""
       }
       return ""
     }
   }
 
-  // Set ad cost for a specific product and platform on the current date (DATE-DEPENDENT)
+  const getCostPrice = (productName) => {
+    return productCosts?.[productName] || ""
+  }
+
+  const calculateAverageCost = (product) => {
+    const totalAdCost = calculateTotalAdCost(product.productName)
+    return product.totalOrders > 0 ? totalAdCost / product.totalOrders : 0
+  }
+
+  const calculateTotalAdCost = (productName) => {
+    const fbCost = Number.parseFloat(getAdCost(productName, "fb") || 0)
+    const ttCost = Number.parseFloat(getAdCost(productName, "tt") || 0)
+    const googleCost = Number.parseFloat(getAdCost(productName, "google") || 0)
+    const xCost = Number.parseFloat(getAdCost(productName, "x") || 0)
+    const snapCost = Number.parseFloat(getAdCost(productName, "snap") || 0)
+
+    return fbCost + ttCost + googleCost + xCost + snapCost
+  }
+
+  const calculateTotalCost = (product) => {
+    const costPrice = Number.parseFloat(getCostPrice(product.productName) || 0)
+    const avgCost = calculateAverageCost(product)
+
+    // New formula: (avg cost * total orders) + (cost price * total qty)
+    return avgCost * product.totalOrders + costPrice * product.totalQuantity
+  }
+
   const setAdCost = (productName, platform, value) => {
     const currentDateKey = getCurrentDateKey()
 
-    if (filters.startDate && filters.endDate && !currentDateKey) {
+    if (filters?.startDate && filters?.endDate && !currentDateKey) {
       // For date ranges, we'll set the value on the end date
       const dateKey = format(new Date(filters.endDate), "yyyy-MM-dd")
       updateAdCostForDate(dateKey, productName, platform, value)
@@ -302,7 +159,6 @@ export default function AdsStatsPage() {
     }
   }
 
-  // Update ad cost for a specific date, product, and platform
   const updateAdCostForDate = (dateKey, productName, platform, value) => {
     setAdCostsByDate((prev) => {
       const newData = { ...prev }
@@ -321,12 +177,6 @@ export default function AdsStatsPage() {
     debouncedSave(saveKey, () => updateAdCost(token, dateKey, productName, platform, value))
   }
 
-  // Get cost price for a product (NOT date-dependent - always the same value)
-  const getCostPrice = (productName) => {
-    return productCosts[productName] || ""
-  }
-
-  // Set cost price for a product (NOT date-dependent - simple storage)
   const setCostPrice = (productName, value) => {
     setProductCosts((prev) => ({
       ...prev,
@@ -338,7 +188,6 @@ export default function AdsStatsPage() {
     debouncedSave(saveKey, () => updateProductCost(token, productName, value))
   }
 
-  // Handle delete all product costs
   const handleDeleteAllProductCosts = async () => {
     const productCount = Object.keys(productCosts).length
     if (productCount === 0) {
@@ -373,7 +222,6 @@ export default function AdsStatsPage() {
     }
   }
 
-  // Handle delete all ad costs
   const handleDeleteAllAdCosts = async () => {
     let adCount = 0
     Object.keys(adCostsByDate).forEach((date) => {
@@ -414,14 +262,185 @@ export default function AdsStatsPage() {
     }
   }
 
-  // Extract unique agents from deliveredOrders
+  const handleCostChange = (productName, value) => {
+    setCostPrice(productName, value)
+  }
+
+  const handleAdCostChange = (platform, productName, value) => {
+    setAdCost(productName, platform, value)
+  }
+
+  const handleExport = () => {
+    if (!processedData.length) return
+
+    // Create CSV content
+    let csvContent = "data:text/csv;charset=utf-8,"
+
+    // Add headers with new columns
+    csvContent +=
+      "Product Name,Total Orders,Total Quantity,Selling Price,Total Amount,AD FB,AD TT,AD GOOGLE,AD X,AD SNAP,Cost Price,Average Cost,Total Cost,Profit\n"
+
+    // Add data rows with new columns
+    processedData.forEach((product) => {
+      const fbCost = Number.parseFloat(getAdCost(product.productName, "fb") || 0)
+      const ttCost = Number.parseFloat(getAdCost(product.productName, "tt") || 0)
+      const googleCost = Number.parseFloat(getAdCost(product.productName, "google") || 0)
+      const xCost = Number.parseFloat(getAdCost(product.productName, "x") || 0)
+      const snapCost = Number.parseFloat(getAdCost(product.productName, "snap") || 0)
+      const costPrice = Number.parseFloat(getCostPrice(product.productName) || 0)
+      const avgCost = calculateAverageCost(product)
+      const totalCost = calculateTotalCost(product)
+      const profit = product.totalAmount - totalCost
+
+      csvContent += `"${product.productName}",${product.totalOrders},${product.totalQuantity},${product.sellingPrice.toFixed(2)},${product.totalAmount.toFixed(2)},${fbCost.toFixed(2)},${ttCost.toFixed(2)},${googleCost.toFixed(2)},${xCost.toFixed(2)},${snapCost.toFixed(2)},${costPrice.toFixed(2)},${avgCost.toFixed(2)},${totalCost.toFixed(2)},${profit.toFixed(2)}\n`
+    })
+
+    // Create download link
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement("a")
+    link.setAttribute("href", encodedUri)
+    link.setAttribute("download", `delivered-products-analysis-${new Date().toISOString().split("T")[0]}.csv`)
+    document.body.appendChild(link)
+
+    // Trigger download
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const resetLocalFilters = () => {
+    setLocalFilters({
+      minAmount: "",
+      maxAmount: "",
+    })
+  }
+
+  const handleResetAllFilters = () => {
+    resetFilters()
+    resetLocalFilters()
+    setSearchTerm("")
+  }
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+    } else {
+      setSortField(field)
+      setSortDirection("desc")
+    }
+  }
+
+  const handleRefreshData = () => {
+    if (token) {
+      refreshSheetData(token)
+      loadCostsFromBackend() // Also refresh cost data
+      toast({
+        title: "Refreshing data",
+        description: "Fetching the latest data from your sheet and costs.",
+      })
+    }
+  }
+
+  const formatNumber = (value) => {
+    return `$${Number(value).toFixed(2)}`
+  }
+
+  const getDateRangeText = () => {
+    if (filters?.startDate && filters?.endDate) {
+      return `${format(new Date(filters.startDate), "MMM dd")} - ${format(new Date(filters.endDate), "MMM dd")}`
+    } else if (filters?.startDate) {
+      return format(new Date(filters.startDate), "MMM dd, yyyy")
+    } else {
+      return "Today"
+    }
+  }
+
+  const scrollToBulkDelete = () => {
+    if (bulkDeleteRef.current) {
+      bulkDeleteRef.current.scrollIntoView({ behavior: "smooth" })
+    }
+  }
+
+  // Context hooks
+  const { toast } = useToast()
+  const { token } = useAuth()
+  const { user } = useAuth()
+  const { sheetData, loadingSheetData, errorSheetData, refreshSheetData } = useSheetData()
+  const { filters, updateFilter, resetFilters } = useFilters()
+  const { formatCurrency } = useApp()
+  const { statusConfig } = useStatusConfig()
+
+  // State declarations
+  const [searchTerm, setSearchTerm] = useState("")
+  const [productCosts, setProductCosts] = useState({})
+  const [adCostsByDate, setAdCostsByDate] = useState({})
+  const [loadingCosts, setLoadingCosts] = useState(false)
+  const [savingCosts, setSavingCosts] = useState(false)
+  const [deletingCosts, setDeletingCosts] = useState(false)
+  const [sortField, setSortField] = useState("totalOrders")
+  const [sortDirection, setSortDirection] = useState("desc")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [localFilters, setLocalFilters] = useState({
+    minAmount: "",
+    maxAmount: "",
+  })
+  const [showFilters, setShowFilters] = useState(false)
+  const [availableCountries, setAvailableCountries] = useState([])
+  const [availableCities, setAvailableCities] = useState([])
+  const [saveTimeouts, setSaveTimeouts] = useState({})
+
+  // Refs
+  const bulkDeleteRef = useRef(null)
+
+  // Load costs from backend
+  const loadCostsFromBackend = async () => {
+    if (!token) return
+
+    setLoadingCosts(true)
+    try {
+      const data = await fetchCosts(token)
+      setProductCosts(data.productCosts || {})
+      setAdCostsByDate(data.adCostsByDate || {})
+    } catch (error) {
+      console.error("Error loading costs:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load cost data from server",
+        variant: "destructive",
+      })
+    } finally {
+      setLoadingCosts(false)
+    }
+  }
+
+  // Memoized values
+  const deliveredOrders = useMemo(() => {
+    if (!sheetData || !sheetData.length) return []
+
+    return sheetData.filter((order) => {
+      const status = order["STATUS"] || ""
+      return matchesStatus(status, statusConfig.delivery)
+    })
+  }, [sheetData, statusConfig])
+
+  const allOrdersByProduct = useMemo(() => {
+    if (!sheetData || !sheetData.length) return {}
+    const map = {}
+    sheetData.forEach((order) => {
+      const product = order["Product Name"] || order["sku number"] || order["product"]
+      if (!product) return
+      if (!map[product]) map[product] = 0
+      map[product] += 1
+    })
+    return map
+  }, [sheetData])
+
   const agents = useMemo(() => {
     if (!deliveredOrders.length) return []
     const uniqueAgents = [...new Set(deliveredOrders.map((order) => order["Agent"]).filter(Boolean))]
     return uniqueAgents.sort()
   }, [deliveredOrders])
 
-  // Process data with only delivered orders
   const processedData = useMemo(() => {
     if (!deliveredOrders.length) return []
 
@@ -471,7 +490,7 @@ export default function AdsStatsPage() {
       if (!productMap.has(product)) {
         productMap.set(product, {
           productName: product,
-          totalOrders: 0, // will be replaced below
+          totalOrders: 0,
           totalAmount: 0,
           orderAmounts: [],
           totalQuantity: 0,
@@ -488,7 +507,6 @@ export default function AdsStatsPage() {
       const amount = extractAmount(order)
       if (amount) {
         productData.totalAmount += amount
-        // Add this order's amount to the array for averaging later
         productData.orderAmounts.push(amount)
       }
     })
@@ -498,7 +516,6 @@ export default function AdsStatsPage() {
       product.totalOrders = allOrdersByProduct[productName] || 0
       // Calculate average selling price for each product
       if (product.orderAmounts.length > 0) {
-        // Calculate average selling price from delivered orders
         product.sellingPrice =
           product.orderAmounts.reduce((sum, amount) => sum + amount, 0) / product.orderAmounts.length
       } else {
@@ -543,111 +560,7 @@ export default function AdsStatsPage() {
     return result
   }, [deliveredOrders, searchTerm, filters, localFilters, sortField, sortDirection, allOrdersByProduct])
 
-  const handleCostChange = (productName, value) => {
-    setCostPrice(productName, value)
-  }
-
-  const handleAdCostChange = (platform, productName, value) => {
-    setAdCost(productName, platform, value)
-  }
-
-  // Calculate total ad cost for a product considering date filters
-  const calculateTotalAdCost = (productName) => {
-    const fbCost = Number.parseFloat(getAdCost(productName, "fb") || 0)
-    const ttCost = Number.parseFloat(getAdCost(productName, "tt") || 0)
-    const googleCost = Number.parseFloat(getAdCost(productName, "google") || 0)
-    const xCost = Number.parseFloat(getAdCost(productName, "x") || 0)
-    const snapCost = Number.parseFloat(getAdCost(productName, "snap") || 0)
-
-    return fbCost + ttCost + googleCost + xCost + snapCost
-  }
-
-  // Calculate average cost per order
-  const calculateAverageCost = (product) => {
-    const totalAdCost = calculateTotalAdCost(product.productName)
-    return product.totalOrders > 0 ? totalAdCost / product.totalOrders : 0
-  }
-
-  // Calculate total cost with new formula
-  const calculateTotalCost = (product) => {
-    const costPrice = Number.parseFloat(getCostPrice(product.productName) || 0)
-    const avgCost = calculateAverageCost(product)
-
-    // New formula: (avg cost * total orders) + (cost price * total qty)
-    return avgCost * product.totalOrders + costPrice * product.totalQuantity
-  }
-
-  // Updated export function with new columns
-  const handleExport = () => {
-    if (!processedData.length) return
-
-    // Create CSV content
-    let csvContent = "data:text/csv;charset=utf-8,"
-
-    // Add headers with new columns
-    csvContent +=
-      "Product Name,Total Orders,Total Quantity,Selling Price,Total Amount,AD FB,AD TT,AD GOOGLE,AD X,AD SNAP,Cost Price,Average Cost,Total Cost\n"
-
-    // Add data rows with new columns
-    processedData.forEach((product) => {
-      const fbCost = Number.parseFloat(getAdCost(product.productName, "fb") || 0)
-      const ttCost = Number.parseFloat(getAdCost(product.productName, "tt") || 0)
-      const googleCost = Number.parseFloat(getAdCost(product.productName, "google") || 0)
-      const xCost = Number.parseFloat(getAdCost(product.productName, "x") || 0)
-      const snapCost = Number.parseFloat(getAdCost(product.productName, "snap") || 0)
-      const costPrice = Number.parseFloat(getCostPrice(product.productName) || 0)
-      const avgCost = calculateAverageCost(product)
-      const totalCost = calculateTotalCost(product)
-
-      csvContent += `"${product.productName}",${product.totalOrders},${product.totalQuantity},${product.sellingPrice.toFixed(2)},${product.totalAmount.toFixed(2)},${fbCost.toFixed(2)},${ttCost.toFixed(2)},${googleCost.toFixed(2)},${xCost.toFixed(2)},${snapCost.toFixed(2)},${costPrice.toFixed(2)},${avgCost.toFixed(2)},${totalCost.toFixed(2)}\n`
-    })
-
-    // Create download link
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement("a")
-    link.setAttribute("href", encodedUri)
-    link.setAttribute("download", `delivered-products-analysis-${new Date().toISOString().split("T")[0]}.csv`)
-    document.body.appendChild(link)
-
-    // Trigger download
-    link.click()
-    document.body.removeChild(link)
-  }
-
-  // Update the resetLocalFilters function to use the shared resetAllFilters
-  const resetLocalFilters = () => {
-    setLocalFilters({
-      minAmount: "",
-      maxAmount: "",
-    })
-  }
-
-  // Update the handleResetAllFilters function to use the shared resetAllFilters
-  const handleResetAllFilters = () => {
-    resetFilters()
-    resetLocalFilters()
-    setSearchTerm("")
-  }
-
-  // Handle sorting
-  const handleSort = (field) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
-    } else {
-      setSortField(field)
-      setSortDirection("desc")
-    }
-  }
-
-  // Calculate pagination
-  const indexOfLastItem = currentPage * rowsPerPage
-  const indexOfFirstItem = indexOfLastItem - rowsPerPage
-  const currentItems = processedData.slice(indexOfFirstItem, indexOfLastItem)
-  const totalPages = Math.ceil(processedData.length / rowsPerPage)
-
-  // Calculate totals with updated metrics
   const totals = useMemo(() => {
-    // Use all sheetData for totalOrders, not just delivered
     const totalOrders = sheetData ? sheetData.length : 0
 
     if (!processedData.length)
@@ -705,42 +618,90 @@ export default function AdsStatsPage() {
     }
   }, [processedData, adCostsByDate, productCosts, sheetData, filters])
 
-  // Handle refresh data
-  const handleRefreshData = () => {
+  // Effects
+  useEffect(() => {
     if (token) {
+      loadCostsFromBackend()
+    }
+  }, [token])
+
+  useEffect(() => {
+    if (token && (!sheetData || sheetData.length === 0) && !loadingSheetData) {
       refreshSheetData(token)
-      loadCostsFromBackend() // Also refresh cost data
-      toast({
-        title: "Refreshing data",
-        description: "Fetching the latest data from your sheet and costs.",
+    }
+  }, [token, sheetData, loadingSheetData, refreshSheetData])
+
+  useEffect(() => {
+    if (deliveredOrders.length > 0) {
+      const countries = new Set()
+      const cities = new Set()
+
+      deliveredOrders.forEach((order) => {
+        const country = order["Country"]
+        const city = order["City"]
+
+        if (country) countries.add(country)
+        if (city) cities.add(city)
       })
+
+      setAvailableCountries(Array.from(countries).sort())
+      setAvailableCities(Array.from(cities).sort())
     }
+  }, [deliveredOrders])
+
+  // Check if sheet URL is configured
+  if (!user?.sheetUrl) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md p-6">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold text-center">No Sheet URL Configured</CardTitle>
+            <CardDescription className="text-center">
+              Please configure your Google Sheet URL to view your ads statistics.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <Button asChild>
+              <Link href="/profile?tab=sheet">
+                Configure Sheet URL
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
-  const formatNumber = (value) => {
-    return `$${Number(value).toFixed(2)}`
-  }
-
-  // Get date range display text
-  const getDateRangeText = () => {
-    if (filters.startDate && filters.endDate) {
-      return `${format(new Date(filters.startDate), "MMM dd")} - ${format(new Date(filters.endDate), "MMM dd")}`
-    } else if (filters.startDate) {
-      return format(new Date(filters.startDate), "MMM dd, yyyy")
-    } else {
-      return "Today"
+  // Debounced save function to avoid too many API calls
+  const debouncedSave = (key, saveFunction, delay = 1000) => {
+    // Clear existing timeout for this key
+    if (saveTimeouts[key]) {
+      clearTimeout(saveTimeouts[key])
     }
+
+    // Set new timeout
+    const timeoutId = setTimeout(async () => {
+      setSavingCosts(true)
+      try {
+        await saveFunction()
+      } catch (error) {
+        // Error already handled in saveFunction
+      } finally {
+        setSavingCosts(false)
+      }
+    }, delay)
+
+    setSaveTimeouts((prev) => ({
+      ...prev,
+      [key]: timeoutId,
+    }))
   }
 
-  // Ref for Delete Actions card
-  const bulkDeleteRef = useRef(null)
-
-  // Scroll to Delete Actions card
-  const scrollToBulkDelete = () => {
-    if (bulkDeleteRef.current) {
-      bulkDeleteRef.current.scrollIntoView({ behavior: "smooth" })
-    }
-  }
+  // Calculate pagination
+  const indexOfLastItem = currentPage * rowsPerPage
+  const indexOfFirstItem = indexOfLastItem - rowsPerPage
+  const currentItems = processedData.slice(indexOfFirstItem, indexOfLastItem)
+  const totalPages = Math.ceil(processedData.length / rowsPerPage)
 
   if (loadingSheetData || loadingCosts) {
     return (
@@ -810,7 +771,6 @@ export default function AdsStatsPage() {
           </Button>
         </div>
       </div>
-
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
@@ -1152,6 +1112,9 @@ export default function AdsStatsPage() {
                       <TableHead className="hover:bg-zinc-200  duration-200 text-center min-w-[140px]">
                         Total Cost
                       </TableHead>
+                      <TableHead className="hover:bg-zinc-200  duration-200 text-center min-w-[140px]">
+                        Profit
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1165,6 +1128,7 @@ export default function AdsStatsPage() {
                         const costPrice = getCostPrice(product.productName)
                         const avgCost = calculateAverageCost(product)
                         const totalCost = calculateTotalCost(product)
+                        const profit = product.totalAmount - totalCost
 
                         return (
                           <TableRow key={product.productName} className="text-center">
@@ -1255,12 +1219,15 @@ export default function AdsStatsPage() {
                             </TableCell>
                             <TableCell className="text-center">{formatNumber(avgCost)}</TableCell>
                             <TableCell className="text-center">{formatNumber(totalCost)}</TableCell>
+                            <TableCell className={`text-center ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {formatNumber(profit)}
+                            </TableCell>
                           </TableRow>
                         )
                       })
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={13} className="h-24 text-center">
+                        <TableCell colSpan={14} className="h-24 text-center">
                           {processedData.length === 0 ? (
                             <div className="flex flex-col items-center justify-center">
                               <p className="text-muted-foreground">No delivered products found</p>
@@ -1303,6 +1270,9 @@ export default function AdsStatsPage() {
                         <TableCell className="text-center">-</TableCell>
                         <TableCell className="text-center">-</TableCell>
                         <TableCell className="text-center">{formatNumber(totals.totalCost)}</TableCell>
+                        <TableCell className={`text-center ${totals.totalAmount - totals.totalCost >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatNumber(totals.totalAmount - totals.totalCost)}
+                        </TableCell>
                       </TableRow>
                     )}
                   </TableBody>
