@@ -17,6 +17,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { format } from "date-fns"
 import { fetchAllUsers, fetchUser, updateUser, deleteUser, fetchUserSheetData } from "@/lib/api-admin"
 import Link from "next/link"
+import { Switch } from "@/components/ui/switch"
 
 
 export default function AdminDashboard() {
@@ -38,9 +39,11 @@ export default function AdminDashboard() {
     password: "",
     role: "sub-admin",
     sheetUrl: "",
+    isActive: true
   })
   const [roleFilter, setRoleFilter] = useState("all"); // default to "all"
   const [hasSheetFilter, setHasSheetFilter] = useState("all"); // "all" | "has" | "no"
+  const [statusFilter, setStatusFilter] = useState("all"); // "all" | "active" | "inactive"
 
   // Check if current user is admin
   const isAdmin = user?.role === "admin"
@@ -55,13 +58,18 @@ export default function AdminDashboard() {
     setLoading(true)
     try {
       const data = await fetchAllUsers(token)
+      if (!data || !data.users) {
+        throw new Error("Invalid response from server")
+      }
       setUsers(data.users || [])
     } catch (error) {
+      console.error("Error loading users:", error)
       toast({
         title: "Error",
         description: error.message || "Failed to load users",
         variant: "destructive",
       })
+      setUsers([]) // Reset users array on error
     } finally {
       setLoading(false)
     }
@@ -100,7 +108,10 @@ export default function AdminDashboard() {
   }
 
   const handleEditUser = (user) => {
-    setEditingUser({ ...user })
+    setEditingUser({ 
+      ...user,
+      isActive: user.isActive ?? true // Ensure isActive is always a boolean
+    })
   }
 
   const handleUpdateUser = async () => {
@@ -108,7 +119,10 @@ export default function AdminDashboard() {
 
     try {
       const { _id, createdAt, updatedAt, ...updateData } = editingUser
-      const result = await updateUser(token, editingUser._id, updateData)
+      const result = await updateUser(token, editingUser._id, {
+        ...updateData,
+        isActive: Boolean(editingUser.isActive) // Ensure isActive is a boolean
+      })
 
       toast({
         title: "Success",
@@ -137,14 +151,19 @@ export default function AdminDashboard() {
     }
 
     try {
-      await deleteUser(token, userId)
+      const result = await deleteUser(token, userId)
+
+      if (!result.success) {
+        throw new Error(result.message || "Failed to delete user")
+      }
 
       toast({
         title: "Success",
-        description: "User deleted successfully",
+        description: result.message || "User deleted successfully",
       })
 
-      loadUsers()
+      // Remove the deleted user from the list
+      setUsers(users.filter(user => user._id !== userId))
 
       // If we're viewing this user's details, close the dialog
       if (selectedUser && selectedUser._id === userId) {
@@ -164,7 +183,10 @@ export default function AdminDashboard() {
   const handleCreateUser = async () => {
     try {
       // Use the existing adminSignup function from auth context
-      const result = await adminSignup(newUser)
+      const result = await adminSignup({
+        ...newUser,
+        isActive: true // Ensure new users are active by default
+      })
 
       if (!result.success) {
         throw new Error(result.error || "Failed to create user")
@@ -182,12 +204,39 @@ export default function AdminDashboard() {
         password: "",
         role: "sub-admin",
         sheetUrl: "",
+        isActive: true
       })
       loadUsers()
     } catch (error) {
       toast({
         title: "Error",
         description: error.message || "Failed to create user",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleToggleActive = async (userId, currentStatus) => {
+    try {
+      const result = await updateUser(token, userId, {
+        isActive: !currentStatus
+      })
+
+      toast({
+        title: "Success",
+        description: `User ${!currentStatus ? 'activated' : 'deactivated'} successfully`,
+      })
+
+      loadUsers()
+
+      // If we're viewing this user's details, update the selected user
+      if (selectedUser && selectedUser._id === userId) {
+        setSelectedUser(result.user)
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update user status",
         variant: "destructive",
       })
     }
@@ -202,7 +251,12 @@ export default function AdminDashboard() {
         ? true
         : hasSheetFilter === "has"
         ? !!user.sheetUrl
-        : !user.sheetUrl)
+        : !user.sheetUrl) &&
+      (statusFilter === "all"
+        ? true
+        : statusFilter === "active"
+        ? user.isActive
+        : !user.isActive)
   );
 
   const formatDate = (dateString) => {
@@ -309,9 +363,9 @@ export default function AdminDashboard() {
         <CardHeader>
           <CardTitle>Users Management</CardTitle>
           <CardDescription>View and manage all users in the system</CardDescription>
-          <div className="flex flex-wrap items-center space-x-2 mt-4 gap-2">
+          <div className="flex flex-wrap items-center space-x-1 mt-4 gap-1">
             <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-2.5 top-4 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search users..."
                 value={searchTerm}
@@ -331,6 +385,20 @@ export default function AdminDashboard() {
                 <SelectItem value="all">All Roles</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="sub-admin">Sub-Admin</SelectItem>
+              </SelectContent>
+            </Select>
+            {/* Status Filter */}
+            <Select
+              value={statusFilter}
+              onValueChange={setStatusFilter}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
             {/* Has Sheet Filter */}
@@ -382,9 +450,10 @@ export default function AdminDashboard() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-zinc-100 rounded-md dark:bg-zinc-900 ">
+                  <TableRow className="bg-zinc-100 rounded-md dark:bg-zinc-900">
                     <TableHead className="text-center">User</TableHead>
                     <TableHead className="text-center">Role</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
                     <TableHead className="text-center">Sheet URL</TableHead>
                     <TableHead className="text-center">Created</TableHead>
                     <TableHead className="text-center">Actions</TableHead>
@@ -411,11 +480,31 @@ export default function AdminDashboard() {
                           <Badge variant={getRoleBadgeVariant(user.role)} className={user.role === "admin" ? "bg-mainColor" : ""}>{user.role}</Badge>
                         </TableCell>
                         <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Switch
+                              checked={user.isActive}
+                              onCheckedChange={() => handleToggleActive(user._id, user.isActive)}
+                              className="data-[state=checked]:bg-green-600"
+                            />
+                            <span className="text-sm text-muted-foreground">
+                              {user.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
                           <div className="max-w-[200px] truncate">
                             {user.sheetUrl ? (
-                              <span className="text-sm text-green-600">Has sheet URL</span>
+                              <Link
+                                href={user.sheetUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-blue-500 hover:text-blue-600"
+                              >
+                                <FileSpreadsheet className="h-4 w-4" />
+                                View Sheet
+                              </Link>
                             ) : (
-                              <span className="text-sm text-muted-foreground">No sheet URL</span>
+                              <span className="text-sm text-muted-foreground">No sheet</span>
                             )}
                           </div>
                         </TableCell>
@@ -445,7 +534,7 @@ export default function AdminDashboard() {
                               variant="outline"
                               size="sm"
                               onClick={() => handleDeleteUser(user._id, user.username)}
-                              className="hover:text-white"
+                              className="hover:text-white hover:bg-red-500"
                               title="Delete User"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -456,7 +545,7 @@ export default function AdminDashboard() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8">
+                      <TableCell colSpan={6} className="text-center py-8">
                         {searchTerm ? "No users found matching your search" : "No users found"}
                       </TableCell>
                     </TableRow>
@@ -476,7 +565,7 @@ export default function AdminDashboard() {
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <label className="text-sm font-medium">Username</label>
+              <label className="text-sm font-medium">Username <span className="text-red-500">*</span></label>
               <Input
                 value={newUser.username}
                 onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
@@ -484,7 +573,7 @@ export default function AdminDashboard() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Email</label>
+              <label className="text-sm font-medium">Email <span className="text-red-500">*</span></label>
               <Input
                 type="email"
                 value={newUser.email}
@@ -493,7 +582,7 @@ export default function AdminDashboard() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Password</label>
+              <label className="text-sm font-medium">Password <span className="text-red-500">*</span></label>
               <Input
                 type="password"
                 value={newUser.password}
@@ -502,7 +591,7 @@ export default function AdminDashboard() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Sheet URL</label>
+              <label className="text-sm font-medium">Sheet URL (Optional)</label>
               <Input
                 value={newUser.sheetUrl}
                 onChange={(e) => setNewUser({ ...newUser, sheetUrl: e.target.value })}
@@ -510,7 +599,7 @@ export default function AdminDashboard() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Role</label>
+              <label className="text-sm font-medium">Role <span className="text-red-500">*</span></label>
               <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })}>
                 <SelectTrigger>
                   <SelectValue />
@@ -596,7 +685,7 @@ export default function AdminDashboard() {
           </DialogHeader>
           {selectedUser && (
             <Tabs defaultValue="info" className="w-full">
-              <TabsList className="grid m-auto w-full sm:w-[90%] grid-cols-2">
+              <TabsList className="grid m-auto w-full grid-cols-2">
                 <TabsTrigger
                   value="info"
                   className="rounded-t-md border-b-2 border-transparent data-[state=active]:border-mainColor data-[state=active]:bg-zinc-50 dark:data-[state=active]:bg-zinc-900 transition"
@@ -636,6 +725,19 @@ export default function AdminDashboard() {
                       <div>
                         <label className="text-md font-medium text-muted-foreground">Created</label>
                         <p className="text-sm">{formatDate(selectedUser.createdAt)}</p>
+                      </div>
+                      <div>
+                        <label className="text-md font-medium text-muted-foreground">Status</label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Switch
+                            checked={selectedUser.isActive}
+                            onCheckedChange={() => handleToggleActive(selectedUser._id, selectedUser.isActive)}
+                            className="data-[state=checked]:bg-green-500"
+                          />
+                          <span className="text-sm text-muted-foreground">
+                            {selectedUser.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
                       </div>
                     </div>
                     {selectedUser.sheetUrl ? (
