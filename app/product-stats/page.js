@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { format } from "date-fns"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -30,6 +30,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
+import Link from "next/link"
 
 export default function ProductStatsPage() {
   const [showFilters, setShowFilters] = useState(false)
@@ -38,7 +39,7 @@ export default function ProductStatsPage() {
   const [rowsPerPage, setRowsPerPage] = useState(20)
   const [currentPage, setCurrentPage] = useState(1)
   const isMobile = useMobile()
-  const { token } = useAuth()
+  const { token, user } = useAuth()
   const { statusConfig } = useStatusConfig()
   const { filters, updateFilter, resetFilters } = useFilters()
   const { sheetData: orders, loadingSheetData: loading, errorSheetData: error, refreshSheetData } = useSheetData()
@@ -367,6 +368,29 @@ export default function ProductStatsPage() {
       await refreshSheetData(token)
     }
   }, [token, refreshSheetData])
+
+  // Render sheet configuration message if no sheet URL is configured
+  if (!user?.sheetUrl) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md p-6">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold text-center">No Sheet URL Configured</CardTitle>
+            <CardDescription className="text-center">
+              Please configure your Google Sheet URL to view product statistics.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <Button asChild>
+              <Link href="/profile?tab=sheet">
+                Configure Sheet URL
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   // Render loading state
   if (loading) {

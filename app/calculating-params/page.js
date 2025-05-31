@@ -23,6 +23,7 @@ import {
   BarChart3Icon,
 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import Link from "next/link"
 
 export default function SettingsPage() {
   const { toast } = useToast()
@@ -276,6 +277,29 @@ export default function SettingsPage() {
 
     return allCountries.filter((country) => country.toLowerCase().includes(searchQuery.toLowerCase()))
   }, [allCountries, searchQuery])
+
+  // Render sheet configuration message if no sheet URL is configured
+  if (!user?.sheetUrl) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md p-6">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold text-center">No Sheet URL Configured</CardTitle>
+            <CardDescription className="text-center">
+              Please configure your Google Sheet URL to view calculating parameters.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <Button asChild>
+              <Link href="/profile?tab=sheet">
+                Configure Sheet URL
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   if (authLoading || loadingSheetData) {
     return (

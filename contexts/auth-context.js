@@ -54,6 +54,26 @@ export function AuthProvider({ children }) {
     initAuth()
   }, [])
 
+  // Update user data on page change
+  useEffect(() => {
+    const updateUserData = async () => {
+      if (token && !isLoading) {
+        try {
+          const userData = await fetchUserProfile(token)
+          setUser(userData)
+        } catch (error) {
+          console.error("Error updating user data:", error)
+          // If token is invalid, logout
+          if (error.message === "Failed to fetch user profile") {
+            logout()
+          }
+        }
+      }
+    }
+
+    updateUserData()
+  }, [pathname, token])
+
   // Redirect to login if not authenticated and not on login page
   useEffect(() => {
     if (!isLoading && !token && pathname !== "/login" && pathname !== "/signup") {
@@ -63,22 +83,24 @@ export function AuthProvider({ children }) {
 
   // Fetch user profile
   const fetchUserProfile = async (authToken) => {
-    const response = await fetch(`${API_URL}/auth/profile`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-        "Content-Type": "application/json",
-      },
-    })
+    try {
+      const response = await fetch(`${API_URL}/auth/profile`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          "Content-Type": "application/json",
+        },
+      })
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch user profile")
-    }
+      if (!response.ok) {
+        throw new Error("Failed to fetch user profile")
+      }
 
-    const data = await response.json()
-    return data.user
-    if (!data.user.sheetUrl) {
-      router.push("/settings-sheet")
+      const data = await response.json()
+      return data.user
+    } catch (error) {
+      console.error("Error fetching user profile:", error)
+      throw error
     }
   }
 
@@ -108,7 +130,11 @@ export function AuthProvider({ children }) {
       setToken(data.token)
       setUser(data.user)
 
-      return { success: true }
+      return { 
+        success: true, 
+        user: data.user,
+        token: data.token 
+      }
     } catch (error) {
       console.error("Login error:", error)
       return { success: false, error: error.message }

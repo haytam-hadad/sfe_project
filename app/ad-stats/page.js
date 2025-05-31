@@ -33,14 +33,39 @@ import { useAuth } from "@/contexts/auth-context"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { matchesStatus } from "@/lib/constants"
 import { fetchCosts, updateProductCost, updateAdCost, deleteAllProductCosts, deleteAllAdCosts } from "@/lib/api-client"
+import Link from "next/link"
 
 export default function AdsStatsPage() {
   const { toast } = useToast()
   const { token } = useAuth()
+  const { user } = useAuth()
   const { sheetData, loadingSheetData, errorSheetData, refreshSheetData } = useSheetData()
   const { filters, updateFilter, resetFilters } = useFilters()
   const { formatCurrency } = useApp()
   const { statusConfig } = useStatusConfig()
+
+  // Check if sheet URL is configured
+  if (!user?.sheetUrl) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md p-6">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold text-center">No Sheet URL Configured</CardTitle>
+            <CardDescription className="text-center">
+              Please configure your Google Sheet URL to view your ads statistics.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <Button asChild>
+              <Link href="/profile?tab=sheet">
+                Configure Sheet URL
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   const [searchTerm, setSearchTerm] = useState("")
 

@@ -57,11 +57,16 @@ export default function LoginPage() {
       const result = await login(email, password, rememberMe)
 
       if (result.success) {
-        // Check if user is admin
-        if (result.user && result.user.role === "admin") {
+        // Check user role and redirect accordingly
+        if (result.user?.role === "admin") {
           router.push("/admin")
         } else {
-          router.push("/")
+          // For non-admin users, check if they have a sheet URL
+          if (!result.user?.sheetUrl) {
+            router.push("/settings-sheet")
+          } else {
+            router.push("/")
+          }
         }
       } else {
         setError(result.error || "Invalid email or password. Please try again.")

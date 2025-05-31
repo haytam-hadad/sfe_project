@@ -54,6 +54,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { fetchMySheetData } from "@/lib/api-client"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useSheetData } from "@/contexts/app-context"
+import Link from "next/link"
 
 export default function Page() {
   const [activeTab, setActiveTab] = useState("overview")
@@ -552,11 +553,25 @@ export default function Page() {
   }
 
   // Render sheet configuration message if no sheet URL is configured
-  if (!isSheetConfigured) {
+  if (!user?.sheetUrl) {
     return (
-        <div className="flex items-center justify-center min-h-screen">
-          <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md p-6">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold text-center">No Sheet URL Configured</CardTitle>
+            <CardDescription className="text-center">
+              Please configure your Google Sheet URL to view your dashboard data.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <Button asChild>
+              <Link href="/profile?tab=sheet">
+                Configure Sheet URL
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 

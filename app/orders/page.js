@@ -49,6 +49,8 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import Link from "next/link"
 
 export default function OrdersDashboard() {
   // State management
@@ -56,7 +58,7 @@ export default function OrdersDashboard() {
   const [showOrderDetails, setShowOrderDetails] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const isMobile = useMobile()
-  const { token } = useAuth()
+  const { token, user } = useAuth()
   const { filters, updateFilter, resetFilters } = useFilters()
   const { sheetData: orders, loadingSheetData: loading, errorSheetData: error, refreshSheetData } = useSheetData()
   const { formatCurrency, getCountryRate } = useApp()
@@ -85,6 +87,29 @@ export default function OrdersDashboard() {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(20)
+
+  // Sheet URL check and card
+  if (!user?.sheetUrl) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md p-6">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold text-center">No Sheet URL Configured</CardTitle>
+            <CardDescription className="text-center">
+              Please configure your Google Sheet URL to view your orders.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <Button asChild>
+              <Link href="/profile?tab=sheet">
+                Configure Sheet URL
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   // Dynamically extract unique Source Traffic options from orders
   const sourceTrafficOptions = useMemo(() => {

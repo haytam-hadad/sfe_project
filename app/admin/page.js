@@ -295,7 +295,7 @@ export default function AdminDashboard() {
   const formatDate = (dateString) => {
     if (!dateString) return "N/A"
     try {
-      return format(new Date(dateString), "MMM dd, yyyy")
+      return format(new Date(dateString), "MMM dd, yyyy 'at' hh:mm a")
     } catch (error) {
       return dateString
     }
@@ -489,6 +489,7 @@ export default function AdminDashboard() {
                     <TableHead className="text-center">Status</TableHead>
                     <TableHead className="text-center">Sheet URL</TableHead>
                     <TableHead className="text-center">Created</TableHead>
+                    <TableHead className="text-center">Last Activity</TableHead>
                     <TableHead className="text-center">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -544,6 +545,7 @@ export default function AdminDashboard() {
                           </div>
                         </TableCell>
                         <TableCell>{formatDate(user.createdAt)}</TableCell>
+                        <TableCell>{formatDate(user.lastActivity)}</TableCell>
                         <TableCell className="text-center">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -779,6 +781,10 @@ export default function AdminDashboard() {
                       <div>
                         <label className="text-md font-medium text-muted-foreground">Created</label>
                         <p className="text-sm">{formatDate(selectedUser.createdAt)}</p>
+                      </div>
+                      <div>
+                        <label className="text-md font-medium text-muted-foreground">Last Activity</label>
+                        <p className="text-sm">{formatDate(selectedUser.lastActivity)}</p>
                       </div>
                       <div>
                         <label className="text-md font-medium text-muted-foreground">Status</label>
