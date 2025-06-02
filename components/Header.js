@@ -37,13 +37,13 @@ export default function AdminHeader({ onToggleMenu }) {
   return (
     <header className="fixed left-0 right-0 top-0 z-50 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 shadow-sm">
       <div className="max-w-full mx-auto px-3 sm:px-5">
-        <div className="flex items-center justify-between py-3">
+        <div className="flex items-center justify-between py-2.5">
          {/* Logo Section */}
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-1 lg:gap-2 group">
               <Image
                 src="/images/logo.svg"
                 alt="Logo"
-                className="w-10 h-10"
+                className="w-11 h-11"
                 width={24}
                 height={24}
               />
@@ -51,7 +51,7 @@ export default function AdminHeader({ onToggleMenu }) {
               <span className="text-xl font-bold">
                 Ecomark
               </span>
-              <span className="text-xs text-zinc-500 dark:text-zinc-400 hidden sm:block">Analytics Dashboard</span>
+              <span className="text-sm text-zinc-500 dark:text-zinc-400" style={{marginTop: '-4px'}}>Dashboard</span>
             </div>
           </Link>
 
