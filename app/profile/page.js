@@ -506,8 +506,8 @@ export default function ProfilePage() {
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <Label className="text-sm text-muted-foreground">Current Sheet URL</Label>
-                    <div className="flex items-center gap-2 p-3 border bg-muted/50 rounded-md">
-                      <FileSpreadsheet className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <div className="flex items-center gap-3 p-3 border-2 border-mainColor rounded-md">
+                      <FileSpreadsheet className="h-6 w-6 text-mainColor flex-shrink-0" />
                       <span className="font-medium break-all">{user?.sheetUrl || "No sheet URL set"}</span>
                     </div>
                   </div>
@@ -526,7 +526,7 @@ export default function ProfilePage() {
                     </ul>
                   </div>
 
-                  <Button onClick={() => setIsEditingSheet(true)} variant="outline" className="w-full sm:w-auto">
+                  <Button onClick={() => setIsEditingSheet(true)} className="w-full sm:w-auto">
                     Update Sheet URL
                   </Button>
                 </div>
